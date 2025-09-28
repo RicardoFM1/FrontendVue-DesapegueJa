@@ -52,7 +52,9 @@
 
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
+import 'vue3-toastify/dist/index.css'
+import { toast } from "vue3-toastify/dist/index";
 
 const usuario = ref({
     email: "",
@@ -67,7 +69,8 @@ const onSubmit = async() => {
    try{
         setTimeout(() => {
             console.log("Cadastrado!")
-        }, 1000);
+            toast.success("Cadastro realizado com sucesso!", {autoClose: 2000})
+        }, 2000);
     }
     catch(err){
         console.log("Erro ao cadastrar", err)

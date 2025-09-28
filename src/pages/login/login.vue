@@ -40,6 +40,8 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import 'vue3-toastify/dist/index.css'
+import { toast } from "vue3-toastify/dist/index";
 
 const usuario = ref({
     email: "",
@@ -52,11 +54,12 @@ const onSubmit = async() => {
    loading.value = true
    try{
         setTimeout(() => {
-            console.log("Cadastrado!")
-        }, 1000);
+            console.log("Logado!")
+            toast.success("Login realizado com sucesso!", {autoClose: 2000})
+        }, 2000);
     }
     catch(err){
-        console.log("Erro ao cadastrar", err)
+        console.log("Erro ao fazer login", err)
     }finally{
         setTimeout(() => {
             loading.value = false
@@ -65,8 +68,7 @@ const onSubmit = async() => {
 }
 
 const disabled = computed(() => {
-if(usuario.value.email === "" || usuario.value.senha === "" || 
-  usuario.value.confirmSenha != usuario.value.senha){
+if(usuario.value.email === "" || usuario.value.senha === ""){
       return true
   }
   
