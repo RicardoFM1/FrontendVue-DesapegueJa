@@ -1,5 +1,78 @@
 <template>
-<div>
-    <p>Login</p>
+<div class="fundoLogin">
+    
+        <div class="divFormLogin">
+            <v-sheet style="display: flex; border-radius: 10px;
+                justify-content: center; flex-direction: column; width: 25%; height: 60%;
+                "  class="sheetLogin">
+                <v-sheet style="position: absolute; top: 18%; background-color: #e3e3e3;
+                padding: 4px 48px 4px 48px; border-radius: 6px; border: 2px solid #767676;
+                ">
+                    Login
+                </v-sheet>
+                <v-form class="formLogin" ref="form" style="width: 100%;" 
+                
+                @submit.prevent="onSubmit">
+                    
+                    <v-text-field
+                    label="Email"
+                    v-model="usuario.email"
+                    type="email"
+                    base-color="#293559"
+                    >
+                    </v-text-field>
+                    <v-text-field
+                    label="Senha"
+                    v-model="usuario.senha"
+                    type="password"
+                    base-color="#293559"
+                    >
+                    
+                </v-text-field>
+                <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Fazer login</v-btn>
+                
+                </v-form>
+            </v-sheet>
+    
+    </div>
 </div>
 </template>
+
+<script setup>
+import { ref, computed } from "vue";
+
+const usuario = ref({
+    email: "",
+    senha: ""
+})
+const loading = ref(false)
+
+const onSubmit = async() => {
+ 
+   loading.value = true
+   try{
+        setTimeout(() => {
+            console.log("Cadastrado!")
+        }, 1000);
+    }
+    catch(err){
+        console.log("Erro ao cadastrar", err)
+    }finally{
+        setTimeout(() => {
+            loading.value = false
+        }, 2000);
+    }    
+}
+
+const disabled = computed(() => {
+if(usuario.value.email === "" || usuario.value.senha === "" || 
+  usuario.value.confirmSenha != usuario.value.senha){
+      return true
+  }
+  
+});
+</script>
+
+<style>
+@import "../css/paginasLogineCadastro/logineCadastro.css"
+</style>

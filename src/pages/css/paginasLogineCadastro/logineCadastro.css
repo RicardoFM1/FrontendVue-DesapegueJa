@@ -5,13 +5,13 @@
 }
 
 
-.fundoCadastro{
+.fundoCadastro, .fundoLogin{
     background: linear-gradient(to right, #3a4e7b, #191e3b, #3a4e7b);   
     height: 100vh;
     width: 100vw;
 }
 
-.divFormCadastro{
+.divFormCadastro, .divFormLogin{
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,7 +19,7 @@
     height: 100%;
     
 }
-.sheetCadastro{
+.sheetCadastro, .sheetLogin{
     display: flex;
     flex-direction: column;
     background-color: white;

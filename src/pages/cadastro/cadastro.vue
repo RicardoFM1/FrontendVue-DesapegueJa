@@ -10,14 +10,15 @@
                 ">
                     Cadastro
                 </v-sheet>
-                <v-form class="formCadastro" style="width: 100%;" 
+                <v-form class="formCadastro" ref="form" style="width: 100%;" 
                 
-                @submit.prevent>
+                @submit.prevent="onSubmit">
                     
                     <v-text-field
                     label="Email"
                     v-model="usuario.email"
                     type="email"
+                    base-color="#293559"
                     :rules="rulesEmail"
                     >
                     </v-text-field>
@@ -25,6 +26,7 @@
                     label="Senha"
                     v-model="usuario.senha"
                     type="password"
+                    base-color="#293559"
                     :rules="rulesSenha"
                     >
                     
@@ -33,11 +35,14 @@
                 label="Confirmar senha"
                 v-model="usuario.confirmSenha"
                 type="password" 
+                base-color="#293559"
                 :rules="rulesSenhasIguais"
+                
                 >
                     
                 </v-text-field>
-                <v-btn :disabled="disabled" color="black" class="btnCadastrar" type="submit" block>Cadastrar</v-btn>
+                <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Cadastrar</v-btn>
+                
                 </v-form>
             </v-sheet>
     
@@ -47,13 +52,36 @@
 
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 
 const usuario = ref({
     email: "",
     senha: "",
     confirmSenha: ""
 })
+const loading = ref(false)
+
+const onSubmit = async() => {
+ 
+   loading.value = true
+   try{
+        setTimeout(() => {
+            console.log("Cadastrado!")
+        }, 1000);
+    }
+    catch(err){
+        console.log("Erro ao cadastrar", err)
+    }finally{
+        setTimeout(() => {
+            loading.value = false
+        }, 2000);
+    }
+
+
+    
+}
+
+
 
 const rulesEmail = [
     value => !!value || 'Obrigatório preencher!',
@@ -71,18 +99,14 @@ const rulesSenhasIguais = [
     value => value === usuario.value.senha || "As senhas precisam ser iguais!"
 ]
 
-const senhasIguais = computed(() => {
-    if(usuario.value.confirmSenha === usuario.value.senha){
-        return;
-    }
-    else{
-        return "As senhas precisam ser iguais!"
-    }
-})
+
 
 const disabled = computed(() => {
-  return usuario.value.email === "" || usuario.value.senha === "" || 
-  usuario.value.confirmSenha != usuario.value.senha;
+if(usuario.value.email === "" || usuario.value.senha === "" || 
+  usuario.value.confirmSenha != usuario.value.senha){
+      return true
+  }
+  
 });
 
 </script>
@@ -92,5 +116,5 @@ const disabled = computed(() => {
 
 
 <style>
-@import "./cadastro.css"
+@import "../css/paginasLogineCadastro/logineCadastro.css"
 </style>
