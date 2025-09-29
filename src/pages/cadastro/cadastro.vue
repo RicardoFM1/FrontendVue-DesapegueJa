@@ -66,7 +66,7 @@ const loading = ref(false)
 const onSubmit = async() => {
  
    loading.value = true
-   try{
+   try {
         setTimeout(() => {
             console.log("Cadastrado!")
             toast.success("Cadastro realizado com sucesso!", {autoClose: 2000})
@@ -74,6 +74,9 @@ const onSubmit = async() => {
     }
     catch(err){
         console.log("Erro ao cadastrar", err)
+        setTimeout(() => {
+            toast.error(err.response.data.message || "Erro ao cadastrar")
+        }, 2000);
     }finally{
         setTimeout(() => {
             loading.value = false

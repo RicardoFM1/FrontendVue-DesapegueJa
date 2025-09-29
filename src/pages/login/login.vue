@@ -60,6 +60,9 @@ const onSubmit = async() => {
     }
     catch(err){
         console.log("Erro ao fazer login", err)
+        setTimeout(() => {
+            toast.error(err.response.data.message || "Erro ao fazer login")
+        }, 2000);
     }finally{
         setTimeout(() => {
             loading.value = false
