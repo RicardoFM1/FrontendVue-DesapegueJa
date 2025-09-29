@@ -55,6 +55,7 @@
 import { ref, computed } from "vue";
 import 'vue3-toastify/dist/index.css'
 import { toast } from "vue3-toastify/dist/index";
+import { connection } from "@/connection/axiosConnection";
 
 const usuario = ref({
     email: "",
@@ -67,9 +68,19 @@ const onSubmit = async() => {
  
    loading.value = true
    try {
-        setTimeout(() => {
+        setTimeout(async() => {
             console.log("Cadastrado!")
-            toast.success("Cadastro realizado com sucesso!", {autoClose: 2000})
+            const body = ref({
+                email: usuario.value.email,
+                senha: usuario.value.senha
+            })
+            const res = await connection.post("desapega/usuarios", body.value)
+            if(res){
+                toast.success("Cadastro realizado com sucesso!", {autoClose: 2000})
+            }
+            else{
+                toast.error("Não foi possível cadastrar o usuário!", {autoClose: 2000})
+            }
         }, 2000);
     }
     catch(err){
