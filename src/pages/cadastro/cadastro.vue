@@ -81,7 +81,7 @@ const onSubmit = async() => {
             else{
                 toast.error("Não foi possível cadastrar o usuário!", {autoClose: 2000})
             }
-        }, 2000);
+        }, 1500);
     }
     catch(err){
         console.log("Erro ao cadastrar", err)
