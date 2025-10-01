@@ -10,7 +10,8 @@
                 ">
                     Cadastro
                 </v-sheet>
-                <v-form class="formCadastro" ref="form" style="width: 100%;" 
+                <v-form :disabled="loading" class="formCadastro" ref="form" style="width: 100%; 
+                width: 100%; display: flex; flex-direction: column; gap: 12px;" 
                 
                 @submit.prevent="onSubmit">
                     
@@ -42,7 +43,7 @@
                     
                 </v-text-field>
                 <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Cadastrar</v-btn>
-                
+                <router-link to="/login">Já tem uma conta? Faça login</router-link>
                 </v-form>
             </v-sheet>
     
@@ -53,8 +54,8 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import 'vue3-toastify/dist/index.css'
-import { toast } from "vue3-toastify/dist/index";
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 import { connection } from "@/connection/axiosConnection";
 
 const usuario = ref({
@@ -68,30 +69,32 @@ const onSubmit = async() => {
  
    loading.value = true
    try {
-        setTimeout(async() => {
-            console.log("Cadastrado!")
+   
+           
             const body = ref({
                 email: usuario.value.email,
                 senha: usuario.value.senha
             })
             const res = await connection.post("desapega/usuarios", body.value)
-            if(res){
+            console.log("teste", res)
+            if(res.status === 200){
                 toast.success("Cadastro realizado com sucesso!", {autoClose: 2000})
             }
             else{
-                toast.error("Não foi possível cadastrar o usuário!", {autoClose: 2000})
+                toast.error(res.response?.data?.message || "Não foi possível cadastrar o usuário!", {autoClose: 2000})
+              
             }
-        }, 1500);
+      
     }
     catch(err){
         console.log("Erro ao cadastrar", err)
         setTimeout(() => {
-            toast.error(err.response.data.message || "Erro ao cadastrar")
-        }, 2000);
+            toast.error(err.response?.data?.message || "Erro ao cadastrar")
+        }, 1500);
     }finally{
         setTimeout(() => {
             loading.value = false
-        }, 2000);
+        }, 1500);
     }
 
 
@@ -101,19 +104,24 @@ const onSubmit = async() => {
 
 
 const rulesEmail = [
-    value => !!value || 'Obrigatório preencher!',
+    value => !!value || 'Obrigatório preencher',
     value => {
-      const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      return pattern.test(value) || 'E-mail inválido.'
+      const pattern = /^(?=.*[a-z])[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
+      return pattern.test(value) || 'E-mail inválido'
     },
 ]
 const rulesSenha = [
-    value => !!value || "Obrigatório preencher!",
-    value => value && value.length >= 8 || "Mínimo 8 caractéres",
+    value => !!value || "Obrigatório preencher",
+    value => {
+
+        const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+
+        return pattern.test(value) || 'Senha inválida, necessário no mínimo 8 caractéres e conter, pelo menos: 1 número, 1 caractére especial, uma letra e minúscula e uma maiúscula'
+    }
     
 ]
 const rulesSenhasIguais = [
-    value => value === usuario.value.senha || "As senhas precisam ser iguais!"
+    value => value === usuario.value.senha || "As senhas precisam ser iguais"
 ]
 
 
