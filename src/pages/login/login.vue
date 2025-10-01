@@ -10,7 +10,7 @@
                 ">
                     Login
                 </v-sheet>
-                <v-form class="formLogin" ref="form" style="width: 100%;" 
+                <v-form :disabled="loading" class="formLogin" ref="form" style="width: 100%;" 
                 
                 @submit.prevent="onSubmit">
                     
@@ -23,8 +23,10 @@
                     </v-text-field>
                     <v-text-field
                     label="Senha"
+                    :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+                    @click:append-inner="show = !show"
                     v-model="usuario.senha"
-                    type="password"
+                    :type="show ? 'text' : 'password'"
                     base-color="#293559"
                     >
                     
@@ -42,12 +44,15 @@
 import { ref, computed } from "vue";
 import 'vue3-toastify/dist/index.css'
 import { toast } from "vue3-toastify/dist/index";
+import '@mdi/font/css/materialdesignicons.css'
 
 const usuario = ref({
     email: "",
     senha: ""
 })
 const loading = ref(false)
+
+const show = ref(true)
 
 const onSubmit = async() => {
  
