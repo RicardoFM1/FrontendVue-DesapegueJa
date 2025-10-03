@@ -80,6 +80,7 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 import { connection } from "@/connection/axiosConnection";
+import router from "@/router";
 
 const usuario = ref({
   email: "",
@@ -93,28 +94,27 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const onSubmit = async () => {
   loading.value = true;
   try {
-    const body = ref({
+    const body = {
       email: usuario.value.email,
       senha: usuario.value.senha,
-    });
-    const res = await connection.post("desapega/usuarios", body.value);
-    await delay(3000);
+    };
+
+    const res = await connection.post("desapega/usuarios", body);
+    await delay(3000)
     console.log("teste", res);
+
     if (res.status === 200 || res.status === 201) {
       toast.success("Cadastro realizado com sucesso!", { autoClose: 2000 });
-      router.push("/login")
+      router.push("/login");
     }
   } catch (err) {
     console.log("Erro ao cadastrar", err);
     toast.error(err.response?.data?.message || "Erro ao cadastrar");
-    
-  } finally{
+  } finally {
     loading.value = false;
   }
-
- 
-  
 };
+
 
 const rulesEmail = [
   (value) => !!value || "Obrigatório preencher",
