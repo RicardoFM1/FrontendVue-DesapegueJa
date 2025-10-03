@@ -106,6 +106,7 @@ const onSubmit = async () => {
 
     if (res.status === 200 || res.status === 201) {
       toast.success("Cadastro realizado com sucesso!", { autoClose: 2000 });
+      await delay(1500)
       router.push("/login");
     }
   } catch (err) {
