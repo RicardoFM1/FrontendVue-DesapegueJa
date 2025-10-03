@@ -80,7 +80,8 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 import { connection } from "@/connection/axiosConnection";
-import router from "@/router";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const usuario = ref({
   email: "",
