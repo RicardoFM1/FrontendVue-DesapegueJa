@@ -100,7 +100,7 @@ const onSubmit = async () => {
     };
 
     const res = await connection.post("desapega/usuarios", body);
-    await delay(3000)
+    await delay(5000)
     console.log("teste", res);
 
     if (res.status === 200 || res.status === 201) {
