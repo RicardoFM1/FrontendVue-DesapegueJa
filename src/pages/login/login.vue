@@ -22,12 +22,12 @@
                     >
                     </v-text-field>
                     <v-text-field
-                    label="Senha"
-                    :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                    @click:append-inner="show = !show"
-                    v-model="usuario.senha"
-                    :type="show ? 'text' : 'password'"
-                    base-color="#293559"
+                        label="Senha"
+                        :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append-inner="show = !show"
+                        v-model="usuario.senha"
+                        :type="show ? 'text' : 'password'"
+                        base-color="#293559"
                     >
                     
                 </v-text-field>
@@ -45,6 +45,8 @@ import { ref, computed } from "vue";
 import 'vue3-toastify/dist/index.css'
 import { toast } from "vue3-toastify/dist/index";
 import '@mdi/font/css/materialdesignicons.css'
+import { connection } from "@/connection/axiosConnection";
+import router from "@/router";
 
 const usuario = ref({
     email: "",
@@ -58,20 +60,38 @@ const onSubmit = async() => {
  
    loading.value = true
    try{
-        setTimeout(() => {
-            console.log("Logado!")
-            toast.success("Login realizado com sucesso!", {autoClose: 2000})
-        }, 2000);
+        
+            const res = await connection.post("/desapega/usuarios/login", usuario.value)
+            if(res.status === 200){
+
+                console.log("Logado!")
+                toast.success("Login realizado com sucesso!", {autoClose: 2000})
+                router.push("/")
+            }
+            else{
+                console.log(res?.response?.data?.message)
+                toast.error(res?.response?.data?.message || "Credenciais erradas, tente novamente!", {autoClose: 2000})
+            }
+            
     }
-    catch(err){
-        console.log("Erro ao fazer login", err)
-        setTimeout(() => {
-            toast.error(err.response.data.message || "Erro ao fazer login")
-        }, 2000);
-    }finally{
+    catch (err) {
+    console.log("Erro ao fazer login", err);
+
+    let msg = "Erro ao fazer login";
+    if (err.response?.data?.message) {
+        msg = err.response.data.message;
+    } else if (err.message) {
+        msg = err.message;
+    }
+
+    setTimeout(() => {
+        toast.error(msg, { autoClose: 2000 });
+    }, 1500);
+}
+finally{
         setTimeout(() => {
             loading.value = false
-        }, 2000);
+        }, 1500);
     }    
 }
 

@@ -87,6 +87,8 @@ const usuario = ref({
   confirmSenha: "",
 });
 const loading = ref(false);
+const show = ref(true);
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const onSubmit = async () => {
   loading.value = true;
@@ -96,25 +98,22 @@ const onSubmit = async () => {
       senha: usuario.value.senha,
     });
     const res = await connection.post("desapega/usuarios", body.value);
+    await delay(3000);
     console.log("teste", res);
-    if (res.status === 200) {
+    if (res.status === 200 || res.status === 201) {
       toast.success("Cadastro realizado com sucesso!", { autoClose: 2000 });
-    } else {
-      toast.error(
-        res.response?.data?.message || "Não foi possível cadastrar o usuário!",
-        { autoClose: 2000 }
-      );
+      router.push("/login")
     }
   } catch (err) {
     console.log("Erro ao cadastrar", err);
-    setTimeout(() => {
-      toast.error(err.response?.data?.message || "Erro ao cadastrar");
-    }, 1500);
-  } finally {
-    setTimeout(() => {
-      loading.value = false;
-    }, 1500);
+    toast.error(err.response?.data?.message || "Erro ao cadastrar");
+    
+  } finally{
+    loading.value = false;
   }
+
+ 
+  
 };
 
 const rulesEmail = [
