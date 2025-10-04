@@ -43,6 +43,7 @@
             v-model="usuario.senha"
             :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append-inner="show = !show"
+            @paste.prevent 
             :type="show ? 'text' : 'password'"
             base-color="#293559"
             :rules="rulesSenha"
@@ -53,6 +54,7 @@
             v-model="usuario.confirmSenha"
             :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append-inner="show = !show"
+            @paste.prevent
             :type="show ? 'text' : 'password'"
             base-color="#293559"
             :rules="rulesSenhasIguais"

@@ -26,6 +26,7 @@
                         :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="show = !show"
                         v-model="usuario.senha"
+                        @paste.prevent
                         :type="show ? 'text' : 'password'"
                         base-color="#293559"
                     >
