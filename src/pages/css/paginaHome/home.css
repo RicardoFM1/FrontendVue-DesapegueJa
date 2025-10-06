@@ -1,0 +1,17 @@
+.divPalavrasChaves{
+    padding: 18px;
+}
+.divLabelSlider{
+    display: flex;
+    justify-content: space-between;
+    padding: 18px;
+}
+.sliderFiltro{
+    padding: 0 12px 0 12px;
+}
+.subtitleConservacao{
+    padding: 18px;
+}
+.divCheckboxFiltros{
+    
+}
