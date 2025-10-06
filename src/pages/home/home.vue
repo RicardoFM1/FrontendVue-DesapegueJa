@@ -3,17 +3,39 @@
     <div v-if="tokenExiste == true">
     <div class="divFiltros">
         <v-layout >
-            <v-navigation-drawer permanent :width="345">
-                <v-list-item title="Filtros"></v-list-item>
+            <v-app-bar>
+                <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+                <v-toolbar-title>Filtros</v-toolbar-title>
+            </v-app-bar>
+            <v-navigation-drawer v-model="drawer" 
+            :width="345"
+            >
                 <v-divider></v-divider>
                 <div class="divPalavrasChaves">
 
-                    <p>Palavras Chaves</p>
+                    <p>Palavras Chaves:</p>
                     <v-text-field 
+                    v-model="palavraAtual"
+                    @keyup.enter="adicionarPalavra"
+                    prepend-inner-icon="mdi-magnify"
                     placeholder="Pesquisar palavras chaves"
                     type="text"
                     >
                 </v-text-field>
+                 
+                <div class="mt-2">
+   <v-chip
+  v-for="(pChave, index) in palavrasChaves"
+  :key="pChave + '-' + index"
+  closable
+  @click:close="removerPalavra(index)"
+  class="ma-1"
+>
+  {{ pChave }}
+</v-chip>
+
+    </div>
+                
             </div>
                 
                 <v-divider></v-divider>
@@ -29,6 +51,7 @@
                 min="0"
                 >
             </v-range-slider>
+            <v-divider></v-divider>
             <p class="subtitleConservacao">Estado de conservação</p>
             <div class="divCheckboxFiltros">
                 <v-checkbox label="Excelente" hide-details></v-checkbox>
@@ -38,9 +61,15 @@
                 <v-checkbox label="Muito ruim" hide-details></v-checkbox>
             <v-checkbox label="Péssimo" hide-details></v-checkbox>
         </div>
+        <v-divider></v-divider>
+        <p class="subtitleCategoria">Categoria:</p>
+        <div class="divCheckboxCategoria">
+            <v-combobox class="comboboxCategoria" label="Selecionar" :items="categorias"></v-combobox>
+        </div>
             </v-navigation-drawer>
+        
+           
         </v-layout>
-
     </div>
     </div>  
     <div v-if="tokenExiste == false">
@@ -51,14 +80,33 @@
 <script setup>
 import {ref} from "vue"
 
-
+const drawer = ref(false)
 const range = ref([0,0]);
 const tokenExiste = ref(false);
+const palavraAtual = ref("");
+const palavrasChaves = ref([])
+const categorias = [
+    "Roupas e acessórios", "Imóveis", "Ferramentas", "Veículos", "Móveis/Decoração", "Equipamentos de escritório",
+    "Hobbies e jogos", "Esportes"
+]
+// depois mudar para pegar do backend as categorias, onde o adm pode colocar mais
+
 if(localStorage.getItem("token") != null){
     tokenExiste.value = true;
 }
 else{
     tokenExiste.value = false;
+}
+function adicionarPalavra() {
+  const novaPalavra = palavraAtual.value.trim();
+  if (novaPalavra !== "" && !palavrasChaves.value.includes(novaPalavra)) {
+    palavrasChaves.value.push(novaPalavra);
+  }
+  palavraAtual.value = "";
+}
+
+function removerPalavra(index) {
+  palavrasChaves.value.splice(index, 1);
 }
 </script>
 

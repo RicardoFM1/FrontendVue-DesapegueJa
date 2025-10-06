@@ -12,6 +12,9 @@
 .subtitleConservacao{
     padding: 18px;
 }
-.divCheckboxFiltros{
-    
+.subtitleCategoria{
+    padding: 18px 18px 6px 18px;
+}
+.comboboxCategoria{
+    padding: 0 12px 0 12px;
 }
