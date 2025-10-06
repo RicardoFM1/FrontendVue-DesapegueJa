@@ -25,7 +25,7 @@
                         label="Senha"
                         :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="show = !show"
-                        v-model="usuario.senha"
+                        v-model="usuario.senhaHash"
                         @paste.prevent
                         :type="show ? 'text' : 'password'"
                         base-color="#293559"
@@ -33,7 +33,7 @@
                     
                 </v-text-field>
                 <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Fazer login</v-btn>
-                
+                <router-link to="/cadastro">Não tem uma conta?</router-link>
                 </v-form>
             </v-sheet>
     
@@ -51,22 +51,26 @@ import router from "@/router";
 
 const usuario = ref({
     email: "",
-    senha: ""
+    senhaHash: ""
 })
 const loading = ref(false)
 
 const show = ref(true)
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const onSubmit = async() => {
  
    loading.value = true
    try{
-        
+        console.log(usuario.value.senha)
             const res = await connection.post("/desapega/usuarios/login", usuario.value)
-            if(res.status === 200){
+            
+            if(res.status == 200){
 
                 console.log("Logado!")
                 toast.success("Login realizado com sucesso!", {autoClose: 2000})
+                await delay(2000)
+                localStorage.setItem("token", res.data.token);
                 router.push("/")
             }
             else{

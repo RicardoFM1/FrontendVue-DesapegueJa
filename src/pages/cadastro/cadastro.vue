@@ -52,10 +52,10 @@
           <v-text-field
             label="Confirmar senha"
             v-model="usuario.confirmSenha"
-            :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append-inner="show = !show"
+            :append-inner-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append-inner="show2 = !show2"
             @paste.prevent
-            :type="show ? 'text' : 'password'"
+            :type="show2 ? 'text' : 'password'"
             base-color="#293559"
             :rules="rulesSenhasIguais"
           >
@@ -92,6 +92,7 @@ const usuario = ref({
 });
 const loading = ref(false);
 const show = ref(true);
+const show2 = ref(true);
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const onSubmit = async () => {
