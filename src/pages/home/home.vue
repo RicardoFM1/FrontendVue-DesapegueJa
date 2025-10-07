@@ -18,6 +18,26 @@
           >
             Carrinho
           </v-btn>
+
+          <v-menu v-model="menu" offset-y>
+            <template #activator="{ props }">
+              <v-btn v-bind="props">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-card min-width="250">
+              <v-list>
+                <v-list-item>
+                  <v-avatar color="surface-variant"></v-avatar>
+                  ricardo@gmail.com
+                </v-list-item>
+                <v-divider thickness="2"></v-divider>
+              </v-list>
+              <v-btn variant="flat" color="#eaece7"> Perfil </v-btn>
+              <v-divider thickness="2"></v-divider>
+              <v-btn color="#cc0000">Sair</v-btn>
+            </v-card>
+          </v-menu>
         </v-app-bar>
         <v-navigation-drawer v-model="drawer" :width="345">
           <v-divider></v-divider>
@@ -84,6 +104,7 @@
         <v-main>
           <div class="divHeaderMain">
             <v-text-field
+              v-model="search"
               class="inputPesquisa"
               label="Pesquisar"
               width="30%"
@@ -94,39 +115,34 @@
             </v-text-field>
           </div>
           <div class="divItens">
-            <v-card 
-            width="330"
-            min-height="300" 
-            class="cardItem"
-            v-for="(item, index) in itensFiltrados"
-            :key="item + '-' + index"
+            <v-card
+              width="330"
+              min-height="300"
+              class="cardItem"
+              v-for="(item, index) in itensFiltrados"
+              :key="item + '-' + index"
             >
-         
-
-                <v-img
+              <v-img
                 src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
                 width="330"
                 class="imgItem"
-                >
-            </v-img>
-       
-                <v-card-title class="mb-2">
-                {{ item.produto }}
-                </v-card-title>
-                <v-card-subtitle class="mb-2">
-                R$ {{ item.valor }}
-                </v-card-subtitle>
-                
-                <div class="divBtnAdicionar">
+              >
+              </v-img>
 
-                    <v-card-actions>
-                        <v-btn
-                        variant="flat"
-                        color="#3fa34f"
-                        prepend-icon="mdi-cart"
-                        >Adicionar ao carrinho</v-btn>
-                    </v-card-actions>
-                </div>
+              <v-card-title class="mb-2">
+                {{ item.produto }}
+              </v-card-title>
+              <v-card-subtitle class="mb-2">
+                R$ {{ item.valor }}
+              </v-card-subtitle>
+
+              <div class="divBtnAdicionar">
+                <v-card-actions>
+                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart"
+                    >Adicionar ao carrinho</v-btn
+                  >
+                </v-card-actions>
+              </div>
             </v-card>
           </div>
         </v-main>
@@ -152,12 +168,7 @@
           >
             Carrinho
           </v-btn>
-          <v-btn
-            class="ml-4"
-            variant="flat"
-           color="#5865f2"
-            to="/cadastro"
-          >
+          <v-btn class="ml-4" variant="flat" color="#5865f2" to="/cadastro">
             Cadastre-se
           </v-btn>
           <v-btn
@@ -234,7 +245,7 @@
         <v-main>
           <div class="divHeaderMain">
             <v-text-field
-            v-model="search"
+              v-model="search"
               class="inputPesquisa"
               label="Pesquisar"
               width="40%"
@@ -245,40 +256,34 @@
             </v-text-field>
           </div>
           <div class="divItens">
-            <v-card 
-            width="330"
-            min-height="300" 
-            class="cardItem"
-            v-for="(item, index) in itensFiltrados"
-            :key="item + '-' + index"
+            <v-card
+              width="330"
+              min-height="300"
+              class="cardItem"
+              v-for="(item, index) in itensFiltrados"
+              :key="item + '-' + index"
             >
-          
-
-                <v-img
+              <v-img
                 src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
                 width="330"
                 class="imgItem"
-                >
-            </v-img>
-            
-       
-                <v-card-title class="mb-2">
-                {{ item.produto }}
-                </v-card-title>
-                <v-card-subtitle class="mb-2">
-                R$ {{ item.valor }}
-                </v-card-subtitle>
-                
-                <div class="divBtnAdicionar">
+              >
+              </v-img>
 
-                    <v-card-actions>
-                        <v-btn
-                        variant="flat"
-                        color="#3fa34f"
-                        prepend-icon="mdi-cart"
-                        >Adicionar ao carrinho</v-btn>
-                    </v-card-actions>
-                </div>
+              <v-card-title class="mb-2">
+                {{ item.produto }}
+              </v-card-title>
+              <v-card-subtitle class="mb-2">
+                R$ {{ item.valor }}
+              </v-card-subtitle>
+
+              <div class="divBtnAdicionar">
+                <v-card-actions>
+                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart"
+                    >Adicionar ao carrinho</v-btn
+                  >
+                </v-card-actions>
+              </div>
             </v-card>
           </div>
         </v-main>
@@ -307,36 +312,40 @@ const categorias = [
 ];
 // depois mudar para pegar do backend as categorias, onde o adm pode colocar mais
 
-
 const itens = [
-    {
-        "produto": "um Carro",
-        "valor": 1200
-    },
-    {
-        "produto": "um Carro2",
-        "valor": 12002
-    },
-    {
-        "produto": "um Carro3",
-        "valor": 12003
-    },
-    {
-        "produto": "um Carro",
-        "valor": 1200
-    },
-    {
-        "produto": "um Carro2",
-        "valor": 12002
-    },
-    {
-        "produto": "um Carro3",
-        "valor": 12003
-    }
-]
+  {
+    produto: "um Carro",
+    valor: 1200,
+  },
+  {
+    produto: "um Carro2",
+    valor: 12002,
+  },
+  {
+    produto: "um Carro3",
+    valor: 12003,
+  },
+  {
+    produto: "um Carro",
+    valor: 1200,
+  },
+  {
+    produto: "um Carro2",
+    valor: 12002,
+  },
+  {
+    produto: "um Carro3",
+    valor: 12003,
+  },
+];
 
-const search = ref("")
-const itensFiltrados = computed(() => itens.filter(item => item.produto.toLowerCase().includes(search.value.toLowerCase())))
+const search = ref("");
+const menu = ref(false);
+const itensFiltrados = computed(() =>
+  itens.filter((item) =>
+    item.produto.toLowerCase().includes(search.value.toLowerCase())
+  )
+);
 
 if (localStorage.getItem("token") != null) {
   tokenExiste.value = true;
