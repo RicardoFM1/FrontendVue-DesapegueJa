@@ -4,8 +4,26 @@
     <div class="divFiltros">
         <v-layout >
             <v-app-bar>
-                <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+                <v-app-bar-nav-icon @click="drawer = !drawer">
+                </v-app-bar-nav-icon>
+                
                 <v-toolbar-title>Filtros</v-toolbar-title>
+                <v-btn 
+                prepend-icon="mdi-check"
+                variant="flat" 
+                color="#5865f2"
+                >
+                Criar
+            </v-btn>
+            
+                <v-btn
+                class="ml-4"
+                variant="flat" 
+                prepend-icon="mdi-cart"
+                color="#3fa34f"
+                >
+                Carrinho
+            </v-btn>
             </v-app-bar>
             <v-navigation-drawer v-model="drawer" 
             :width="345"
@@ -66,7 +84,18 @@
         <div class="divCheckboxCategoria">
             <v-combobox class="comboboxCategoria" label="Selecionar" :items="categorias"></v-combobox>
         </div>
-            </v-navigation-drawer>
+    </v-navigation-drawer>
+    
+    <v-main>
+        <div class="divHeaderMain">
+
+            <v-text-field class="inputPesquisa" label="Pesquisar" width="30%" rounded variant="outlined"
+            append-inner-icon="mdi-magnify"    
+            >
+        </v-text-field>
+       
+    </div>
+    </v-main>
         
            
         </v-layout>
