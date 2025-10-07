@@ -1,11 +1,19 @@
 <template>
 <div class="fundoLogin">
+        <v-btn
+          class="ml-4"
+          variant="flat"
+          color="#5865f2"
+          to="/"
+          >
+            Página home
+          </v-btn>
     
         <div class="divFormLogin">
             <v-sheet style="display: flex; border-radius: 10px;
                 justify-content: center; flex-direction: column; width: 25%; height: 60%;
                 "  class="sheetLogin">
-                <v-sheet style="position: absolute; top: 18%; background-color: #e3e3e3;
+                <v-sheet style="position: absolute; top: 23%; background-color: #e3e3e3;
                 padding: 4px 48px 4px 48px; border-radius: 6px; border: 2px solid #767676;
                 ">
                     Login

@@ -1,5 +1,13 @@
 <template>
   <div class="fundoCadastro">
+    <v-btn
+          class="ml-4"
+          variant="flat"
+          color="#5865f2"
+          to="/"
+          >
+            Página home
+          </v-btn>
     <div class="divFormCadastro">
       <v-sheet
         style="
@@ -15,7 +23,7 @@
         <v-sheet
           style="
             position: absolute;
-            top: 18%;
+            top: 23%;
             background-color: #e3e3e3;
             padding: 4px 48px 4px 48px;
             border-radius: 6px;
