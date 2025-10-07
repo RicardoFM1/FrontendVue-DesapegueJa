@@ -30,11 +30,6 @@ padding: 18px;
     width: 100%;
     padding: 18px;
 }
-.divImgItem{
-    display: flex;
-    width: 100%;
-    justify-content: center;
-}
 .divBtnAdicionar{
     width: 100%;
     display: flex;

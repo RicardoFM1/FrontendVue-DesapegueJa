@@ -95,22 +95,21 @@
           </div>
           <div class="divItens">
             <v-card 
-            width="300"
+            width="330"
             min-height="300" 
             class="cardItem"
-            v-for="(item, index) in itens"
+            v-for="(item, index) in itensFiltrados"
             :key="item + '-' + index"
             >
-            <v-card-item>
+         
 
                 <v-img
                 src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-                width="300"
+                width="330"
                 class="imgItem"
                 >
             </v-img>
-            
-        </v-card-item>
+       
                 <v-card-title class="mb-2">
                 {{ item.produto }}
                 </v-card-title>
@@ -235,9 +234,10 @@
         <v-main>
           <div class="divHeaderMain">
             <v-text-field
+            v-model="search"
               class="inputPesquisa"
               label="Pesquisar"
-              width="30%"
+              width="40%"
               rounded
               variant="outlined"
               append-inner-icon="mdi-magnify"
@@ -246,22 +246,22 @@
           </div>
           <div class="divItens">
             <v-card 
-            width="300"
+            width="330"
             min-height="300" 
             class="cardItem"
-            v-for="(item, index) in itens"
+            v-for="(item, index) in itensFiltrados"
             :key="item + '-' + index"
             >
-            <v-card-item>
+          
 
                 <v-img
                 src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-                width="300"
+                width="330"
                 class="imgItem"
                 >
             </v-img>
             
-        </v-card-item>
+       
                 <v-card-title class="mb-2">
                 {{ item.produto }}
                 </v-card-title>
@@ -288,7 +288,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const drawer = ref(false);
 const range = ref([0, 0]);
@@ -335,7 +335,8 @@ const itens = [
     }
 ]
 
-
+const search = ref("")
+const itensFiltrados = computed(() => itens.filter(item => item.produto.toLowerCase().includes(search.value.toLowerCase())))
 
 if (localStorage.getItem("token") != null) {
   tokenExiste.value = true;
