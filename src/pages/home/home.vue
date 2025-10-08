@@ -40,32 +40,7 @@
           </v-menu>
         </v-app-bar>
         <v-navigation-drawer v-model="drawer" :width="345">
-          <v-divider></v-divider>
-          <div class="divPalavrasChaves">
-            <p>Palavras Chaves:</p>
-            <v-text-field
-              v-model="palavraAtual"
-              @keyup.enter="adicionarPalavra"
-              prepend-inner-icon="mdi-magnify"
-              placeholder="Pesquisar palavras chaves"
-              type="text"
-            >
-            </v-text-field>
-
-            <div class="mt-2">
-              <v-chip
-                v-for="(pChave, index) in palavrasChaves"
-                :key="pChave + '-' + index"
-                closable
-                @click:close="removerPalavra(index)"
-                class="ma-1"
-              >
-                {{ pChave }}
-              </v-chip>
-            </div>
-          </div>
-
-          <v-divider></v-divider>
+          
           <div class="divLabelSlider">
             <p>Preço</p>
             <p>
@@ -181,32 +156,7 @@
           </v-btn>
         </v-app-bar>
         <v-navigation-drawer v-model="drawer" :width="345">
-          <v-divider></v-divider>
-          <div class="divPalavrasChaves">
-            <p>Palavras Chaves:</p>
-            <v-text-field
-              v-model="palavraAtual"
-              @keyup.enter="adicionarPalavra"
-              prepend-inner-icon="mdi-magnify"
-              placeholder="Pesquisar palavras chaves"
-              type="text"
-            >
-            </v-text-field>
-
-            <div class="mt-2">
-              <v-chip
-                v-for="(pChave, index) in palavrasChaves"
-                :key="pChave + '-' + index"
-                closable
-                @click:close="removerPalavra(index)"
-                class="ma-1"
-              >
-                {{ pChave }}
-              </v-chip>
-            </div>
-          </div>
-
-          <v-divider></v-divider>
+            
           <div class="divLabelSlider">
             <p>Preço</p>
             <p>
