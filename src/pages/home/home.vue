@@ -35,7 +35,7 @@
               </v-list>
               <v-btn variant="flat" color="#eaece7"> Perfil </v-btn>
               <v-divider thickness="2"></v-divider>
-              <v-btn color="#cc0000">Sair</v-btn>
+              <v-btn @click="removerToken" color="#cc0000">Sair</v-btn>
             </v-card>
           </v-menu>
         </v-app-bar>
@@ -243,7 +243,9 @@
 </template>
 
 <script setup>
+import router from "@/router";
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
 
 const drawer = ref(false);
 const range = ref([0, 0]);
@@ -261,6 +263,11 @@ const categorias = [
   "Esportes",
 ];
 // depois mudar para pegar do backend as categorias, onde o adm pode colocar mais
+
+function removerToken(){
+  localStorage.removeItem("token");
+  router.push("/login")
+}
 
 const itens = [
   {

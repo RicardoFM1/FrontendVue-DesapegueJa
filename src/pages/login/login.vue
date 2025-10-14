@@ -66,47 +66,34 @@ const loading = ref(false)
 const show = ref(true)
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const onSubmit = async() => {
- 
-   loading.value = true
-   try{
-        console.log(usuario.value.senha)
-            const res = await connection.post("/desapega/usuarios/login", usuario.value)
-            
-            if(res.status == 200){
+const onSubmit = async () => {
+  loading.value = true
+  try {
+    const res = await connection.post("/desapega/usuarios/login", usuario.value);
+    
+    if(res.status == 200){
 
-                console.log("Logado!")
-                toast.success("Login realizado com sucesso!", {autoClose: 2000})
-                await delay(2000)
-                localStorage.setItem("token", res.data.token);
-                router.push("/")
-            }
-            else{
-                console.log(res?.response?.data?.message)
-                toast.error(res?.response?.data?.message || "Credenciais erradas, tente novamente!", {autoClose: 2000})
-            }
-            
+        toast.success("Login realizado com sucesso!", { autoClose: 2000 });
+        localStorage.setItem("token", res.data.token);
+        await delay(2000);
+        router.push("/");
     }
-    catch (err) {
+  } 
+  catch (err) {
+
     console.log("Erro ao fazer login", err);
 
-    let msg = "Erro ao fazer login";
-    if (err.response?.data?.message) {
-        msg = err.response.data.message;
-    } else if (err.message) {
-        msg = err.message;
-    }
+    const msg = err.response?.data?.message || "Credenciais erradas, tente novamente!";
+    toast.error(msg, { autoClose: 2000 });
 
-    setTimeout(() => {
-        toast.error(msg, { autoClose: 2000 });
-    }, 1500);
-}
-finally{
-        setTimeout(() => {
-            loading.value = false
-        }, 1500);
-    }    
-}
+    localStorage.removeItem("token");
+  } 
+  finally {
+    loading.value = false;
+  }
+};
+
+
 
 const disabled = computed(() => {
 if(usuario.value.email === "" || usuario.value.senha === ""){
