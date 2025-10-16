@@ -7,7 +7,7 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
 
           <v-toolbar-title>Filtros</v-toolbar-title>
-          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2" to="/criar">
+          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2">
             Criar
           </v-btn>
 
@@ -34,7 +34,7 @@
                 </v-list-item>
                 <v-divider thickness="2"></v-divider>
               </v-list>
-              <v-btn variant="flat" color="#eaece7"> Perfil </v-btn>
+              <v-btn @click="toPerfil" variant="flat" color="#eaece7"> Perfil </v-btn>
               <v-divider thickness="2"></v-divider>
               <v-btn color="#cc0000">Sair</v-btn>
             </v-card>
@@ -244,13 +244,13 @@
 </template>
 
 <script setup>
+import router from "@/router";
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router"
 
 const drawer = ref(false);
 const range = ref([0, 0]);
 const tokenExiste = ref(false);
-const palavraAtual = ref("");
-const palavrasChaves = ref([]);
 const categorias = [
   "Roupas e acessórios",
   "Imóveis",
@@ -303,16 +303,10 @@ if (localStorage.getItem("token") != null) {
 } else {
   tokenExiste.value = false;
 }
-function adicionarPalavra() {
-  const novaPalavra = palavraAtual.value.trim();
-  if (novaPalavra !== "" && !palavrasChaves.value.includes(novaPalavra)) {
-    palavrasChaves.value.push(novaPalavra);
-  }
-  palavraAtual.value = "";
-}
-
-function removerPalavra(index) {
-  palavrasChaves.value.splice(index, 1);
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+async function toPerfil () {
+  await delay(500)
+  router.push("/perfil")
 }
 </script>
 
