@@ -36,7 +36,7 @@
               </v-list>
               <v-btn @click="toPerfil" variant="flat" color="#eaece7"> Perfil </v-btn>
               <v-divider thickness="2"></v-divider>
-              <v-btn color="#cc0000">Sair</v-btn>
+              <v-btn @click="removerToken" color="#cc0000">Sair</v-btn>
             </v-card>
           </v-menu>
         </v-app-bar>
@@ -262,6 +262,11 @@ const categorias = [
   "Esportes",
 ];
 // depois mudar para pegar do backend as categorias, onde o adm pode colocar mais
+
+function removerToken(){
+  localStorage.removeItem("token");
+  router.push("/login")
+}
 
 const itens = [
   {
