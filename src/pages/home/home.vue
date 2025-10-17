@@ -16,6 +16,8 @@
             variant="flat"
             prepend-icon="mdi-cart"
             color="#3fa34f"
+
+            to="/carrinho"
           >
             Carrinho
           </v-btn>
