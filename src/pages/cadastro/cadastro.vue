@@ -40,6 +40,7 @@
         >
           <v-text-field
             label="Email"
+            prepend-inner-icon="mdi-email "
             v-model="usuario.email"
             type="email"
             base-color="#293559"
@@ -49,6 +50,7 @@
           <v-text-field
             label="Senha"
             v-model="usuario.senha"
+            prepend-inner-icon="mdi-lock"
             :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append-inner="show = !show"
             @paste.prevent 
@@ -59,6 +61,7 @@
           </v-text-field>
           <v-text-field
             label="Confirmar senha"
+            prepend-inner-icon="mdi-lock"
             v-model="usuario.confirmSenha"
             :append-inner-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append-inner="show2 = !show2"

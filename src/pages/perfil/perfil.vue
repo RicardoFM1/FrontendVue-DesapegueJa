@@ -77,4 +77,4 @@
 
 </script>
 
-<style src="../css/paginacriar/criar.css"></style>
+<style src="../css/paginaPerfil/perfil.css"></style>

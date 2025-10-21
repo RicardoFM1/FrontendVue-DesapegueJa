@@ -24,6 +24,7 @@
                     
                     <v-text-field
                     label="Email"
+                    prepend-inner-icon="mdi-email"
                     v-model="usuario.email"
                     type="email"
                     base-color="#293559"
@@ -31,6 +32,7 @@
                     </v-text-field>
                     <v-text-field
                         label="Senha"
+                        prepend-inner-icon="mdi-lock"
                         :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="show = !show"
                         v-model="usuario.senhaHash"
