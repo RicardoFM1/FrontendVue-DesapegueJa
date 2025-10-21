@@ -21,7 +21,7 @@ import UserProfileSkeleton from './components/UserProfileSkeleton.vue';
       <!-- </template> -->
     <!-- </Suspense>
   </v-app> -->''
-</template>
+</template> 
 
 
 <style scoped></style>
