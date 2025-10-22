@@ -116,7 +116,7 @@
 
               <div class="divBtnAdicionar">
                 <v-card-actions>
-                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart"
+                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart" @click="addToCart(item)"
                     >Adicionar ao carrinho</v-btn
                   >
                 </v-card-actions>
@@ -230,7 +230,7 @@
                 R$ {{ item.valor }}
               </v-card-subtitle>
 
-              <div class="divBtnAdicionar">
+              <div class="divBtnAdicionar" > 
                 <v-card-actions>
                   <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart"
                     >Adicionar ao carrinho</v-btn
@@ -249,6 +249,18 @@
 import router from "@/router";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router"
+import { useCartStore } from '@/components/stores/cart'
+
+const cart = useCartStore()
+
+function addToCart(item){
+  cart.addToCart({
+    id:item.id,
+    produto:item.produto,
+    valor:item.valor,
+    image:item.image
+  })
+}
 
 const drawer = ref(false);
 const range = ref([0, 0]);
