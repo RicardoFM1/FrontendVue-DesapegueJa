@@ -72,7 +72,6 @@
       </div>
 
       <div class="profile-settings">
-        <h2 class="section-title">Configurações</h2>
         <div class="buttons-row">
           <button class="btn-primary">Salvar Alterações</button>
           <button class="btn-cancel" @click="voltarHome">Cancelar</button>
