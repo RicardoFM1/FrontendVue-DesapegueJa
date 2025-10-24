@@ -24,4 +24,7 @@ import UserProfileSkeleton from './components/UserProfileSkeleton.vue';
 </template> 
 
 
-<style scoped></style>
+<style scoped>
+html, body {
+  overflow-x: hidden;
+}</style>

@@ -108,7 +108,7 @@
           </div>
           <div class="divItens">
             <v-card
-              width="330"
+              width="395"
               min-height="300"
               class="cardItem"
               v-for="(item, index) in itensFiltrados"
@@ -116,7 +116,7 @@
             >
               <v-img
                 src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-                width="330"
+                width="395"
                 class="imgItem"
               ></v-img>
 
