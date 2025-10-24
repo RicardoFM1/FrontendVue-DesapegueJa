@@ -129,9 +129,9 @@
 
               <div class="divBtnAdicionar">
                 <v-card-actions>
-                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart">
-                    Adicionar ao carrinho
-                  </v-btn>
+                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart" @click="addToCart(item)"
+                    >Adicionar ao carrinho</v-btn
+                  >
                 </v-card-actions>
               </div>
             </v-card>
@@ -244,7 +244,7 @@
                 R$ {{ item.valor }}
               </v-card-subtitle>
 
-              <div class="divBtnAdicionar">
+              <div class="divBtnAdicionar" > 
                 <v-card-actions>
                   <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart">
                     Adicionar ao carrinho
@@ -262,6 +262,7 @@
 <script setup>
 import router from "@/router";
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router"
 
 const drawer = ref(false);
 const range = ref([0, 0]);
