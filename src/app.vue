@@ -1,27 +1,14 @@
-
 <script setup>
 import { RouterView } from 'vue-router';
-import UserProfileSkeleton from './components/UserProfileSkeleton.vue';
-</script>]
+
+</script>
 
 <template>
-  <!-- <v-app>
-    <Suspense>
-      <template #default> -->
-        <RouterView v-slot="{ Component }">
-          <v-container>
-            <component :is="Component" />
-          </v-container>
+        <RouterView>
         </RouterView>
-      <!-- </template>
-      <template #fallback>
-        <v-container>
-          <UserProfileSkeleton />
-        </v-container> -->
-      <!-- </template> -->
-    <!-- </Suspense>
-  </v-app> -->''
+  
 </template>
 
 
 <style scoped></style>
+
