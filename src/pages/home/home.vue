@@ -322,6 +322,10 @@ function removerToken() {
   localStorage.removeItem("token");
   router.push("/login");
 }
+
+function toDetalhes(id){
+  router.push(`/produto/${id}`)
+}
 </script>
 
 <style>
