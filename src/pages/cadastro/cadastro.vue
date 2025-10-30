@@ -20,6 +20,7 @@
           ref="form"
           @submit.prevent="onSubmit"
         >
+        <v-img src="public/desapegueja-logo-svg"></v-img>
           <v-text-field
             label="Email"
             prepend-inner-icon="mdi-email"
