@@ -106,5 +106,5 @@ if(usuario.value.email === "" || usuario.value.senha === ""){
 </script>
 
 <style>
-@import "../css/paginasLogineCadastro/logineCadastro.css"
+@import "../css/paginasLogineCadastro/logineCadastro.css";
 </style>

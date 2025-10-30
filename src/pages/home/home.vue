@@ -108,33 +108,47 @@
           </div>
           <div class="divItens">
             <v-card
-              width="330"
-              min-height="300"
-              class="cardItem"
-              v-for="(item, index) in itensFiltrados"
-              :key="item + '-' + index"
-            >
-              <v-img
-                src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-                width="330"
-                class="imgItem"
-              ></v-img>
+  width="330"
+  min-height="300"
+  class="cardItem"
+  v-for="(item, index) in itensFiltrados"
+  :key="item + '-' + index"
+>
+  <v-img
+    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
+    width="330"
+    class="imgItem"
+  ></v-img>
 
-              <v-card-title class="mb-2">
-                {{ item.produto }}
-              </v-card-title>
-              <v-card-subtitle class="mb-2">
-                R$ {{ item.valor }}
-              </v-card-subtitle>
+  <v-card-title class="mb-2">
+    {{ item.produto }}
+  </v-card-title>
+  <v-card-subtitle class="mb-2">
+    R$ {{ item.valor }}
+  </v-card-subtitle>
 
-              <div class="divBtnAdicionar">
-                <v-card-actions>
-                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart">
-                    Adicionar ao carrinho
-                  </v-btn>
-                </v-card-actions>
-              </div>
-            </v-card>
+  <div class="divBtnAdicionar">
+    <v-card-actions class="divBtnsAcoes">
+      <v-btn
+        variant="flat"
+        color="#2196F3"
+        class="btnDetalhes"
+        @click="toDetalhes(index + 1)"
+      >
+        🔍 Detalhes
+      </v-btn>
+
+      <v-btn
+        variant="flat"
+        color="#3fa34f"
+        prepend-icon="mdi-cart"
+      >
+        Adicionar ao carrinho
+      </v-btn>
+    </v-card-actions>
+  </div>
+</v-card>
+
           </div>
         </v-main>
       </v-layout>
