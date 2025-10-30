@@ -6,7 +6,7 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
           <v-toolbar-title>Filtros</v-toolbar-title>
 
-          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2">
+          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2" to="/anunciar">
             Anunciar
           </v-btn>
 
