@@ -6,8 +6,8 @@ import { RouterView } from 'vue-router';
 <template>
         <RouterView>
         </RouterView>
-  
-</template>
+      
+</template> 
 
 
 <style scoped></style>

@@ -30,7 +30,8 @@ function removeItem(index) {
           <select v-model.number="item.quantidade">
             <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
           </select>
-          <button @click="removeItem(index)">🗑️</button>
+          <button
+          @click="removeItem(index)"><v-icon>mdi-delete</v-icon></button>
         </div>
       </div>
     </div>

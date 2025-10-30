@@ -5,14 +5,23 @@
 
       <div class="profile-photo-section">
         <p class="section-label">Foto de Perfil</p>
+
         <div class="profile-avatar">
-          <svg xmlns="http://www.w3.org/2000/svg" class="avatar-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.605 6.879 1.804M15 11a3 3 0 11-6 0
-              3 3 0 016 0z" />
-          </svg>
+          <template v-if="!imagemPerfil">
+            <svg xmlns="http://www.w3.org/2000/svg" class="avatar-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.605 6.879 1.804M15 11a3 3 0 11-6 0
+                3 3 0 016 0z" />
+            </svg>
+          </template>
+
+          <template v-else>
+            <img :src="imagemPerfil" alt="Foto de Perfil" class="profile-img" />
+          </template>
         </div>
-        <button class="btn-secondary">Alterar Foto</button>
+
+        <button class="btn-secondary" @click="abrirExplorador">Alterar Foto</button>
+        <input type="file" ref="inputArquivo" accept="image/*" @change="carregarImagem" style="display: none;" />
       </div>
 
       <div class="profile-info">
@@ -31,7 +40,7 @@
         <div class="form-group">
           <label>Senha</label>
           <div class="input-row">
-            <input type="password" value="" placeholder="********"/>
+            <input type="password" placeholder="********" />
             <button class="btn-secondary small">Alterar Senha</button>
           </div>
         </div>
@@ -63,10 +72,9 @@
       </div>
 
       <div class="profile-settings">
-        <h2 class="section-title">Configurações</h2>
         <div class="buttons-row">
           <button class="btn-primary">Salvar Alterações</button>
-          <button class="btn-cancel">Cancelar</button>
+          <button class="btn-cancel" @click="voltarHome">Cancelar</button>
         </div>
       </div>
     </div>
@@ -74,7 +82,31 @@
 </template>
 
 <script setup>
+import { ref } from "vue"
+import { useRouter } from "vue-router"
 
+const router = useRouter()
+const imagemPerfil = ref(null)
+const inputArquivo = ref(null)
+
+function voltarHome() {
+  router.push("/")
+}
+
+function abrirExplorador() {
+  inputArquivo.value.click()
+}
+
+function carregarImagem(event) {
+  const arquivo = event.target.files[0]
+  if (arquivo) {
+    const reader = new FileReader()
+    reader.onload = e => {
+      imagemPerfil.value = e.target.result
+    }
+    reader.readAsDataURL(arquivo)
+  }
+}
 </script>
 
 <style src="../css/paginaPerfil/perfil.css"></style>
