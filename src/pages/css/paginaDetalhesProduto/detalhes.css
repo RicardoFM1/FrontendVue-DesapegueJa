@@ -2,18 +2,36 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 30px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+.btn-voltar {
+  align-self: flex-start;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.btn-voltar:hover {
+  background-color: #bbdefb;
+  transform: translateX(-3px);
 }
 
 .produto-card {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   border-radius: 16px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #fff;
 }
 
 .produto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .produto-imagem {
@@ -22,48 +40,64 @@
 }
 
 .produto-titulo {
-  font-size: 1.6rem;
-  font-weight: bold;
+  font-size: 1.8rem;
+  font-weight: 700;
   color: #333;
   text-align: center;
 }
 
 .produto-preco {
-  color: #4caf50;
+  color: #00a650;
   font-weight: 600;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  margin-top: -5px;
 }
 
-.v-card-text p {
-  opacity: 0;
-  transform: translateY(15px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+.descricao-texto {
   color: #555;
+  line-height: 1.6;
   font-size: 1rem;
-  padding: 4px 0;
-}
-
-.v-card-text p.visivel {
-  opacity: 1;
-  transform: translateY(0);
+  margin-bottom: 10px;
 }
 
 .produto-acoes {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: center;
   padding: 20px;
-}
-
-.btn-detalhes {
-  font-weight: 600;
-  text-transform: none;
-  border-radius: 10px;
 }
 
 .btn-carrinho {
   font-weight: 600;
   text-transform: none;
   border-radius: 10px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-carrinho:hover {
+  background-color: #2e8b47 !important;
+}
+.btn-voltar {
+  margin-bottom: 16px;
+}
+
+.produto-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.produto-card:hover {
+  transform: translateY(-4px);
+}
+
+.produto-titulo {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.produto-preco {
+  font-weight: bold;
+  color: #3fa34f;
+  margin-bottom: 8px;
 }
