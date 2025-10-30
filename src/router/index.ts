@@ -4,9 +4,6 @@ import Login from '@/pages/login/login.vue'
 import Perfil from '@/pages/perfil/perfil.vue'
 import Carrinho from '@/pages/carrinho/carrinho.vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import path from 'path'
-import { compile } from 'vue'
-import { Component } from 'react'
 import Detalhes from '@/pages/produtoDetalhes/detalhes.vue'
 
 const routes = [

@@ -5,10 +5,13 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import '@mdi/font/css/materialdesignicons.css'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
-import { createPinia } from 'pinia'
+
+
 
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { createPinia } from 'pinia'
+
 
 
 const app = createApp(App)

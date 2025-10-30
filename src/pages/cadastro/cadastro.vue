@@ -1,13 +1,8 @@
 <template>
   <div class="fundoCadastro">
-    <v-btn
-          class="ml-4"
-          variant="flat"
-          color="#5865f2"
-          to="/"
-          >
-            Página home
-          </v-btn>
+    <v-btn class="ml-4" variant="flat" color="#5865f2" to="/">
+      Página home
+    </v-btn>
     <div class="divFormCadastro">
       <v-sheet
         style="
@@ -16,11 +11,10 @@
           justify-content: center;
           flex-direction: column;
           width: 25%;
-          height: 60%;
         "
         class="sheetCadastro"
       >
-        <v-sheet
+        <!-- <v-sheet
           style="
             position: absolute;
             top: 23%;
@@ -31,7 +25,7 @@
           "
         >
           Cadastro
-        </v-sheet>
+        </v-sheet> -->
         <v-form
           :disabled="loading"
           class="formCadastro"
@@ -53,7 +47,7 @@
             prepend-inner-icon="mdi-lock"
             :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append-inner="show = !show"
-            @paste.prevent 
+            @paste.prevent
             :type="show ? 'text' : 'password'"
             base-color="#293559"
             :rules="rulesSenha"
@@ -69,6 +63,44 @@
             :type="show2 ? 'text' : 'password'"
             base-color="#293559"
             :rules="rulesSenhasIguais"
+          >
+          </v-text-field>
+          <v-text-field label="CPF" base-color="#293559"> </v-text-field>
+          <v-text-field
+            ref="inputData"
+  label="Data de nascimento"
+  append-inner-icon="mdi-calendar"
+  base-color="#293559"
+  v-model="usuario.dataNascimento"
+  placeholder="DD/MM/AAAA"
+  @click:append-inner="openCalendar"
+  @input="onInputData"
+          >
+          </v-text-field>
+          <v-dialog
+            max-width="350"
+            v-model="calendarOpen"
+            v-if="calendarOpen == true"
+          >
+            <v-card>
+              <v-date-picker 
+              scrollable 
+              
+              v-model="usuario.dataNascimento"
+              @update:model-value="(val) => usuario.dataNascimento = formatDate(val)"
+              >
+            </v-date-picker>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn text="Cancelar" @click="calendarOpen = false"></v-btn>
+                <v-btn text="OK" @click="calendarOpen = false"></v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-text-field
+            label="Telefone"
+            prepend-inner-icon="mdi-cellphone"
+            base-color="#293559"
           >
           </v-text-field>
           <v-btn
@@ -88,23 +120,59 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
+import {useMask} from "../../utility/masks/mask"
+
+
+
+
 const router = useRouter();
 
 const usuario = ref({
   email: "",
   senha: "",
   confirmSenha: "",
+  dataNascimento: "",
+  CPF: "",
+  Telefone: ""
 });
 const loading = ref(false);
 const show = ref(true);
 const show2 = ref(true);
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const calendarOpen = ref(false);
+const inputData = ref(null);
+const openCalendar = () => {
+  calendarOpen.value = true;
+  
+};
+useMask(inputData, { mask: '00/00/0000'})
+
+const onInputData = (e) => {
+
+  let val = e.replace(/\D/g, '');
+
+ 
+  val = val.slice(0, 8);
+
+  
+  val = val.replace(/(\d{4})(\d{2})(\d{0,2})/, '$1-$2-$3');
+
+  usuario.value.dataNascimento = val;
+};
+
+const formatDate = (val) => {
+  if (!val) return "";
+ 
+  const date = new Date(val);
+  return date.toISOString().split("T")[0];
+};
+
 
 const onSubmit = async () => {
   loading.value = true;
@@ -115,12 +183,12 @@ const onSubmit = async () => {
     };
 
     const res = await connection.post("desapega/usuarios", body);
-    await delay(5000)
+    await delay(5000);
     console.log("teste", res);
 
     if (res.status === 200 || res.status === 201) {
       toast.success("Cadastro realizado com sucesso!", { autoClose: 2000 });
-      await delay(1500)
+      await delay(1500);
       router.push("/login");
     }
   } catch (err) {
@@ -130,7 +198,6 @@ const onSubmit = async () => {
     loading.value = false;
   }
 };
-
 
 const rulesEmail = [
   (value) => !!value || "Obrigatório preencher",
@@ -155,6 +222,7 @@ const rulesSenha = [
 const rulesSenhasIguais = [
   (value) => value === usuario.value.senha || "As senhas precisam ser iguais",
 ];
+
 
 const disabled = computed(() => {
   if (
