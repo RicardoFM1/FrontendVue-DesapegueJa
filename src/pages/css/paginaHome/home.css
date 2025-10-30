@@ -1,38 +1,68 @@
-
-.divPalavrasChaves{
+.divPalavrasChaves {
     padding: 18px;
 }
-.divLabelSlider{
+
+.divLabelSlider {
     display: flex;
     justify-content: space-between;
     padding: 18px;
 }
-.sliderFiltro{
+
+.sliderFiltro {
     padding: 0 12px 0 12px;
-}
-.subtitleConservacao{
-    padding: 18px;
-}
-.subtitleCategoria{
-    padding: 18px 18px 6px 18px;
-}
-.comboboxCategoria{
-    padding: 0 12px 0 12px;
-}
-.divHeaderMain{
-padding: 18px;
 }
 
-.divItens{
+.subtitleConservacao {
+    padding: 18px;
+}
+
+.subtitleCategoria {
+    padding: 18px 18px 6px 18px;
+}
+
+.comboboxCategoria {
+    padding: 0 12px 0 12px;
+}
+
+.divHeaderMain {
+    padding: 18px;
+}
+
+.divItens {
     display: flex;
     gap: 48px;
     flex-wrap: wrap;
     width: 100%;
     padding: 18px;
 }
-.divBtnAdicionar{
+
+.divBtnAdicionar {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.divBtnsAcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+}
+
+.btnDetalhes {
+    font-weight: 600;
+    text-transform: none;
+    border-radius: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
+}
+
+.btnDetalhes:hover {
+    background-color: #1976d2;
+    color: white;
+    transform: translateY(-2px);
+}
+.btnAdicionar{
+    width: 100%;
 }

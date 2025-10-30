@@ -20,7 +20,7 @@
             Carrinho
           </v-btn>
 
-          <!-- Menu do Perfil -->
+         
           <v-menu v-model="menu" offset-y>
             <template #activator="{ props }">
               <v-btn v-bind="props">
@@ -134,14 +134,19 @@
         color="#2196F3"
         class="btnDetalhes"
         @click="toDetalhes(index + 1)"
+        density="comfortable"
+       
       >
-        🔍 Detalhes
+        Detalhes
       </v-btn>
 
       <v-btn
         variant="flat"
         color="#3fa34f"
         prepend-icon="mdi-cart"
+        density="comfortable"
+        class="btnAdicionar"
+        
       >
         Adicionar ao carrinho
       </v-btn>
@@ -260,7 +265,7 @@
 
               <div class="divBtnAdicionar">
                 <v-card-actions>
-                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart">
+                  <v-btn variant="flat" density="compact" color="#3fa34f" prepend-icon="mdi-cart">
                     Adicionar ao carrinho
                   </v-btn>
                 </v-card-actions>
