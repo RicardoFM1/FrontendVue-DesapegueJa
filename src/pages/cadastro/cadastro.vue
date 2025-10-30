@@ -59,21 +59,20 @@
             placeholder="000.000.000-00"
           ></v-text-field>
           <v-text-field
-            ref="inputData"
-            label="Data de nascimento"
-            append-inner-icon="mdi-calendar"
-            base-color="#293559"
-            v-model="usuario.dataNascimento"
-            placeholder="DD/MM/AAAA"
-            @click:append-inner="openCalendar"
-            @input="onInputData"
+  ref="inputData"
+  label="Data de nascimento"
+  append-inner-icon="mdi-calendar"
+  base-color="#293559"
+  v-model="usuario.dataNascimento"
+  placeholder="DD/MM/AAAA"
+  @click:append-inner="openCalendar"
           ></v-text-field>
           <v-dialog max-width="350" v-model="calendarOpen" v-if="calendarOpen">
             <v-card>
               <v-date-picker
                 v-model="rawDate"
                 scrollable
-                @update:model-value="onDateSelected"
+                @update:model-value="(val) => usuario.dataNascimento = formatDate(val)"
               ></v-date-picker>
               <v-card-actions>
                 <v-spacer></v-spacer>
@@ -143,21 +142,15 @@ const openCalendar = () => {
   calendarOpen.value = true;
 };
 
-const onDateSelected = (val) => {
-  if (!val) {
-    usuario.value.dataNascimento = "";
-    return;
-  }
-  const [year, month, day] = val.split("-");
-  usuario.value.dataNascimento = `${day}/${month}/${year}`;
-  rawDate.value = val;
-};
 
-const onInputData = (e) => {
-  let val = e.replace(/\D/g, "");
-  val = val.slice(0, 8);
-  val = val.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
-  usuario.value.dataNascimento = val;
+const formatDate = (val) => {
+  if (!val) return "";
+ 
+    const date = new Date(val);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 };
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -168,9 +161,9 @@ const onSubmit = async () => {
     const body = {
       email: usuario.value.email,
       senha: usuario.value.senha,
-      CPF: usuario.value.CPF,
-      Telefone: usuario.value.Telefone,
-      dataNascimento: usuario.value.dataNascimento,
+      cpf: usuario.value.CPF,
+      telefone: usuario.value.Telefone,
+      data_de_nascimento: usuario.value.dataNascimento,
     };
     const res = await connection.post("desapega/usuarios", body);
     await delay(500);
