@@ -18,8 +18,8 @@
             :contain="fitContain"
           ></v-img>
 
-          <v-row class="image-actions mb-2" align="center" justify="space-between" padding="12px">
-              <v-row class="ml-0" dense>
+          <v-row class="image-actions mb-2" align="center" justify="space-between">
+              <v-row style="margin: 12px; display: flex; gap: 18px" dense>
             <v-btn class="btn" @click="$refs.imageInput.click()" small>
               📁 Escolher imagem
             </v-btn>
@@ -57,8 +57,10 @@
             </v-col>
             <v-col class="d-flex flex-column align-end">
               <div class="price">{{ formattedPrice }}</div>
-              <v-chip class="chip ma-1" outlined>{{ estado }}</v-chip>
-              <v-chip class="chip ma-1" outlined>{{ categoria }}</v-chip>
+              <div class="ola" style="display: flex; flex-direction: row;">
+                  <v-chip class="chip ma-1" outlined>{{ estado }}</v-chip>
+                  <v-chip class="chip ma-1" outlined>{{ categoria }}</v-chip>
+              </div>
             </v-col>
           </v-row>
 
@@ -96,13 +98,13 @@
             rows="4"
             class="mt-4"
             ></v-textarea>
-          
-          <v-row justify="space-between" align="center" class="mt-2">
-            <div class="small">Adicione mais fotos para aumentar a chance de venda.</div>
-            <v-btn class="secondary" small @click="editQuick">Editar rápido</v-btn>
-          </v-row>
-
-          <v-row justify="end" class="mt-4">
+            
+            <v-row justify="space-between" align="center" class="mt-2">
+                <div class="small">Adicione mais fotos para aumentar a chance de venda.</div>
+            </v-row>
+            
+            <v-row justify="end" class="mt-4">
+              <v-btn class="secondary" small @click="editQuick">Editar rápido</v-btn>
             <v-btn class="secondary" outlined @click="resetForm">Cancelar</v-btn>
             <v-btn class="create-btn ml-2" @click="openModal">Criar</v-btn>
           </v-row>

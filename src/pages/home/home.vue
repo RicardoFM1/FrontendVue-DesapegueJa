@@ -108,53 +108,49 @@
           </div>
           <div class="divItens">
             <v-card
-  width="330"
-  min-height="300"
-  class="cardItem"
-  v-for="(item, index) in itensFiltrados"
-  :key="item + '-' + index"
->
-  <v-img
-    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-    width="330"
-    class="imgItem"
-  ></v-img>
+              width="330"
+              min-height="300"
+              class="cardItem"
+              v-for="(item, index) in itensFiltrados"
+              :key="item + '-' + index"
+            >
+              <v-img
+                src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
+                width="330"
+                class="imgItem"
+              ></v-img>
 
-  <v-card-title class="mb-2">
-    {{ item.produto }}
-  </v-card-title>
-  <v-card-subtitle class="mb-2">
-    R$ {{ item.valor }}
-  </v-card-subtitle>
+              <v-card-title class="mb-2">
+                {{ item.produto }}
+              </v-card-title>
+              <v-card-subtitle class="mb-2">
+                R$ {{ item.valor }}
+              </v-card-subtitle>
 
-  <div class="divBtnAdicionar">
-    <v-card-actions class="divBtnsAcoes">
-      <v-btn
-        variant="flat"
-        color="#2196F3"
-        class="btnDetalhes"
-        @click="toDetalhes(index + 1)"
-        
-        density="comfortable"
-       
-      >
-        Detalhes
-      </v-btn>
-<!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
-      <v-btn
-        variant="flat"
-        color="#3fa34f"
-        prepend-icon="mdi-cart"
-        density="comfortable"
-        class="btnAdicionar"
-        
-      >
-        Adicionar ao carrinho
-      </v-btn>
-    </v-card-actions>
-  </div>
-</v-card>
-
+              <div class="divBtnAdicionar">
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(index + 1)"
+                    density="comfortable"
+                  >
+                    Detalhes
+                  </v-btn>
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart(item)"
+                  >
+                    Adicionar ao carrinho
+                  </v-btn>
+                </v-card-actions>
+              </div>
+            </v-card>
           </div>
         </v-main>
       </v-layout>
@@ -266,7 +262,7 @@
 
               <div class="divBtnAdicionar" > 
                 <v-card-actions>
-                  <v-btn variant="flat" density="compact" color="#3fa34f" prepend-icon="mdi-cart">
+                  <v-btn variant="flat" density="compact" color="#3fa34f" prepend-icon="mdi-cart" @click="addToCart(item)">
                     Adicionar ao carrinho
                   </v-btn>
                 </v-card-actions>
@@ -282,17 +278,16 @@
 <script setup>
 import router from "@/router";
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router"
-import { useCartStore } from '@/components/stores/cart'
+import { useCartStore } from '@/stores/cart'
 
 const cart = useCartStore()
 
 function addToCart(item){
   cart.addToCart({
-    id:item.id,
-    produto:item.produto,
-    valor:item.valor,
-    image:item.image
+    id: item.id ?? Date.now() + Math.random(), // id único se não existir
+    produto: item.produto,
+    valor: item.valor,
+    image: item.image
   })
 }
 
@@ -365,4 +360,3 @@ function toDetalhes(id){
 @import "../css/paginaHome/home.css";
 @import "../css/paginaPerfil/perfil.css";
 </style>
- 
