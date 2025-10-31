@@ -20,7 +20,7 @@
           @submit.prevent="onSubmit"
         >
         <div class="divImageLogo">
-  <v-img width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
+  <v-img style="padding: 12px 0 0 12px;" width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
 </div>
 
 <h1 class="tituloCadastro">Cadastro</h1>
@@ -173,7 +173,15 @@ const onSubmit = async () => {
       telefone: usuario.value.Telefone,
       data_de_nascimento: usuario.value.dataNascimento,
     };
-    const res = await connection.post("desapega/usuarios", body);
+    const res = await connection.post("desapega/usuarios", body,
+      {
+        headers: {
+
+          'Content-Type': 'application/json'
+         
+        }
+      }
+    );
     await delay(500);
     if (res.status === 200 || res.status === 201) {
       toast.success("Cadastro realizado com sucesso!", { autoClose: 2000 });
@@ -212,7 +220,8 @@ const disabled = computed(
   () =>
     !usuario.value.email ||
     !usuario.value.senha ||
-    usuario.value.confirmSenha !== usuario.value.senha
+    usuario.value.confirmSenha !== usuario.value.senha 
+    || !usuario.value.CPF || !usuario.value.Telefone || !usuario.value.dataNascimento
 );
 </script>
 

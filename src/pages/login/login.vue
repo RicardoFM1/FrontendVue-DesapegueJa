@@ -6,15 +6,15 @@
             <v-sheet style="display: flex; border-radius: 10px;
                 justify-content: center; flex-direction: column; width: 25%; height: 60%;
                 "  class="sheetLogin">
-                <v-sheet style="position: absolute; top: 23%; background-color: #e3e3e3;
-                padding: 4px 48px 4px 48px; border-radius: 6px; border: 2px solid #767676;
-                ">
-                    Login
-                </v-sheet>
+                
                 <v-form :disabled="loading" class="formLogin" ref="form" style="width: 100%;" 
                 
                 @submit.prevent="onSubmit">
-                    
+                    <div class="divImageLogo">
+  <v-img style="padding: 12px 0 0 12px;" width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
+</div>
+
+<h1 class="tituloCadastro">Login</h1>
                     <v-text-field
                     label="Email"
                     prepend-inner-icon="mdi-email"
@@ -37,7 +37,7 @@
                 </v-text-field>
                 <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Fazer login</v-btn>
                 <v-btn
-          class="ml-4"
+         
           variant="flat"
           color="#5865f2"
           type="button"
