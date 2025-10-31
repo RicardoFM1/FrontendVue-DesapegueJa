@@ -1,62 +1,61 @@
 <template>
-  <v-container>
-    <!-- Botão Voltar -->
-    <v-btn class="btn-voltar" @click="voltar" prepend-icon="mdi-arrow-left">
-      Voltar
-    </v-btn>
+  <v-container class="produto-detalhes-container">
+    <v-btn text color="blue" @click="voltar">Voltar</v-btn>
 
-    <!-- Grid de produtos -->
-    <v-row dense>
-      <v-col
-        v-for="produto in produtos"
-        :key="produto.id"
-        cols="12"
-        sm="6"
-        md="4"
-      >
-        <v-card class="produto-card">
-          <v-img :src="produto.imagem" height="180px"></v-img>
-          <v-card-title class="produto-titulo">{{ produto.produto }}</v-card-title>
-          <v-card-subtitle class="produto-preco">
-            R$ {{ produto.valor }}
-          </v-card-subtitle>
-          <v-card-actions>
-            <v-btn color="#3fa34f" block @click="adicionarCarrinho(produto)">
-              Adicionar ao carrinho
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
+    <v-card class="produto-card mt-4" max-width="600">
+      <v-img :src="produto.imagem" height="300" class="produto-imagem"></v-img>
+
+      <v-card-title class="produto-titulo">{{ produto.produto }}</v-card-title>
+      <v-card-subtitle class="produto-preco">R$ {{ produto.valor }}</v-card-subtitle>
+
+      <v-card-text>
+        <p>Descrição: {{ produto.descricao }}</p>
+        <p>Categoria: {{ produto.categoria }}</p>
+        <p>Estado: {{ produto.estado }}</p>
+      </v-card-text>
+
+      <v-card-actions class="produto-acoes">
+        <v-btn color="#2196F3" class="btn-detalhes">🔍 Detalhes</v-btn>
+        <v-btn color="#3fa34f" class="btn-carrinho" @click="adicionarCarrinho(produto)">
+          Adicionar ao carrinho
+        </v-btn>
+      </v-card-actions>
+    </v-card>
   </v-container>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
+const route = useRoute();
 const router = useRouter();
 
 const produtos = [
-  {
-    id: 1,
-    produto: "Carro Esportivo 2024",
-    valor: 120000,
-    imagem: "https://cdn.vuetifyjs.com/images/cards/sunshine.jpg",
-  },
-  {
-    id: 2,
-    produto: "Carro Sedan Premium 2023",
-    valor: 95000,
-    imagem: "https://cdn.vuetifyjs.com/images/cards/road.jpg",
-  },
-  {
-    id: 3,
-    produto: "SUV Familiar Confort 2022",
-    valor: 87000,
-    imagem: "https://cdn.vuetifyjs.com/images/cards/mountain.jpg",
-  },
+  { id: 1, produto: "um Carro", valor: 1200, imagem: "https://cdn.vuetifyjs.com/images/parallax/material.jpg", descricao: "Descrição do carro", categoria: "Veículos", estado: "Excelente" },
+  { id: 2, produto: "um Carro2", valor: 12002, imagem: "https://cdn.vuetifyjs.com/images/parallax/material.jpg", descricao: "Descrição do carro2", categoria: "Veículos", estado: "Muito bom" },
+  { id: 3, produto: "um Carro3", valor: 12003, imagem: "https://cdn.vuetifyjs.com/images/parallax/material.jpg", descricao: "Descrição do carro3", categoria: "Veículos", estado: "Bom" },
 ];
+
+const produto = ref({});
+
+onMounted(() => {
+  const id = parseInt(route.params.id);
+  produto.value = produtos.find((p) => p.id === id) || {};
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visivel");
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+
+  document.querySelectorAll(".v-card-text p").forEach((p) => observer.observe(p));
+});
 
 function voltar() {
   router.back();
@@ -67,6 +66,6 @@ function adicionarCarrinho(produto) {
 }
 </script>
 
-<style scoped>
+<style>
 @import "../css/paginaDetalhesProduto/detalhes.css";
 </style>
