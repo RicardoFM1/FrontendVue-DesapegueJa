@@ -6,20 +6,48 @@
 
 
 
-.fundoCadastro, .fundoLogin{
-    background: linear-gradient(to right, #3a4e7b, #191e3b, #3a4e7b);   
-    height: 110vh;
-    width: 100vw;
+.fundoCadastro, .fundoLogin {
+  background: linear-gradient(to right, #3a4e7b, #191e3b, #3a4e7b);   
+  min-height: 100vh;
+  width: 100vw;
+  overflow-y: auto; 
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; 
+  padding: 2rem 0;
 }
 
-.divFormCadastro, .divFormLogin{
+
+.tituloCadastro {
+  font-size: 28px;
+  color: #4a4a4a;
+  font-weight: 500;
+  margin: 16px 0 24px 0;
+  text-align: center;
+}
+
+.divTituloForm{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 4px;
+}
+
+.divImageLogo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.divFormCadastro, .divFormLogin {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 100vh;
-    
+    min-height: 100vh; 
+    padding: 2rem 0; 
 }
+
 input[type="date"]::-webkit-calendar-picker-indicator {
       display: none;
 }
@@ -30,7 +58,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     justify-content: center;
     align-items: center;
     padding: 18px;
-    width: 30%;
+    
 }
 
 .formCadastro, .formLogin{

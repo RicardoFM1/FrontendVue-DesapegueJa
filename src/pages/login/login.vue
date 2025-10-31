@@ -1,13 +1,6 @@
 <template>
 <div class="fundoLogin">
-        <v-btn
-          class="ml-4"
-          variant="flat"
-          color="#5865f2"
-          to="/"
-          >
-            Página home
-          </v-btn>
+        
     
         <div class="divFormLogin">
             <v-sheet style="display: flex; border-radius: 10px;
@@ -43,6 +36,15 @@
                     
                 </v-text-field>
                 <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Fazer login</v-btn>
+                <v-btn
+          class="ml-4"
+          variant="flat"
+          color="#5865f2"
+          type="button"
+          to="/"
+          >
+            Página home
+          </v-btn>
                 <router-link to="/cadastro">Não tem uma conta?</router-link>
                 </v-form>
             </v-sheet>

@@ -1,16 +1,15 @@
 <template>
   <div class="fundoCadastro">
-    <v-btn class="ml-4" variant="flat" color="#5865f2" to="/"
-      >Página home</v-btn
-    >
     <div class="divFormCadastro">
       <v-sheet
         style="
           display: flex;
           border-radius: 10px;
           justify-content: center;
+          align-items: center;
           flex-direction: column;
-          width: 25%;
+          padding: 18px;
+          width: 30%;
         "
         class="sheetCadastro"
       >
@@ -20,7 +19,11 @@
           ref="form"
           @submit.prevent="onSubmit"
         >
-        <v-img src="public/desapegueja-logo-svg"></v-img>
+        <div class="divImageLogo">
+  <v-img width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
+</div>
+
+<h1 class="tituloCadastro">Cadastro</h1>
           <v-text-field
             label="Email"
             prepend-inner-icon="mdi-email"
@@ -60,20 +63,22 @@
             placeholder="000.000.000-00"
           ></v-text-field>
           <v-text-field
-  ref="inputData"
-  label="Data de nascimento"
-  append-inner-icon="mdi-calendar"
-  base-color="#293559"
-  v-model="usuario.dataNascimento"
-  placeholder="DD/MM/AAAA"
-  @click:append-inner="openCalendar"
+            ref="inputData"
+            label="Data de nascimento"
+            append-inner-icon="mdi-calendar"
+            base-color="#293559"
+            v-model="usuario.dataNascimento"
+            placeholder="DD/MM/AAAA"
+            @click:append-inner="openCalendar"
           ></v-text-field>
           <v-dialog max-width="350" v-model="calendarOpen" v-if="calendarOpen">
             <v-card>
               <v-date-picker
                 v-model="rawDate"
                 scrollable
-                @update:model-value="(val) => usuario.dataNascimento = formatDate(val)"
+                @update:model-value="
+                  (val) => (usuario.dataNascimento = formatDate(val))
+                "
               ></v-date-picker>
               <v-card-actions>
                 <v-spacer></v-spacer>
@@ -98,6 +103,9 @@
             type="submit"
             block
             >Cadastrar</v-btn
+          >
+          <v-btn type="button" variant="flat" color="#5865f2" to="/"
+            >Página home</v-btn
           >
           <router-link to="/login">Já tem uma conta? Faça login</router-link>
         </v-form>
@@ -143,11 +151,10 @@ const openCalendar = () => {
   calendarOpen.value = true;
 };
 
-
 const formatDate = (val) => {
   if (!val) return "";
- 
-    const date = new Date(val);
+
+  const date = new Date(val);
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
