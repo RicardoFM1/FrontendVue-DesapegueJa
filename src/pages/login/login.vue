@@ -28,7 +28,7 @@
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="show = !show"
-                        v-model="usuario.senhaHash"
+                        v-model="usuario.senha"
                         @paste.prevent
                         :type="show ? 'text' : 'password'"
                         base-color="#293559"
@@ -63,7 +63,7 @@ import router from "@/router";
 
 const usuario = ref({
     email: "",
-    senhaHash: ""
+    senha: ""
 })
 const loading = ref(false)
 
@@ -75,7 +75,7 @@ const onSubmit = async () => {
   try {
     const res = await connection.post("/desapega/usuarios/login", usuario.value);
     
-    if(res.status == 200){
+    if(res.status == 200 || res.status == 201){
 
         toast.success("Login realizado com sucesso!", { autoClose: 2000 });
         localStorage.setItem("token", res.data.token);
@@ -100,7 +100,7 @@ const onSubmit = async () => {
 
 
 const disabled = computed(() => {
-if(usuario.value.email === "" || usuario.value.senha === ""){
+if(usuario.value.email == "" || usuario.value.senha == ""){
       return true
   }
   
