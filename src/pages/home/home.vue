@@ -6,7 +6,7 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
           <v-toolbar-title>Filtros</v-toolbar-title>
 
-          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2" to="/anunciar">
+          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2" @click="toAnunciar">
             Anunciar
           </v-btn>
 
@@ -15,7 +15,7 @@
             variant="flat"
             prepend-icon="mdi-cart"
             color="#3fa34f"
-            to="/carrinho"
+            @click="toCarrinho"
           >
             Carrinho
           </v-btn>
@@ -46,7 +46,6 @@
 
               <v-divider class="my-3"></v-divider>
 
-              <!-- Botões com maior espaçamento -->
               <v-btn block color="#eaece7" variant="flat" class="mb-4" @click="toPerfil">
                 PERFIL
               </v-btn>
@@ -121,10 +120,13 @@
   ></v-img>
 
   <v-card-title class="mb-2">
-    {{ item.produto }}
+    {{ item.nome }}
   </v-card-title>
   <v-card-subtitle class="mb-2">
-    R$ {{ item.valor }}
+    R$ {{ item.preco / 100 }}
+  </v-card-subtitle>
+  <v-card-subtitle class="mb-2">
+    Em estoque: {{ item.estoque }}
   </v-card-subtitle>
 
   <div class="divBtnAdicionar">
@@ -147,7 +149,7 @@
         prepend-icon="mdi-cart"
         density="comfortable"
         class="btnAdicionar"
-        
+        @click="addToCart"
       >
         Adicionar ao carrinho
       </v-btn>
@@ -169,8 +171,13 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
 
           <v-toolbar-title>Filtros</v-toolbar-title>
-          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2">
-            Criar
+          <v-btn 
+          prepend-icon="mdi-check" 
+          variant="flat" 
+          color="#5865f2"
+          @click="toAnunciar"
+          >
+            Anunciar
           </v-btn>
 
           <v-btn
@@ -178,14 +185,15 @@
             variant="flat"
             prepend-icon="mdi-cart"
             color="#3fa34f"
+            @click="toCarrinho"
           >
             Carrinho
           </v-btn>
-          <v-btn class="ml-4" variant="flat" color="#5865f2" to="/cadastro">
+          <v-btn class="ml-4" variant="flat" color="#5865f2" @click="toCadastro">
             Cadastre-se
           </v-btn>
           <v-btn
-            to="/login"
+            @click="toLogin"
             class="ml-4 mr-4"
             variant="outlined"
             color="blue-darken-4"
@@ -258,22 +266,77 @@
               ></v-img>
 
               <v-card-title class="mb-2">
-                {{ item.produto }}
+                {{ item.nome }}
               </v-card-title>
               <v-card-subtitle class="mb-2">
-                R$ {{ item.valor }}
+                R$ {{ item.preco }}
+              </v-card-subtitle>
+              <v-card-subtitle class="mb-2">
+                Em estoque:  {{ item.estoque }}
               </v-card-subtitle>
 
-              <div class="divBtnAdicionar" > 
-                <v-card-actions>
-                  <v-btn variant="flat" density="compact" color="#3fa34f" prepend-icon="mdi-cart">
-                    Adicionar ao carrinho
-                  </v-btn>
-                </v-card-actions>
-              </div>
+              <div class="divBtnAdicionar">
+    <v-card-actions class="divBtnsAcoes">
+      <v-btn
+        variant="flat"
+        color="#2196F3"
+        class="btnDetalhes"
+        @click="toDetalhes(index + 1)"
+        
+        density="comfortable"
+       
+      >
+        Detalhes
+      </v-btn>
+<!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+      <v-btn
+        variant="flat"
+        color="#3fa34f"
+        prepend-icon="mdi-cart"
+        density="comfortable"
+        class="btnAdicionar"
+        @click="addToCart"
+      >
+        Adicionar ao carrinho
+      </v-btn>
+    </v-card-actions>
+  </div>
             </v-card>
           </div>
+          <v-dialog 
+          max-width="500"
+          v-model="modalAlertShow"
+          v-if="modalAlertShow == true" 
+          >
+          <v-card title="Aviso">
+          <template #prepend>
+            <v-icon size="42" color="yellow">mdi-alert</v-icon>
+          </template>
+          <v-card-text>
+            Usuário sem permissão para executar esta ação! Tente primeiro fazer login.
+          </v-card-text>
+          <v-card-actions>
+            <v-btn
+            text="Fazer login"
+            base-color="green"
+            variant="flat"
+            v-model="modalAlertShow"
+            @click="toLogin"
+            >
+              
+            </v-btn>
+            <v-btn
+            text="Ok"
+            base-color="blue"
+            v-model="modalAlertShow"
+            @click="modalAlertShow = false"
+            >  
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+        </v-dialog>
         </v-main>
+        
       </v-layout>
     </div>
   </div>
@@ -281,13 +344,112 @@
 
 <script setup>
 import router from "@/router";
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router"
+import { ref, computed, onMounted, watch } from "vue";
 import { useCartStore } from '@/components/stores/cart'
+import { connection } from "@/connection/axiosConnection";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+import "@mdi/font/css/materialdesignicons.css";
+
+const token = ref()
+const tokenExiste = ref(false);
+if (localStorage.getItem("token") != null) {
+  tokenExiste.value = true;
+  token.value = localStorage.getItem("token")
+} else {
+  tokenExiste.value = false;
+}
+
+const retrieve = ref()
+
+
+async function getRetrieve(){
+  try{
+    const res = await connection.get("/desapega/usuarios/retrieve", 
+      {
+        headers:{
+          Authorization: `Bearer ${token.value}`
+        }
+      }
+    )
+    if(res.status == 200){
+      retrieve.value = res.data
+    
+    }
+    else{
+      toast.error("Erro ao buscar o usuário")
+    }
+  }catch(error){
+    console.log(error.response?.data?.message || "Erro ao buscar o usuário")
+    toast.error(error.response.data.message || "Erro ao buscar o usuário")
+  }
+}
+onMounted(() => {
+  if(tokenExiste.value){
+    getRetrieve()
+  }
+})
+
+watch(retrieve, (novoRetrieve) => {
+  console.log(novoRetrieve.admin, "admin")
+})
+
+const itens = ref([])
+async function getProdutos(){
+
+  if(retrieve.admin == true){
+    try{
+      const res = await connection.get("/desapega/produtos")
+      if(res.status == 200){
+        itens.value = res.data
+      }else{
+        
+        toast.error("Erro ao buscar o produto")
+      }
+    }
+    catch(error){
+      console.log(error.response.data.message || "Erro ao buscar o produto")
+      toast.error(error.response.data.message || "Erro ao buscar o produto")
+    }
+   
+  }
+  else{
+    try{
+      const res = await connection.get("/desapega/produtos?status=ativo")
+    if(res.status == 200){
+        itens.value = res.data
+      }else{
+        
+        toast.error("Erro ao buscar o produto")
+      }
+    }
+    catch(error){
+      console.log(error.response.data.message || "Erro ao buscar o produto")
+      toast.error(error.response.data.message || "Erro ao buscar o produto")
+    }
+   
+  }
+    
+
+}
+onMounted(() => {
+  getProdutos()
+})
+
+watch(itens, (novoItem) => {
+  novoItem.forEach(item => {
+    console.log(item, "Produtos")
+  })
+})
 
 const cart = useCartStore()
+const modalAlertShow = ref(false)
 
 function addToCart(item){
+  if(tokenExiste.value == false){
+    modalAlertShow.value = !modalAlertShow.value
+    return
+  }
   cart.addToCart({
     id:item.id,
     produto:item.produto,
@@ -298,7 +460,6 @@ function addToCart(item){
 
 const drawer = ref(false);
 const range = ref([0, 0]);
-const tokenExiste = ref(false);
 const categorias = [
   "Roupas e acessórios",
   "Imóveis",
@@ -313,26 +474,15 @@ const categorias = [
 const menu = ref(false);
 const search = ref("");
 
-const itens = [
-  { produto: "um Carro", valor: 1200 },
-  { produto: "um Carro2", valor: 12002 },
-  { produto: "um Carro3", valor: 12003 },
-  { produto: "um Carro", valor: 1200 },
-  { produto: "um Carro2", valor: 12002 },
-  { produto: "um Carro3", valor: 12003 },
-];
+
 
 const itensFiltrados = computed(() =>
-  itens.filter((item) =>
-    item.produto.toLowerCase().includes(search.value.toLowerCase())
+  itens.value.filter((item) =>
+    item.nome.toLowerCase().includes(search.value.toLowerCase())
   )
 );
 
-if (localStorage.getItem("token") != null) {
-  tokenExiste.value = true;
-} else {
-  tokenExiste.value = false;
-}
+
 
 const usuario = ref({
   nome: "Ricardo Moura",
@@ -348,6 +498,10 @@ const iniciais = computed(() =>
 );
 
 function toPerfil() {
+  if(tokenExiste.value == false){
+    modalAlertShow.value = !modalAlertShow.value
+    return  
+  }
   router.push("/perfil");
 }
 
@@ -358,6 +512,26 @@ function removerToken() {
 
 function toDetalhes(id){
   router.push(`/produto/${id}`)
+}
+function toAnunciar(){
+if(tokenExiste.value == false){
+  modalAlertShow.value = !modalAlertShow.value
+  return
+}
+  router.push("/anunciar")
+}
+function toCarrinho(){
+  if(tokenExiste.value == false){
+    modalAlertShow.value = !modalAlertShow.value
+    return
+  }
+  router.push("/carrinho")
+}
+function toCadastro(){
+  router.push("/cadastro")
+}
+function toLogin(){
+  router.push("/login")
 }
 </script>
 
