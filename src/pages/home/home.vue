@@ -30,16 +30,13 @@
 
             <v-card class="pa-4" width="300">
               <v-row justify="center">
-                <v-avatar color="grey darken-2" size="70">
-                  <span class="white--text text-h6">{{ iniciais }}</span>
+                <v-avatar  color="grey darken-2" size="70">
+                  <!-- <span class="white--text text-h6">{{ iniciais }}</span> -->
+                  
                 </v-avatar>
               </v-row>
 
-              <!-- Espaçamento maior entre avatar e nome -->
-              <v-row justify="center" class="mt-6">
-                <div class="nomeUsuario">{{ usuario.nome }}</div>
-              </v-row>
-
+            
               <v-row justify="center">
                 <div class="emailUsuario">{{ usuario.email }}</div>
               </v-row>
@@ -361,6 +358,7 @@ if (localStorage.getItem("token") != null) {
 }
 
 const retrieve = ref()
+const usuario = ref();
 
 
 async function getRetrieve(){
@@ -374,7 +372,7 @@ async function getRetrieve(){
     )
     if(res.status == 200){
       retrieve.value = res.data
-    
+      usuario.value = res.data
     }
     else{
       toast.error("Erro ao buscar o usuário")
@@ -484,18 +482,14 @@ const itensFiltrados = computed(() =>
 
 
 
-const usuario = ref({
-  nome: "Ricardo Moura",
-  email: "ricardo@gmail.com",
-});
 
-const iniciais = computed(() =>
-  usuario.value.nome
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-);
+// const iniciais = computed(() =>
+//   usuario.value.nome
+//     .split(" ")
+//     .map((n) => n[0])
+//     .join("")
+//     .toUpperCase()
+// );
 
 function toPerfil() {
   if(tokenExiste.value == false){
