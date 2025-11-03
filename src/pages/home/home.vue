@@ -342,6 +342,7 @@
         </v-navigation-drawer>
 
         <v-main>
+          
           <div class="divHeaderMain">
             <v-text-field
               v-model="search"
@@ -353,6 +354,15 @@
               append-inner-icon="mdi-magnify"
             ></v-text-field>
           </div>
+          <v-sheet
+    v-if="erroGetProduto"
+    color="red lighten-2"
+    class="pa-4 mb-4 text-white text-center"
+    elevation="2"
+  >
+    Erro ao listar os produtos
+  </v-sheet>
+
           <div class="divItens">
             <v-card
               width="330"
@@ -533,6 +543,7 @@ if (localStorage.getItem("token") != null) {
 const retrieve = ref();
 const usuario = ref();
 const categorias = ref([]);
+const erroGetProduto = ref(false);
 
 async function getCategorias() {
   try {
@@ -585,12 +596,15 @@ async function getProdutos() {
       const res = await connection.get("/desapega/produtos");
       if (res.status == 200) {
         itens.value = res.data;
+        erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
       }
     } catch (error) {
-      console.log(error.response.data.message || "Erro ao buscar o produto");
-      toast.error(error.response.data.message || "Erro ao buscar o produto");
+      console.log(error.response?.data?.message || "Erro ao buscar o produto");
+      toast.error(error.response?.data?.message || "Erro ao buscar o produto");
+      erroGetProduto.value = true;
     }
   } else {
     try {
