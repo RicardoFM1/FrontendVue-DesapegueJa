@@ -35,12 +35,29 @@
             <v-card class="pa-4" width="300">
               <v-row justify="center">
                 <v-avatar color="grey darken-2" size="70">
-                  <!-- <span class="white--text text-h6">{{ iniciais }}</span> -->
+                  <span class="white--text text-h6">{{ iniciais }}</span>
                 </v-avatar>
+              </v-row>
+              <v-row justify="center">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <div v-bind="props" class="pa-1 nomeUsuario ellipses">
+                      {{ usuario?.nome }}
+                    </div>
+                  </template>
+                  <span>{{ usuario?.nome }}</span>
+                </v-tooltip>
               </v-row>
 
               <v-row justify="center">
-                <div class="emailUsuario">{{ usuario?.email }}</div>
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <div v-bind="props" class="pa-1 emailUsuario ellipses">
+                      {{ usuario?.email }}
+                    </div>
+                  </template>
+                  <span>{{ usuario?.email }}</span>
+                </v-tooltip>
               </v-row>
 
               <v-divider class="my-3"></v-divider>
@@ -591,20 +608,18 @@ async function getProdutos() {
 }
 
 function getProdutoImage(imagem) {
-  
   if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
-    return imagem.startsWith("data:") ? imagem : `data:image/png;base64,${imagem}`;
+    return imagem.startsWith("data:")
+      ? imagem
+      : `data:image/png;base64,${imagem}`;
   }
 
- 
   return "/png-triste-erro.png";
 }
 
-
-
 watch(itens, (novoItem) => {
   novoItem.forEach((item) => {
-    console.log(item.imagem, "Produtos");
+    console.log(item, "Produtos");
   });
 });
 
@@ -646,13 +661,14 @@ const itensFiltrados = computed(() =>
   )
 );
 
-// const iniciais = computed(() =>
-//   usuario.value.nome
-//     .split(" ")
-//     .map((n) => n[0])
-//     .join("")
-//     .toUpperCase()
-// );
+const iniciais = computed(() => {
+  if (!usuario.value || !usuario.value.nome) return "Usuário";
+  return usuario.value.nome
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+});
 
 function toPerfil() {
   if (tokenExiste.value == false) {
