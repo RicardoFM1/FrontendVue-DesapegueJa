@@ -6,7 +6,12 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
           <v-toolbar-title>Filtros</v-toolbar-title>
 
-          <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2" @click="toAnunciar">
+          <v-btn
+            prepend-icon="mdi-check"
+            variant="flat"
+            color="#5865f2"
+            @click="toAnunciar"
+          >
             Anunciar
           </v-btn>
 
@@ -20,7 +25,6 @@
             Carrinho
           </v-btn>
 
-         
           <v-menu v-model="menu" offset-y>
             <template #activator="{ props }">
               <v-btn v-bind="props">
@@ -30,23 +34,33 @@
 
             <v-card class="pa-4" width="300">
               <v-row justify="center">
-                <v-avatar  color="grey darken-2" size="70">
+                <v-avatar color="grey darken-2" size="70">
                   <!-- <span class="white--text text-h6">{{ iniciais }}</span> -->
-                  
                 </v-avatar>
               </v-row>
 
-            
               <v-row justify="center">
-                <div class="emailUsuario">{{ usuario.email }}</div>
+                <div class="emailUsuario">{{ usuario?.email }}</div>
               </v-row>
 
               <v-divider class="my-3"></v-divider>
 
-              <v-btn block color="#eaece7" variant="flat" class="mb-4" @click="toPerfil">
+              <v-btn
+                block
+                color="#eaece7"
+                variant="flat"
+                class="mb-4"
+                @click="toPerfil"
+              >
                 PERFIL
               </v-btn>
-              <v-btn block color="#cc0000" variant="flat" class="mb-4" @click="removerToken">
+              <v-btn
+                block
+                color="#cc0000"
+                variant="flat"
+                class="mb-4"
+                @click="removerToken"
+              >
                 SAIR
               </v-btn>
             </v-card>
@@ -104,56 +118,125 @@
           </div>
           <div class="divItens">
             <v-card
-  width="330"
-  min-height="300"
-  class="cardItem"
-  v-for="(item, index) in itensFiltrados"
-  :key="item + '-' + index"
->
-  <v-img
-    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-    width="330"
-    class="imgItem"
-  ></v-img>
+              width="330"
+              min-height="300"
+              class="cardItem"
+              v-for="(item, index) in itensFiltrados"
+              :key="item + '-' + index"
+            >
+              <v-img
+                :src="getProdutoImage(item.imagem)"
+                width="330"
+                position="center"
+                height="330"
+                cover
+                class="imgItem"
+              >
+                <template #error>
+                  <img src="/png-triste-erro.png" alt="Imagem não disponível" />
+                </template>
+              </v-img>
 
-  <v-card-title class="mb-2">
-    {{ item.nome }}
-  </v-card-title>
-  <v-card-subtitle class="mb-2">
-    R$ {{ item.preco / 100 }}
-  </v-card-subtitle>
-  <v-card-subtitle class="mb-2">
-    Em estoque: {{ item.estoque }}
-  </v-card-subtitle>
+              <v-card-title class="ellipses mb-2 rounded font-weight-bold">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p v-bind="props">
+                      {{ item.nome }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    {{ item.nome }}
+                  </span>
+                </v-tooltip>
+              </v-card-title>
+              <v-card-subtitle
+                style="width: 50%"
+                class="mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p
+                      v-bind="props"
+                      class="text-subtitle-1 ellipses bg-green text-white rounded px-2 py-1 d-inline-block"
+                    >
+                      R$ {{ item.preco / 100 }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    R$ {{ item.preco / 100 }}
+                  </span>
+                </v-tooltip>
+              </v-card-subtitle>
+              <v-card-subtitle
+                class="ellipses text-subtitle-1 mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p style="width: 50%" class="ellipses" v-bind="props">
+                      Em estoque: {{ item.estoque }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Estoque : {{ item.estoque }}
+                  </span>
+                </v-tooltip>
+              </v-card-subtitle>
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                :color="
+                  categorias.find((c) => c.id == item.categoria_id)?.cor ||
+                  '#808080'
+                "
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props">
+                      <v-icon left small class="mr-2">mdi-tag</v-icon>
+                      {{
+                        categorias.find((c) => c.id == item.categoria_id)
+                          ?.nome || "Sem categoria"
+                      }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Categoria :
+                    {{
+                      categorias.find((c) => c.id == item.categoria_id)?.nome ||
+                      "Sem categoria"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
 
-  <div class="divBtnAdicionar">
-    <v-card-actions class="divBtnsAcoes">
-      <v-btn
-        variant="flat"
-        color="#2196F3"
-        class="btnDetalhes"
-        @click="toDetalhes(index + 1)"
-        
-        density="comfortable"
-       
-      >
-        Detalhes
-      </v-btn>
-<!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
-      <v-btn
-        variant="flat"
-        color="#3fa34f"
-        prepend-icon="mdi-cart"
-        density="comfortable"
-        class="btnAdicionar"
-        @click="addToCart"
-      >
-        Adicionar ao carrinho
-      </v-btn>
-    </v-card-actions>
-  </div>
-</v-card>
-
+              <div class="divBtnAdicionar">
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(index + 1)"
+                    density="comfortable"
+                  >
+                    Detalhes
+                  </v-btn>
+                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart"
+                  >
+                    Adicionar ao carrinho
+                  </v-btn>
+                </v-card-actions>
+              </div>
+            </v-card>
           </div>
         </v-main>
       </v-layout>
@@ -168,11 +251,11 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
 
           <v-toolbar-title>Filtros</v-toolbar-title>
-          <v-btn 
-          prepend-icon="mdi-check" 
-          variant="flat" 
-          color="#5865f2"
-          @click="toAnunciar"
+          <v-btn
+            prepend-icon="mdi-check"
+            variant="flat"
+            color="#5865f2"
+            @click="toAnunciar"
           >
             Anunciar
           </v-btn>
@@ -186,7 +269,12 @@
           >
             Carrinho
           </v-btn>
-          <v-btn class="ml-4" variant="flat" color="#5865f2" @click="toCadastro">
+          <v-btn
+            class="ml-4"
+            variant="flat"
+            color="#5865f2"
+            @click="toCadastro"
+          >
             Cadastre-se
           </v-btn>
           <v-btn
@@ -257,83 +345,151 @@
               :key="item + '-' + index"
             >
               <v-img
-                src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
+                :src="getProdutoImage(item.imagem)"
                 width="330"
+                position="center"
+                height="330"
+                cover
                 class="imgItem"
-              ></v-img>
+              >
+                <template #error>
+                  <img src="/png-triste-erro.png" alt="Imagem não disponível" />
+                </template>
+              </v-img>
 
-              <v-card-title class="mb-2">
-                {{ item.nome }}
+              <v-card-title class="ellipses mb-2 rounded font-weight-bold">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p v-bind="props">
+                      {{ item.nome }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    {{ item.nome }}
+                  </span>
+                </v-tooltip>
               </v-card-title>
-              <v-card-subtitle class="mb-2">
-                R$ {{ item.preco }}
+              <v-card-subtitle
+                style="width: 50%"
+                class="mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p
+                      v-bind="props"
+                      class="text-subtitle-1 ellipses bg-green text-white rounded px-2 py-1 d-inline-block"
+                    >
+                      R$ {{ item.preco / 100 }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    R$ {{ item.preco / 100 }}
+                  </span>
+                </v-tooltip>
               </v-card-subtitle>
-              <v-card-subtitle class="mb-2">
-                Em estoque:  {{ item.estoque }}
+              <v-card-subtitle
+                class="ellipses text-subtitle-1 mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p style="width: 50%" class="ellipses" v-bind="props">
+                      Em estoque: {{ item.estoque }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Estoque : {{ item.estoque }}
+                  </span>
+                </v-tooltip>
               </v-card-subtitle>
-
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                :color="
+                  categorias.find((c) => c.id == item.categoria_id)?.cor ||
+                  '#808080'
+                "
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props">
+                      <v-icon left small class="mr-2">mdi-tag</v-icon>
+                      {{
+                        categorias.find((c) => c.id == item.categoria_id)
+                          ?.nome || "Sem categoria"
+                      }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Categoria :
+                    {{
+                      categorias.find((c) => c.id == item.categoria_id)?.nome ||
+                      "Sem categoria"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
               <div class="divBtnAdicionar">
-    <v-card-actions class="divBtnsAcoes">
-      <v-btn
-        variant="flat"
-        color="#2196F3"
-        class="btnDetalhes"
-        @click="toDetalhes(index + 1)"
-        
-        density="comfortable"
-       
-      >
-        Detalhes
-      </v-btn>
-<!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
-      <v-btn
-        variant="flat"
-        color="#3fa34f"
-        prepend-icon="mdi-cart"
-        density="comfortable"
-        class="btnAdicionar"
-        @click="addToCart"
-      >
-        Adicionar ao carrinho
-      </v-btn>
-    </v-card-actions>
-  </div>
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(index + 1)"
+                    density="comfortable"
+                  >
+                    Detalhes
+                  </v-btn>
+                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart"
+                  >
+                    Adicionar ao carrinho
+                  </v-btn>
+                </v-card-actions>
+              </div>
             </v-card>
           </div>
-          <v-dialog 
-          max-width="500"
-          v-model="modalAlertShow"
-          v-if="modalAlertShow == true" 
+          <v-dialog
+            max-width="500"
+            v-model="modalAlertShow"
+            v-if="modalAlertShow == true"
           >
-          <v-card title="Aviso">
-          <template #prepend>
-            <v-icon size="42" color="yellow">mdi-alert</v-icon>
-          </template>
-          <v-card-text>
-            Usuário sem permissão para executar esta ação! Tente primeiro fazer login.
-          </v-card-text>
-          <v-card-actions>
-            <v-btn
-            text="Fazer login"
-            base-color="green"
-            variant="flat"
-            v-model="modalAlertShow"
-            @click="toLogin"
-            >
-              
-            </v-btn>
-            <v-btn
-            text="Ok"
-            base-color="blue"
-            v-model="modalAlertShow"
-            @click="modalAlertShow = false"
-            >  
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-        </v-dialog>
+            <v-card title="Aviso">
+              <template #prepend>
+                <v-icon size="42" color="yellow">mdi-alert</v-icon>
+              </template>
+              <v-card-text>
+                Usuário sem permissão para executar esta ação! Tente primeiro
+                fazer login.
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  text="Fazer login"
+                  base-color="green"
+                  variant="flat"
+                  v-model="modalAlertShow"
+                  @click="toLogin"
+                >
+                </v-btn>
+                <v-btn
+                  text="Ok"
+                  base-color="blue"
+                  v-model="modalAlertShow"
+                  @click="modalAlertShow = false"
+                >
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-main>
-        
       </v-layout>
     </div>
   </div>
@@ -342,123 +498,135 @@
 <script setup>
 import router from "@/router";
 import { ref, computed, onMounted, watch } from "vue";
-import { useCartStore } from '@/components/stores/cart'
+import { useCartStore } from "@/components/stores/cart";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 
-const token = ref()
+const token = ref();
 const tokenExiste = ref(false);
 if (localStorage.getItem("token") != null) {
   tokenExiste.value = true;
-  token.value = localStorage.getItem("token")
+  token.value = localStorage.getItem("token");
 } else {
   tokenExiste.value = false;
 }
 
-const retrieve = ref()
+const retrieve = ref();
 const usuario = ref();
+const categorias = ref([]);
 
-
-async function getRetrieve(){
-  try{
-    const res = await connection.get("/desapega/usuarios/retrieve", 
-      {
-        headers:{
-          Authorization: `Bearer ${token.value}`
-        }
-      }
-    )
-    if(res.status == 200){
-      retrieve.value = res.data
-      usuario.value = res.data
+async function getCategorias() {
+  try {
+    const res = await connection.get(`/desapega/categorias`);
+    if (res.status == 200) {
+      console.log(res.data.nome, "Nome categoria");
+      categorias.value = res.data;
+    } else {
+      return "Sem categoria";
     }
-    else{
-      toast.error("Erro ao buscar o usuário")
-    }
-  }catch(error){
-    console.log(error.response?.data?.message || "Erro ao buscar o usuário")
-    toast.error(error.response.data.message || "Erro ao buscar o usuário")
+  } catch (error) {
+    return null;
   }
 }
-onMounted(() => {
-  if(tokenExiste.value){
-    getRetrieve()
+
+async function getRetrieve() {
+  try {
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (res && res.status === 200 && res.data) {
+      retrieve.value = res.data;
+      usuario.value = res.data;
+    } else {
+      toast.error("Erro ao buscar o usuário");
+      console.error("Resposta inesperada:", res);
+    }
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
   }
-})
+}
+
+onMounted(() => {
+  if (tokenExiste.value) {
+    getRetrieve();
+  }
+  getCategorias();
+  getProdutos();
+});
 
 watch(retrieve, (novoRetrieve) => {
-  console.log(novoRetrieve.admin, "admin")
-})
+  console.log(novoRetrieve.admin, "admin");
+});
 
-const itens = ref([])
-async function getProdutos(){
-
-  if(retrieve.admin == true){
-    try{
-      const res = await connection.get("/desapega/produtos")
-      if(res.status == 200){
-        itens.value = res.data
-      }else{
-        
-        toast.error("Erro ao buscar o produto")
+const itens = ref([]);
+async function getProdutos() {
+  if (retrieve.admin == true) {
+    try {
+      const res = await connection.get("/desapega/produtos");
+      if (res.status == 200) {
+        itens.value = res.data;
+      } else {
+        toast.error("Erro ao buscar o produto");
       }
+    } catch (error) {
+      console.log(error.response.data.message || "Erro ao buscar o produto");
+      toast.error(error.response.data.message || "Erro ao buscar o produto");
     }
-    catch(error){
-      console.log(error.response.data.message || "Erro ao buscar o produto")
-      toast.error(error.response.data.message || "Erro ao buscar o produto")
-    }
-   
-  }
-  else{
-    try{
-      const res = await connection.get("/desapega/produtos?status=ativo")
-    if(res.status == 200){
-        itens.value = res.data
-      }else{
-        
-        toast.error("Erro ao buscar o produto")
+  } else {
+    try {
+      const res = await connection.get("/desapega/produtos?status=ativo");
+      if (res.status == 200) {
+        itens.value = res.data;
+      } else {
+        toast.error("Erro ao buscar o produto");
       }
+    } catch (error) {
+      console.log(error.response.data.message || "Erro ao buscar o produto");
+      toast.error(error.response.data.message || "Erro ao buscar o produto");
     }
-    catch(error){
-      console.log(error.response.data.message || "Erro ao buscar o produto")
-      toast.error(error.response.data.message || "Erro ao buscar o produto")
-    }
-   
   }
-    
-
 }
-onMounted(() => {
-  getProdutos()
-})
+
+function getProdutoImage(imagem) {
+  
+  if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
+    return imagem.startsWith("data:") ? imagem : `data:image/png;base64,${imagem}`;
+  }
+
+ 
+  return "/png-triste-erro.png";
+}
+
+
 
 watch(itens, (novoItem) => {
-  novoItem.forEach(item => {
-    console.log(item, "Produtos")
-  })
-})
+  novoItem.forEach((item) => {
+    console.log(item.imagem, "Produtos");
+  });
+});
 
-const cart = useCartStore()
-const modalAlertShow = ref(false)
+const cart = useCartStore();
+const modalAlertShow = ref(false);
 
-function addToCart(item){
-  if(tokenExiste.value == false){
-    modalAlertShow.value = !modalAlertShow.value
-    return
+function addToCart(item) {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
   }
   cart.addToCart({
-    id:item.id,
-    produto:item.produto,
-    valor:item.valor,
-    image:item.image
-  })
+    id: item.id,
+    produto: item.produto,
+    valor: item.valor,
+    image: item.image,
+  });
 }
 
 const drawer = ref(false);
 const range = ref([0, 0]);
-const categorias = [
+const categoriasList = [
   "Roupas e acessórios",
   "Imóveis",
   "Ferramentas",
@@ -472,16 +640,11 @@ const categorias = [
 const menu = ref(false);
 const search = ref("");
 
-
-
 const itensFiltrados = computed(() =>
   itens.value.filter((item) =>
     item.nome.toLowerCase().includes(search.value.toLowerCase())
   )
 );
-
-
-
 
 // const iniciais = computed(() =>
 //   usuario.value.nome
@@ -492,9 +655,9 @@ const itensFiltrados = computed(() =>
 // );
 
 function toPerfil() {
-  if(tokenExiste.value == false){
-    modalAlertShow.value = !modalAlertShow.value
-    return  
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
   }
   router.push("/perfil");
 }
@@ -504,28 +667,28 @@ function removerToken() {
   router.push("/login");
 }
 
-function toDetalhes(id){
-  router.push(`/produto/${id}`)
+function toDetalhes(id) {
+  router.push(`/produto/${id}`);
 }
-function toAnunciar(){
-if(tokenExiste.value == false){
-  modalAlertShow.value = !modalAlertShow.value
-  return
-}
-  router.push("/anunciar")
-}
-function toCarrinho(){
-  if(tokenExiste.value == false){
-    modalAlertShow.value = !modalAlertShow.value
-    return
+function toAnunciar() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
   }
-  router.push("/carrinho")
+  router.push("/anunciar");
 }
-function toCadastro(){
-  router.push("/cadastro")
+function toCarrinho() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/carrinho");
 }
-function toLogin(){
-  router.push("/login")
+function toCadastro() {
+  router.push("/cadastro");
+}
+function toLogin() {
+  router.push("/login");
 }
 </script>
 
@@ -533,4 +696,3 @@ function toLogin(){
 @import "../css/paginaHome/home.css";
 @import "../css/paginaPerfil/perfil.css";
 </style>
- 
