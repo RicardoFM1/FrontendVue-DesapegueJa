@@ -30,6 +30,14 @@
 
           <h1 class="tituloCadastro">Cadastro</h1>
           <v-text-field
+            label="Nome de usuário"
+            prepend-inner-icon="mdi-account"
+            v-model="usuario.Nome"
+            type="text"
+            base-color="#293559"
+            
+          ></v-text-field>
+          <v-text-field
             label="Email"
             prepend-inner-icon="mdi-email"
             v-model="usuario.email"
@@ -136,6 +144,7 @@ import { useMask } from "../../utility/masks/mask";
 const router = useRouter();
 
 const usuario = ref({
+  Nome: "",
   email: "",
   senha: "",
   confirmSenha: "",
@@ -226,6 +235,7 @@ const telefoneFormatado = usuario.value.Telefone.replace(/\D/g, "");
   console.log(telefoneFormatado, "formatTelefone")
   try {
     const body = {
+      nome: usuario.value.Nome,
       email: usuario.value.email,
       senha: usuario.value.senha,
       cpf: cpfFormatado,
