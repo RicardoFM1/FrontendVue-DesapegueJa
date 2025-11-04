@@ -1,112 +1,292 @@
 <template>
-  <div class="profile-container">
-    <div class="profile-card">
-      <h1 class="profile-title">Perfil do Usuário</h1>
+  <v-container class="pa-6" v-if="tokenExiste">
+    <v-card class="mx-auto pa-6" max-width="600">
+      <v-card-title class="text-h5 text-center">Perfil do Usuário</v-card-title>
+      <v-divider class="my-4"></v-divider>
 
-      <div class="profile-photo-section">
-        <p class="section-label">Foto de Perfil</p>
+      <!-- Foto de perfil -->
+      <v-row class="justify-center mb-4">
+        <v-col cols="12" class="text-center">
+          <v-avatar size="120">
+            <template v-if="!imagemPerfil">
+              <v-icon size="80">mdi-account-circle</v-icon>
+            </template>
+            <template v-else>
+              <v-img :src="imagemPerfil" alt="Foto de Perfil" cover />
+            </template>
+          </v-avatar>
 
-        <div class="profile-avatar">
-          <template v-if="!imagemPerfil">
-            <svg xmlns="http://www.w3.org/2000/svg" class="avatar-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.605 6.879 1.804M15 11a3 3 0 11-6 0
-                3 3 0 016 0z" />
-            </svg>
-          </template>
+          <v-btn
+            variant="outlined"
+            color="primary"
+            class="mt-3"
+            @click="abrirExplorador"
+          >
+            Alterar Foto
+          </v-btn>
 
-          <template v-else>
-            <img :src="imagemPerfil" alt="Foto de Perfil" class="profile-img" />
-          </template>
-        </div>
+          <input
+            type="file"
+            ref="inputArquivo"
+            accept="image/*"
+            @change="carregarImagem"
+            style="display: none"
+          />
+        </v-col>
+      </v-row>
 
-        <button class="btn-secondary" @click="abrirExplorador">Alterar Foto</button>
-        <input type="file" ref="inputArquivo" accept="image/*" @change="carregarImagem" style="display: none;" />
-      </div>
+      <!-- Formulário -->
+      <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
+        <v-text-field
+          v-model="usuario.Nome"
+          label="Nome Completo"
+          prepend-inner-icon="mdi-account"
+        />
 
-      <div class="profile-info">
-        <h2 class="section-title">Informações Pessoais</h2>
+        <v-text-field
+          v-model="usuario.email"
+          label="Email"
+          prepend-inner-icon="mdi-email"
+          :rules="rulesEmail"
+        />
 
-        <div class="form-group">
-          <label>Nome Completo</label>
-          <input type="text" placeholder="Nome Completo" />
-        </div>
+        <v-text-field
+          v-model="usuario.senha"
+          :type="mostrarSenha ? 'text' : 'password'"
+          label="Senha"
+          prepend-inner-icon="mdi-lock"
+          :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append-inner="mostrarSenha = !mostrarSenha"
+          :rules="rulesSenha"
+        />
 
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" placeholder="email@gmail.com" />
-        </div>
+        <v-text-field
+          ref="inputCPF"
+          v-model="usuario.CPF"
+          label="CPF"
+          prepend-inner-icon="mdi-card-account-details"
+          placeholder="000.000.000-00"
+          @input="usuario.CPF = formatCPF($event.target.value)"
+        />
 
-        <div class="form-group">
-          <label>Senha</label>
-          <div class="input-row">
-            <input type="password" placeholder="********" />
-            <button class="btn-secondary small">Alterar Senha</button>
-          </div>
-        </div>
+        <v-text-field
+          ref="inputData"
+          v-model="usuario.dataNascimento"
+          label="Data de Nascimento"
+          prepend-inner-icon="mdi-calendar"
+          placeholder="DD/MM/AAAA"
+          :rules="rulesDataNascimento"
+          @input="usuario.dataNascimento = formatData($event.target.value)"
+        />
 
-        <div class="form-group">
-          <label>Telefone</label>
-          <input type="text" placeholder="(xx) xxxxx-xxxx" />
-        </div>
+       <v-text-field
+  v-model="usuario.Telefone"
+  label="Telefone"
+  prepend-inner-icon="mdi-cellphone"
+  placeholder="(DD) 00 0000-0000 ou 00 00000-0000"
+  :rules="rulesTelefone"
+  @input="usuario.Telefone = formatTelefone($event.target.value)"
+/>
 
-        <div class="form-group">
-          <label>CPF</label>
-          <input type="text" placeholder="000.000.000-00" />
-        </div>
 
-        <div class="form-group">
-          <label>RG</label>
-          <input type="text" placeholder="00.000.000-0" />
-        </div>
-
-        <div class="form-group">
-          <label>CEP</label>
-          <input type="text" placeholder="00000-000" />
-        </div>
-
-        <div class="form-group">
-          <label>Data de Nascimento</label>
-          <input type="text" placeholder="dd/mm/aaaa" />
-        </div>
-      </div>
-
-      <div class="profile-settings">
-        <div class="buttons-row">
-          <button class="btn-primary">Salvar Alterações</button>
-          <button class="btn-cancel" @click="voltarHome">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+        <!-- Botões -->
+        <v-row class="mt-6" justify="center" align="center">
+          <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
+            Salvar Alterações
+          </v-btn>
+          <v-btn color="grey" variant="outlined" @click="voltarHome">
+            Cancelar
+          </v-btn>
+        </v-row>
+      </v-form>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup>
-import { ref } from "vue"
-import { useRouter } from "vue-router"
+import { ref, onMounted } from "vue";
+import { toast } from "vue3-toastify";
+import { connection } from "@/connection/axiosConnection";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const imagemPerfil = ref(null)
-const inputArquivo = ref(null)
+const router = useRouter();
+const formRef = ref(null);
 
-function voltarHome() {
-  router.push("/")
-}
+const usuario = ref({
+  Nome: "",
+  email: "",
+  senha: "",
+  dataNascimento: "",
+  CPF: "",
+  Telefone: "",
+});
 
+const mostrarSenha = ref(false);
+const loading = ref(false);
+const imagemPerfil = ref(null);
+const inputArquivo = ref(null);
+
+// Regras de validação (sem required)
+const rulesEmail = [
+  (v) =>
+    !v ||
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(v) ||
+    "E-mail inválido",
+];
+const rulesSenha = [
+  (v) =>
+    !v ||
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      v
+    ) ||
+    "Senha inválida, mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 símbolo",
+];
+const rulesDataNascimento = [
+  (v) =>
+    !v ||
+    /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(v) ||
+    "Data inválida",
+];
+const rulesTelefone = [
+  (v) =>
+    !v ||
+    /^\(\d{2,3}\)\s\d{2}\s\d{4,5}-\d{4}$/.test(v) ||
+    "Telefone inválido. Ex: (DD) 0000-0000 ou 00000-0000",
+];
+
+// Formatação
+const formatCPF = (value) => {
+  let numeros = value.replace(/\D/g, "").slice(0, 11);
+  let part1 = numeros.slice(0, 3);
+  let part2 = numeros.slice(3, 6);
+  let part3 = numeros.slice(6, 9);
+  let part4 = numeros.slice(9, 11);
+  let result = part1;
+  if (part2) result += "." + part2;
+  if (part3) result += "." + part3;
+  if (part4) result += "-" + part4;
+  return result;
+};
+
+const formatData = (value) => {
+  let numeros = value.replace(/\D/g, "").slice(0, 8);
+  let dia = numeros.slice(0, 2);
+  let mes = numeros.slice(2, 4);
+  let ano = numeros.slice(4, 8);
+  let result = dia;
+  if (mes) result += "/" + mes;
+  if (ano) result += "/" + ano;
+  return result;
+};
+
+const formatTelefone = (value) => {
+  // Remove tudo que não for número
+  let numeros = value.replace(/\D/g, "");
+
+  if (numeros.length < 4) return numeros; // incompleto ainda
+
+  const ddd = numeros.slice(0, 2);        // os 2 primeiros dígitos
+  const prefixo = numeros.slice(2, 4);    // os 2 seguintes
+  const restante = numeros.slice(4);      // resto do número
+
+  let firstPart = "";
+  let lastPart = "";
+
+  if (restante.length <= 4) {
+    firstPart = restante;
+  } else if (restante.length === 8) { // fixo
+    firstPart = restante.slice(0,4);
+    lastPart = restante.slice(4);
+  } else { // celular 9 dígitos
+    firstPart = restante.slice(0,5);
+    lastPart = restante.slice(5);
+  }
+
+  return `(${ddd}) ${prefixo} ${firstPart}${lastPart ? '-' + lastPart : ''}`;
+};
+
+
+
+
+// Upload de imagem
 function abrirExplorador() {
-  inputArquivo.value.click()
+  inputArquivo.value.click();
 }
-
 function carregarImagem(event) {
-  const arquivo = event.target.files[0]
+  const arquivo = event.target.files[0];
   if (arquivo) {
-    const reader = new FileReader()
-    reader.onload = e => {
-      imagemPerfil.value = e.target.result
-    }
-    reader.readAsDataURL(arquivo)
+    const reader = new FileReader();
+    reader.onload = (e) => (imagemPerfil.value = e.target.result);
+    reader.readAsDataURL(arquivo);
   }
 }
-</script>
 
-<style src="../css/paginaPerfil/perfil.css"></style>
+// Navegação
+function voltarHome() {
+  router.push("/");
+}
+
+// Token e retrieve
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(!!token.value);
+const retrieve = ref();
+
+onMounted(async () => {
+  if (tokenExiste.value) {
+    try {
+      const res = await connection.get("/desapega/usuarios/retrieve", {
+        headers: { Authorization: `Bearer ${token.value}` },
+      });
+      if (res.status === 200 && res.data) {
+        retrieve.value = res.data;
+
+        usuario.value = {
+          Nome: res.data.nome,
+          email: res.data.email,
+          senha: "",
+          CPF: res.data.cpf,
+          Telefone: res.data.telefone ? formatTelefone(res.data.telefone) : "",
+          dataNascimento: res.data.data_Nascimento || "",
+        };
+
+        imagemPerfil.value = res.data.foto_Perfil || null;
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Erro ao buscar o usuário");
+    }
+  }
+});
+
+const salvarAlteracoes = async () => {
+  loading.value = true;
+  try {
+    const cpfFormatado = usuario.value.CPF?.replace(/[./-]/g, "") || "";
+    const telefoneFormatado = usuario.value.Telefone?.replace(/\D/g, "") || "";
+    const body = {
+      nome: usuario.value.Nome,
+      email: usuario.value.email,
+      senha: usuario.value.senha,
+      cpf: cpfFormatado,
+      telefone: telefoneFormatado,
+      data_de_nascimento: usuario.value.dataNascimento,
+      foto_de_perfil: imagemPerfil.value || null,
+    };
+    const res = await connection.patch(
+      `/desapega/usuarios/${retrieve.value.id}`,
+      body,
+      {
+        headers: { Authorization: `Bearer ${token.value}` },
+      }
+    );
+    if (res.status === 200 || res.status === 204) {
+      toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
+    } else {
+      toast.error(res.data?.message || "Erro ao salvar alterações");
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao atualizar perfil");
+  } finally {
+    loading.value = false;
+  }
+};
+</script>
