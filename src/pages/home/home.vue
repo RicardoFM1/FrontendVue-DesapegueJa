@@ -418,10 +418,11 @@
           <div class="divHeaderMain">
             <v-text-field
               v-model="search"
-              class="inputPesquisa"
+              class="inputPesquisa transition-all"
               label="Pesquisar"
-              width="40%"
+              width="30%"
               rounded
+              :class="{ 'fixed-input': isFixed }"
               variant="outlined"
               append-inner-icon="mdi-magnify"
             ></v-text-field>
