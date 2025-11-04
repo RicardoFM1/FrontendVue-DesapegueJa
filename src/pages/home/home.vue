@@ -7,7 +7,7 @@
           <v-toolbar-title>Filtros</v-toolbar-title>
 
           <v-btn prepend-icon="mdi-check" variant="flat" color="#5865f2">
-            Criar
+            Anunciar
           </v-btn>
 
           <v-btn
@@ -134,12 +134,13 @@
         color="#2196F3"
         class="btnDetalhes"
         @click="toDetalhes(index + 1)"
+        
         density="comfortable"
        
       >
         Detalhes
       </v-btn>
-
+<!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
       <v-btn
         variant="flat"
         color="#3fa34f"
