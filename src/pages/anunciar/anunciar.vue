@@ -151,8 +151,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from "vue-router";
 
+const router = useRouter();
+
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(!!token.value);
+
+onMounted(async () => {
+  
+  if (!tokenExiste.value) {
+     router.push("/");
+  }});
+  
 const title = ref('Tênis esportivo preto')
 const preco = ref(199.90)
 const estado = ref('Seminovo')
