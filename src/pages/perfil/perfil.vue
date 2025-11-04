@@ -28,7 +28,8 @@
           <input
             type="file"
             ref="inputArquivo"
-            accept="image/*"
+            accept="image/png"
+      
             @change="carregarImagem"
             style="display: none"
           />
@@ -255,6 +256,7 @@ onMounted(async () => {
       toast.error(err.response?.data?.message || "Erro ao buscar o usuário");
     }
   }
+  
 });
 
 const salvarAlteracoes = async () => {
