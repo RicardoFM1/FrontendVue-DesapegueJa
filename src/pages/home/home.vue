@@ -476,10 +476,14 @@
 </template>
 
 <script setup>
+import { connection } from "@/connection/axiosConnection";
 import router from "@/router";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router"
-import { useCartStore } from '@/components/stores/cart'
+import 'vue3-toastify/dist/index.css'
+import { toast } from "vue3-toastify/dist/index";
+import '@mdi/font/css/materialdesignicons.css'
+// import { useCartStore } from '@/components/stores/cart'
 
 const token = ref();
 const tokenExiste = ref(false);
@@ -679,21 +683,21 @@ watch(itens, (novoItem) => {
   });
 });
 
-const cart = useCartStore();
+// const cart = useCartStore();
 const modalAlertShow = ref(false);
 
-function addToCart(item) {
-  if (tokenExiste.value == false) {
-    modalAlertShow.value = !modalAlertShow.value;
-    return;
-  }
-  cart.addToCart({
-    id:item.id,
-    produto:item.produto,
-    valor:item.valor,
-    image:item.image
-  })
-}
+// function addToCart(item) {
+//   if (tokenExiste.value == false) {
+//     modalAlertShow.value = !modalAlertShow.value;
+//     return;
+//   }
+//   cart.addToCart({
+//     id:item.id,
+//     produto:item.produto,
+//     valor:item.valor,
+//     image:item.image
+//   })
+// }
 
 const drawer = ref(false);
 const range = ref([0, 0]);
