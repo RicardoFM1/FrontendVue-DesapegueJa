@@ -126,39 +126,60 @@
           <div class="divHeaderMain">
             <v-text-field
               v-model="search"
-              class="inputPesquisa"
+              class="inputPesquisa transition-all"
               label="Pesquisar"
               width="30%"
               rounded
+              :class="{ 'fixed-input': isFixed }"
               variant="outlined"
               append-inner-icon="mdi-magnify"
             ></v-text-field>
           </div>
-          <v-sheet
-  v-if="erroGetProduto"
-  color="red-darken-2"
-  class="pa-4 mb-4 text-white text-center rounded-lg"
-  elevation="4"
->
-  <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
-  <p class="text-h6 mb-2">Erro ao listar os produtos 😢</p>
+          <div style="width: 100%; display: flex;
+          justify-content: center;">
+            <v-sheet
+            v-if="erroGetProduto"
+            width="400"
+  
+            color="red-darken-2"
+            class="pa-4 mb-4 text-white text-center rounded-lg"
+            elevation="4"
+            >
+            <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
+            <p class="text-h6 mb-2">Erro ao listar os produtos 😢</p>
   <p class="mb-4">Verifique sua conexão e tente novamente.</p>
   <v-btn
-    color="white"
+  color="white"
     variant="outlined"
     prepend-icon="mdi-refresh"
     @click="recarregarProdutos"
+
   >
     Tentar novamente
   </v-btn>
 </v-sheet>
+</div>
+<div
+  v-if="carregandoProdutos"
+  class="d-flex justify-center align-center my-8"
+  style="height: 300px"
+>
+  <v-progress-circular
+    indeterminate
+    color="primary"
+    size="64"
+    width="6"
+  ></v-progress-circular>
+</div>
 
+
+  
           <div class="divItens">
             <v-card
-              width="330"
-              min-height="300"
-              class="cardItem"
-              v-for="(item, index) in itensFiltrados"
+            width="330"
+            min-height="300"
+            class="cardItem"
+            v-for="(item, index) in itensFiltrados"
               :key="item + '-' + index"
             >
               <v-img
@@ -405,24 +426,42 @@
               append-inner-icon="mdi-magnify"
             ></v-text-field>
           </div>
-          <v-sheet
-  v-if="erroGetProduto"
-  color="red-darken-2"
-  class="pa-4 mb-4 text-white text-center rounded-lg"
-  elevation="4"
->
-  <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
-  <p class="text-h6 mb-2">Erro ao listar os produtos 😢</p>
+          <div style="width: 100%; display: flex;
+          justify-content: center;">
+            <v-sheet
+            v-if="erroGetProduto"
+            width="400"
+  
+            color="red-darken-2"
+            class="pa-4 mb-4 text-white text-center rounded-lg"
+            elevation="4"
+            >
+            <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
+            <p class="text-h6 mb-2">Erro ao listar os produtos 😢</p>
   <p class="mb-4">Verifique sua conexão e tente novamente.</p>
   <v-btn
-    color="white"
+  color="white"
     variant="outlined"
     prepend-icon="mdi-refresh"
     @click="recarregarProdutos"
+
   >
     Tentar novamente
   </v-btn>
 </v-sheet>
+</div>
+<div
+  v-if="carregandoProdutos"
+  class="d-flex justify-center align-center my-8"
+  style="height: 300px"
+>
+  <v-progress-circular
+    indeterminate
+    color="primary"
+    size="64"
+    width="6"
+  ></v-progress-circular>
+</div>
 
 
           <div class="divItens">
@@ -618,7 +657,7 @@
 
 <script setup>
 import router from "@/router";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useCartStore } from "@/components/stores/cart";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
@@ -634,6 +673,15 @@ if (localStorage.getItem("token") != null) {
   tokenExiste.value = false;
 }
 
+const isFixed = ref(false)
+const inputProps = {
+  outlined: true,
+  hideDetails: true
+}
+
+function handleScroll() {
+  isFixed.value = window.scrollY > 200
+}
 
 const retrieve = ref();
 const usuario = ref();
@@ -697,14 +745,20 @@ onMounted(() => {
       getRetrieve();
     }
     getCategorias();
+      
     getProdutos();
+ 
+   
     getVendedor();
   }catch(erro){
     erroGetProduto.value = true
   }
-   
+  window.addEventListener('scroll', handleScroll)
 });
 
+onUnmounted(() => {
+   window.removeEventListener('scroll', handleScroll)
+})
 watch(retrieve, (novoRetrieve) => {
   console.log(novoRetrieve.admin, "admin");
 });
@@ -715,10 +769,23 @@ console.log(umvendedor, "um vendedor")
 })
 
 const itens = ref([]);
+const carregandoProdutos = ref(false)
 async function getProdutos() {
+  carregandoProdutos.value = true;
+  erroGetProduto.value = false;
+
+  // Timeout de 8 segundos
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
+  );
+
   if (retrieve.admin == true) {
     try {
-      const res = await connection.get("/desapega/produtos");
+      const res = await Promise.race([
+        connection.get("/desapega/produtos"),
+        timeout,
+      ]);
+
       if (res.status == 200) {
         itens.value = res.data;
         erroGetProduto.value = false;
@@ -727,13 +794,26 @@ async function getProdutos() {
         erroGetProduto.value = true;
       }
     } catch (error) {
-      console.log(error.response?.data?.message || "Erro ao buscar o produto");
-      toast.error(error.response?.data?.message || "Erro ao buscar o produto");
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
       erroGetProduto.value = true;
+    } finally {
+      
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
     }
   } else {
     try {
-      const res = await connection.get("/desapega/produtos?status=ativo");
+      const res = await Promise.race([
+        connection.get("/desapega/produtos?status=ativo"),
+        timeout,
+      ]);
+
       if (res.status == 200) {
         itens.value = res.data;
         erroGetProduto.value = false;
@@ -742,9 +822,17 @@ async function getProdutos() {
         erroGetProduto.value = true;
       }
     } catch (error) {
-      console.log(error.response.data.message || "Erro ao buscar o produto");
-      toast.error(error.response.data.message || "Erro ao buscar o produto");
-      erroGetProduto.value = true
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
     }
   }
 }
@@ -758,10 +846,13 @@ function getProdutoImage(imagem) {
 
   return "/png-triste-erro.png";
 }
+watch(erroGetProduto, (v) => console.log('erroGetProduto mudou para ->', v));
 
 function recarregarProdutos() {
   erroGetProduto.value = false; 
-  getProdutos();
+
+    getProdutos();
+
 }
 
 
