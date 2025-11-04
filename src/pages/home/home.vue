@@ -122,6 +122,7 @@
         </v-navigation-drawer>
 
         <v-main>
+        
           <div class="divHeaderMain">
             <v-text-field
               v-model="search"
@@ -133,6 +134,25 @@
               append-inner-icon="mdi-magnify"
             ></v-text-field>
           </div>
+          <v-sheet
+  v-if="erroGetProduto"
+  color="red-darken-2"
+  class="pa-4 mb-4 text-white text-center rounded-lg"
+  elevation="4"
+>
+  <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
+  <p class="text-h6 mb-2">Erro ao listar os produtos 😢</p>
+  <p class="mb-4">Verifique sua conexão e tente novamente.</p>
+  <v-btn
+    color="white"
+    variant="outlined"
+    prepend-icon="mdi-refresh"
+    @click="recarregarProdutos"
+  >
+    Tentar novamente
+  </v-btn>
+</v-sheet>
+
           <div class="divItens">
             <v-card
               width="330"
@@ -189,7 +209,7 @@
               >
                 <v-tooltip top>
                   <template #activator="{ props }">
-                    <p style="width: 50%" class="ellipses" v-bind="props">
+                    <p style="width: 50%" class="ellipses" v-bind="props" >
                       Em estoque: {{ item.estoque }}
                     </p>
                   </template>
@@ -211,19 +231,50 @@
               >
                 <v-tooltip top>
                   <template #activator="{ props }">
-                    <p class="ellipses" v-bind="props">
+                    <p class="ellipses" v-bind="props" v-if="categorias.length > 0">
                       <v-icon left small class="mr-2">mdi-tag</v-icon>
                       {{
                         categorias.find((c) => c.id == item.categoria_id)
                           ?.nome || "Sem categoria"
                       }}
                     </p>
+                    <p v-else>Carregando categoria...</p>
                   </template>
                   <span style="max-width: 150px; display: block">
                     Categoria :
                     {{
                       categorias.find((c) => c.id == item.categoria_id)?.nome ||
                       "Sem categoria"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
+              
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props" v-if="vendedor.length > 0">
+                      <v-icon left small class="mr-2">mdi-account</v-icon>
+                      {{
+                        
+                        vendedor.find((v) => v.id == item.usuario_id)
+                        ?.nome || "Sem vendedor "
+                      }}
+                    </p>
+                    <p v-else>Carregando vendedor...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Vendedor :
+                    {{
+                      vendedor.find((v) => v.id == item.usuario_id)?.nome ||
+                      "Sem vendedor"
                     }}
                   </span>
                 </v-tooltip>
@@ -355,16 +406,27 @@
             ></v-text-field>
           </div>
           <v-sheet
-    v-if="erroGetProduto"
-    color="red lighten-2"
-    class="pa-4 mb-4 text-white text-center"
-    elevation="2"
+  v-if="erroGetProduto"
+  color="red-darken-2"
+  class="pa-4 mb-4 text-white text-center rounded-lg"
+  elevation="4"
+>
+  <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
+  <p class="text-h6 mb-2">Erro ao listar os produtos 😢</p>
+  <p class="mb-4">Verifique sua conexão e tente novamente.</p>
+  <v-btn
+    color="white"
+    variant="outlined"
+    prepend-icon="mdi-refresh"
+    @click="recarregarProdutos"
   >
-    Erro ao listar os produtos
-  </v-sheet>
+    Tentar novamente
+  </v-btn>
+</v-sheet>
+
 
           <div class="divItens">
-            <v-card
+           <v-card
               width="330"
               min-height="300"
               class="cardItem"
@@ -441,13 +503,14 @@
               >
                 <v-tooltip top>
                   <template #activator="{ props }">
-                    <p class="ellipses" v-bind="props">
+                    <p class="ellipses" v-bind="props" v-if="categorias.length > 0">
                       <v-icon left small class="mr-2">mdi-tag</v-icon>
                       {{
                         categorias.find((c) => c.id == item.categoria_id)
                           ?.nome || "Sem categoria"
                       }}
                     </p>
+                    <p v-else>Carregando categoria...</p>
                   </template>
                   <span style="max-width: 150px; display: block">
                     Categoria :
@@ -458,6 +521,37 @@
                   </span>
                 </v-tooltip>
               </v-chip>
+              
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props" v-if="vendedor.length > 0">
+                      <v-icon left small class="mr-2">mdi-account</v-icon>
+                      {{
+                        
+                        vendedor.find((v) => v.id == item.usuario_id)
+                        ?.nome || "Sem vendedor "
+                      }}
+                    </p>
+                    <p v-else>Carregando vendedor...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Vendedor :
+                    {{
+                      vendedor.find((v) => v.id == item.usuario_id)?.nome ||
+                      "Sem vendedor"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
+
               <div class="divBtnAdicionar">
                 <v-card-actions class="divBtnsAcoes">
                   <v-btn
@@ -540,10 +634,12 @@ if (localStorage.getItem("token") != null) {
   tokenExiste.value = false;
 }
 
+
 const retrieve = ref();
 const usuario = ref();
 const categorias = ref([]);
 const erroGetProduto = ref(false);
+const vendedor = ref([])
 
 async function getCategorias() {
   try {
@@ -556,6 +652,23 @@ async function getCategorias() {
     }
   } catch (error) {
     return null;
+  }
+}
+
+async function getVendedor(){
+  try{
+    const res = await connection.get("/desapega/usuarios")
+    if(res.status == 200) {
+      console.log(res.data)
+      vendedor.value = res.data
+     
+    }
+    else{
+      return "Sem vendedor"
+    }
+  } 
+  catch(error){
+    return null
   }
 }
 
@@ -578,16 +691,28 @@ async function getRetrieve() {
 }
 
 onMounted(() => {
-  if (tokenExiste.value) {
-    getRetrieve();
+  try{
+
+    if (tokenExiste.value) {
+      getRetrieve();
+    }
+    getCategorias();
+    getProdutos();
+    getVendedor();
+  }catch(erro){
+    erroGetProduto.value = true
   }
-  getCategorias();
-  getProdutos();
+   
 });
 
 watch(retrieve, (novoRetrieve) => {
   console.log(novoRetrieve.admin, "admin");
 });
+
+watch(vendedor, (novoVendedor) => {
+  const umvendedor = novoVendedor.find((v) => v.id == 37)?.nome 
+console.log(umvendedor, "um vendedor")
+})
 
 const itens = ref([]);
 async function getProdutos() {
@@ -611,12 +736,15 @@ async function getProdutos() {
       const res = await connection.get("/desapega/produtos?status=ativo");
       if (res.status == 200) {
         itens.value = res.data;
+        erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
       }
     } catch (error) {
       console.log(error.response.data.message || "Erro ao buscar o produto");
       toast.error(error.response.data.message || "Erro ao buscar o produto");
+      erroGetProduto.value = true
     }
   }
 }
@@ -630,6 +758,12 @@ function getProdutoImage(imagem) {
 
   return "/png-triste-erro.png";
 }
+
+function recarregarProdutos() {
+  erroGetProduto.value = false; 
+  getProdutos();
+}
+
 
 watch(itens, (novoItem) => {
   novoItem.forEach((item) => {
@@ -684,6 +818,8 @@ const iniciais = computed(() => {
     .toUpperCase();
 });
 
+
+
 function toPerfil() {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
@@ -724,5 +860,5 @@ function toLogin() {
 
 <style>
 @import "../css/paginaHome/home.css";
-@import "../css/paginaPerfil/perfil.css";
+
 </style>
