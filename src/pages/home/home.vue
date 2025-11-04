@@ -690,7 +690,7 @@ const categorias = ref([]);
 const erroGetProduto = ref(false);
 const vendedor = ref([])
 
-async function getCategorias() {
+async function getCategorias() { 
   try {
     const res = await connection.get(`/desapega/categorias`);
     if (res.status == 200) {
