@@ -690,6 +690,7 @@ const categorias = ref([]);
 const erroGetProduto = ref(false);
 const vendedor = ref([])
 
+
 async function getCategorias() { 
   try {
     const res = await connection.get(`/desapega/categorias`);
@@ -768,6 +769,9 @@ watch(vendedor, (novoVendedor) => {
   const umvendedor = novoVendedor.find((v) => v.id == 37)?.nome 
 console.log(umvendedor, "um vendedor")
 })
+
+
+  console.log(token.value, "token")
 
 const itens = ref([]);
 const carregandoProdutos = ref(false)
