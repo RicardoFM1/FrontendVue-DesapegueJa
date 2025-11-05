@@ -10,7 +10,7 @@
 
         <div class="item-details">
           <h3>{{ item.produto }}</h3>
-          <p>R$ {{ item.valor.toFixed(2) }}</p>
+          <p>R$ {{ item.valor }}</p>
         </div>
 
         <div class="item-actions">

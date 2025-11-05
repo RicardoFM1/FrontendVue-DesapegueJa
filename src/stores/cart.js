@@ -1,20 +1,24 @@
+// /components/stores/cart.js
 import { defineStore } from 'pinia'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    items: [],
+    items: [], // lista de produtos no carrinho
   }),
 
   actions: {
     addToCart(product) {
+      // procura se o produto já está no carrinho
       const existingItem = this.items.find(item => item.id === product.id)
 
       if (existingItem) {
+        // se já existe, aumenta a quantidade
         existingItem.quantidade++
       } else {
+        // se não existe, adiciona como novo
         this.items.push({
           ...product,
-          quantidade: 1,
+          quantidade: 1
         })
       }
     },
@@ -26,18 +30,10 @@ export const useCartStore = defineStore('cart', {
     clearCart() {
       this.items = []
     },
-
-    updateQuantity(id, quantidade) {
-      const item = this.items.find(item => item.id === id)
-      if (item) item.quantidade = quantidade
-    },
   },
 
   getters: {
-    totalItems: (state) =>
-      state.items.reduce((acc, item) => acc + item.quantidade, 0),
-
-    subtotal: (state) =>
-      state.items.reduce((acc, item) => acc + item.valor * item.quantidade, 0),
+    totalItems: (state) => state.items.reduce((acc, item) => acc + item.quantidade, 0),
+    subtotal: (state) => state.items.reduce((acc, item) => acc + item.valor * item.quantidade, 0),
   },
 })

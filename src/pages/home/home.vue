@@ -176,53 +176,156 @@
   
           <div class="divItens">
             <v-card
-  width="330"
-  min-height="300"
-  class="cardItem"
-  v-for="(item, index) in itensFiltrados"
-  :key="item + '-' + index"
->
-  <v-img
-    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
-    width="330"
-    class="imgItem"
-  ></v-img>
+            width="330"
+            min-height="300"
+            class="cardItem"
+            v-for="(item, index) in itensFiltrados"
+              :key="item + '-' + index"
+            >
+              <v-img
+                :src="getProdutoImage(item.imagem)"
+                width="330"
+                position="center"
+                height="330"
+                cover
+                class="imgItem"
+              >
+                <template #error>
+                  <img src="/png-triste-erro.png" alt="Imagem não disponível" />
+                </template>
+              </v-img>
 
-  <v-card-title class="mb-2">
-    {{ item.produto }}
-  </v-card-title>
-  <v-card-subtitle class="mb-2">
-    R$ {{ item.valor }}
-  </v-card-subtitle>
+              <v-card-title class="ellipses mb-2 rounded font-weight-bold">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p v-bind="props">
+                      {{ item.nome }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    {{ item.nome }}
+                  </span>
+                </v-tooltip>
+              </v-card-title>
+              <v-card-subtitle
+                style="width: 50%"
+                class="mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p
+                      v-bind="props"
+                      class="text-subtitle-1 ellipses bg-green text-white rounded px-2 py-1 d-inline-block"
+                    >
+                      R$ {{ item.preco / 100 }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    R$ {{ item.preco / 100 }}
+                  </span>
+                </v-tooltip>
+              </v-card-subtitle>
+              <v-card-subtitle
+                class="ellipses text-subtitle-1 mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p style="width: 50%" class="ellipses" v-bind="props" >
+                      Em estoque: {{ item.estoque }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Estoque : {{ item.estoque }}
+                  </span>
+                </v-tooltip>
+              </v-card-subtitle>
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                :color="
+                  categorias.find((c) => c.id == item.categoria_id)?.cor ||
+                  '#808080'
+                "
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props" v-if="categorias.length > 0">
+                      <v-icon left small class="mr-2">mdi-tag</v-icon>
+                      {{
+                        categorias.find((c) => c.id == item.categoria_id)
+                          ?.nome || "Sem categoria"
+                      }}
+                    </p>
+                    <p v-else>Carregando categoria...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Categoria :
+                    {{
+                      categorias.find((c) => c.id == item.categoria_id)?.nome ||
+                      "Sem categoria"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
+              
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props" v-if="vendedor.length > 0">
+                      <v-icon left small class="mr-2">mdi-account</v-icon>
+                      {{
+                        
+                        vendedor.find((v) => v.id == item.usuario_id)
+                        ?.nome || "Sem vendedor "
+                      }}
+                    </p>
+                    <p v-else>Carregando vendedor...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Vendedor :
+                    {{
+                      vendedor.find((v) => v.id == item.usuario_id)?.nome ||
+                      "Sem vendedor"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
 
-  <div class="divBtnAdicionar">
-    <v-card-actions class="divBtnsAcoes">
-      <v-btn
-        variant="flat"
-        color="#2196F3"
-        class="btnDetalhes"
-        @click="toDetalhes(index + 1)"
-        
-        density="comfortable"
-       
-      >
-        Detalhes
-      </v-btn>
-<!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
-      <v-btn
-        variant="flat"
-        color="#3fa34f"
-        prepend-icon="mdi-cart"
-        density="comfortable"
-        class="btnAdicionar"
-        
-      >
-        Adicionar ao carrinho
-      </v-btn>
-    </v-card-actions>
-  </div>
-</v-card>
-
+              <div class="divBtnAdicionar">
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(index + 1)"
+                    density="comfortable"
+                  >
+                    Detalhes
+                  </v-btn>
+                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart"
+                  >
+                    Adicionar ao carrinho
+                  </v-btn>
+                </v-card-actions>
+              </div>
+            </v-card>
           </div>
         </v-main>
       </v-layout>
@@ -427,10 +530,88 @@
                   </span>
                 </v-tooltip>
               </v-card-subtitle>
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                :color="
+                  categorias.find((c) => c.id == item.categoria_id)?.cor ||
+                  '#808080'
+                "
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props" v-if="categorias.length > 0">
+                      <v-icon left small class="mr-2">mdi-tag</v-icon>
+                      {{
+                        categorias.find((c) => c.id == item.categoria_id)
+                          ?.nome || "Sem categoria"
+                      }}
+                    </p>
+                    <p v-else>Carregando categoria...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Categoria :
+                    {{
+                      categorias.find((c) => c.id == item.categoria_id)?.nome ||
+                      "Sem categoria"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
+              
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p class="ellipses" v-bind="props" v-if="vendedor.length > 0">
+                      <v-icon left small class="mr-2">mdi-account</v-icon>
+                      {{
+                        
+                        vendedor.find((v) => v.id == item.usuario_id)
+                        ?.nome || "Sem vendedor "
+                      }}
+                    </p>
+                    <p v-else>Carregando vendedor...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Vendedor :
+                    {{
+                      vendedor.find((v) => v.id == item.usuario_id)?.nome ||
+                      "Sem vendedor"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
 
-              <div class="divBtnAdicionar" > 
-                <v-card-actions>
-                  <v-btn variant="flat" density="compact" color="#3fa34f" prepend-icon="mdi-cart">
+              <div class="divBtnAdicionar">
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(index + 1)"
+                    density="comfortable"
+                  >
+                    Detalhes
+                  </v-btn>
+                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart"
+                  >
                     Adicionar ao carrinho
                   </v-btn>
                 </v-card-actions>
@@ -476,14 +657,13 @@
 </template>
 
 <script setup>
-import { connection } from "@/connection/axiosConnection";
 import router from "@/router";
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { useRouter } from "vue-router"
-import 'vue3-toastify/dist/index.css'
-import { toast } from "vue3-toastify/dist/index";
-import '@mdi/font/css/materialdesignicons.css'
-// import { useCartStore } from '@/components/stores/cart'
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
+import { useCartStore } from "@/stores/cart";
+import { connection } from "@/connection/axiosConnection";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+import "@mdi/font/css/materialdesignicons.css";
 
 const token = ref();
 const tokenExiste = ref(false);
@@ -540,12 +720,14 @@ async function getVendedor(){
     return null
   }
 }
+console.log(token.value, "token")
 
 async function getRetrieve() {
   try {
     const res = await connection.get("/desapega/usuarios/retrieve", {
       headers: { Authorization: `Bearer ${token.value}` },
     });
+    
     if (res && res.status === 200 && res.data) {
       retrieve.value = res.data;
       usuario.value = res.data;
@@ -683,21 +865,22 @@ watch(itens, (novoItem) => {
   });
 });
 
-// const cart = useCartStore();
+const cart = useCartStore();
 const modalAlertShow = ref(false);
 
-// function addToCart(item) {
-//   if (tokenExiste.value == false) {
-//     modalAlertShow.value = !modalAlertShow.value;
-//     return;
-//   }
-//   cart.addToCart({
-//     id:item.id,
-//     produto:item.produto,
-//     valor:item.valor,
-//     image:item.image
-//   })
-// }
+function addToCart(item) {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    
+    return;
+  }
+  cart.addToCart({
+    id: item.id,
+    produto: item.produto,
+    valor: item.valor,
+    image: item.image,
+  });
+}
 
 const drawer = ref(false);
 const range = ref([0, 0]);
