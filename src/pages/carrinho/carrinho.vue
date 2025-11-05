@@ -44,6 +44,18 @@ import { computed } from 'vue'
 import { useCartStore } from '@/stores/cart' // ✅ ajuste o caminho se necessário
 
 const cart = useCartStore()
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(!!token.value);
+
+onMounted(async () => {
+  
+  if (!tokenExiste.value) {
+     router.push("/");
+  }});
 
 const cartItems = computed(() => cart.items)
 const subtotal = computed(() => cart.subtotal)
