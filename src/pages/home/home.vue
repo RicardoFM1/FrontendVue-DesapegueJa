@@ -721,14 +721,12 @@ async function getVendedor(){
     return null
   }
 }
-console.log(token.value, "token")
 
 async function getRetrieve() {
   try {
     const res = await connection.get("/desapega/usuarios/retrieve", {
       headers: { Authorization: `Bearer ${token.value}` },
     });
-    
     if (res && res.status === 200 && res.data) {
       retrieve.value = res.data;
       usuario.value = res.data;
@@ -875,7 +873,6 @@ const modalAlertShow = ref(false);
 function addToCart(item) {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
-    
     return;
   }
   cart.addToCart({
@@ -884,6 +881,7 @@ function addToCart(item) {
     valor: item.valor,
     image: item.image,
   });
+  console.log(cart.items);
 }
 
 const drawer = ref(false);

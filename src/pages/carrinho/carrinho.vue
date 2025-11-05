@@ -40,8 +40,9 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
 import { computed } from 'vue'
-import { useCartStore } from '@/stores/cart' // ✅ ajuste o caminho se necessário
+import { useCartStore } from '@/stores/cart' // 
 
 const cart = useCartStore()
 import { useRouter } from "vue-router";
