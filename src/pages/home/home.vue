@@ -35,8 +35,14 @@
             <v-card class="pa-4" width="300">
               <v-row justify="center">
                 <v-avatar color="grey darken-2" size="70">
-                  <span class="white--text text-h6">{{ iniciais }}</span>
-                </v-avatar>
+  <template v-if="avatarUsuario.tipo === 'imagem'">
+    <v-img :src="avatarUsuario.src" cover />
+  </template>
+  <template v-else>
+    <span class="white--text text-h6">{{ avatarUsuario.texto }}</span>
+  </template>
+</v-avatar>
+
               </v-row>
               <v-row justify="center">
                 <v-tooltip top>
@@ -905,15 +911,20 @@ const itensFiltrados = computed(() =>
   )
 );
 
-const iniciais = computed(() => {
-  if (!usuario.value || !usuario.value.nome) return "Usuário";
-  return usuario.value.nome
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-});
+const getIniciais = (nome) => {
+  if (!nome) return "?";
+  const partes = nome.trim().split(" ");
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+};
 
+const avatarUsuario = computed(() => {
+  const nome = usuario.value?.nome || "??";
+  if (usuario.value?.foto_Perfil && usuario.value.foto_Perfil.startsWith("data:image")) {
+    return { tipo: "imagem", src: usuario.value.foto_Perfil };
+  }
+  return { tipo: "iniciais", texto: getIniciais(nome) };
+});
 
 
 function toPerfil() {

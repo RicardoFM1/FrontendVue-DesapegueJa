@@ -127,7 +127,7 @@ const loading = ref(false);
 const imagemPerfil = ref(null);
 const inputArquivo = ref(null);
 
-// Regras de validação (sem required)
+
 const rulesEmail = [
   (v) =>
     !v ||
@@ -184,12 +184,11 @@ const formatTelefone = (value) => {
   // Remove tudo que não for número
   let numeros = value.replace(/\D/g, "");
 
-  if (numeros.length < 4) return numeros; // incompleto ainda
+  if (numeros.length < 4) return numeros; 
 
-  const ddd = numeros.slice(0, 2);        // os 2 primeiros dígitos
-  const prefixo = numeros.slice(2, 4);    // os 2 seguintes
-  const restante = numeros.slice(4);      // resto do número
-
+  const ddd = numeros.slice(0, 2);        
+  const prefixo = numeros.slice(2, 4);   
+  const restante = numeros.slice(4);      
   let firstPart = "";
   let lastPart = "";
 
@@ -282,6 +281,9 @@ const salvarAlteracoes = async () => {
     );
     if (res.status === 200 || res.status === 204) {
       toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
+      setTimeout(() => {
+        router.go(0)
+      }, 2000);
     } else {
       toast.error(res.data?.message || "Erro ao salvar alterações");
     }
