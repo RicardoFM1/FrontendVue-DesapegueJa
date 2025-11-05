@@ -34,7 +34,7 @@
 
             <v-card class="pa-4" width="300">
               <v-row justify="center">
-                <v-avatar color="grey darken-2" size="70">
+                <v-avatar color="grey darken-2" size="70" class="d-flex align-center justify-center">
   <template v-if="avatarUsuario.tipo === 'imagem'">
     <v-img :src="avatarUsuario.src" cover />
   </template>
@@ -42,6 +42,7 @@
     <span class="white--text text-h6">{{ avatarUsuario.texto }}</span>
   </template>
 </v-avatar>
+
 
               </v-row>
               <v-row justify="center">
