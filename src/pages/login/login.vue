@@ -54,68 +54,47 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import 'vue3-toastify/dist/index.css'
-import { toast } from "vue3-toastify/dist/index";
-import '@mdi/font/css/materialdesignicons.css'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { connection } from "@/connection/axiosConnection";
-import router from "@/router";
+import { toast } from "vue3-toastify/dist/index";
 
-const token = ref(localStorage.getItem("token") || "");
-const tokenExiste = ref(token.value);
+const router = useRouter();
+const usuario = ref({ email: "", senha: "" });
+const loading = ref(false);
+const show = ref(true);
 
-onMounted(async () => {
-  
-  if (tokenExiste.value) {
-     router.push("/");
-  }});
+onMounted(() => {
+  if (localStorage.getItem("token")) {
+    router.push("/");
+  }
+});
 
+const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
-const usuario = ref({
-    email: "",
-    senha: ""
-})
-const loading = ref(false)
-
-const show = ref(true)
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const onSubmit = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const res = await connection.post("/desapega/usuarios/login", usuario.value);
-    
-    if(res.status == 200 || res.status == 201){
-
-        toast.success("Login realizado com sucesso!", { autoClose: 2000 });
-        localStorage.setItem("token", res.data.token);
-        await delay(2000);
-        router.push("/");
+    if (res.status === 200 || res.status === 201) {
+      toast.success("Login realizado com sucesso!", { autoClose: 2000 });
+      localStorage.setItem("token", res.data.token);
+      await delay(2000);
+      router.push("/");
     }
-  } 
-  catch (err) {
-
-    console.log("Erro ao fazer login", err);
-
-    const msg = err.response?.data?.message || "Credenciais erradas, tente novamente!";
-    toast.error(msg, { autoClose: 2000 });
-
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Credenciais erradas!", { autoClose: 2000 });
     localStorage.removeItem("token");
-  } 
-  finally {
+  } finally {
     loading.value = false;
   }
 };
 
-
-
-const disabled = computed(() => {
-if(usuario.value.email == "" || usuario.value.senha == ""){
-      return true
-  }
-  
-});
+const disabled = computed(() =>
+  !usuario.value.email || !usuario.value.senha
+);
 </script>
+
 
 <style>
 @import "../css/paginasLogineCadastro/logineCadastro.css";
