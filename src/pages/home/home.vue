@@ -479,22 +479,22 @@
 import router from "@/router";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router"
-import { useCartStore } from '@/components/stores/cart'
+// import { useCartStore } from '@/components/stores/cart'
 
-const cart = useCartStore()
+// const cart = useCartStore()
 
-function addToCart(item) {
-  if (tokenExiste.value == false) {
-    modalAlertShow.value = !modalAlertShow.value;
-    return;
-  }
-  cart.addToCart({
-    id:item.id,
-    produto:item.produto,
-    valor:item.valor,
-    image:item.image
-  })
-}
+// function addToCart(item) {
+//   if (tokenExiste.value == false) {
+//     modalAlertShow.value = !modalAlertShow.value;
+//     return;
+//   }
+//   cart.addToCart({
+//     id:item.id,
+//     produto:item.produto,
+//     valor:item.valor,
+//     image:item.image
+//   })
+// }
 
 const drawer = ref(false);
 const range = ref([0, 0]);
