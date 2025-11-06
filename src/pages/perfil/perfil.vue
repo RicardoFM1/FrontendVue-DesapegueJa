@@ -4,11 +4,11 @@
       <v-card-title class="text-h5 text-center">Perfil do Usuário</v-card-title>
       <v-divider class="my-4"></v-divider>
 
-      <!-- Foto de perfil -->
+  
       <v-row class="justify-center mb-4">
         <v-col cols="12" class="text-center">
-          <v-avatar size="120">
-            <template v-if="!imagemPerfil">
+          <v-avatar class="mr-3" size="120">
+            <template v-if="!imagemPerfil || imagemPerfil == 'Sem imagem'">
               <v-icon size="80">mdi-account-circle</v-icon>
             </template>
             <template v-else>
@@ -24,6 +24,14 @@
           >
             Alterar Foto
           </v-btn>
+          <v-btn
+            variant="outlined"
+            color="red"
+            class="mt-3 ml-3"
+            @click="removerImagem"
+          >
+            Remover Foto
+          </v-btn>
 
           <input
             type="file"
@@ -36,7 +44,7 @@
         </v-col>
       </v-row>
 
-      <!-- Formulário -->
+      
       <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
         <v-text-field
           v-model="usuario.Nome"
@@ -90,7 +98,7 @@
 />
 
 
-        <!-- Botões -->
+        
         <v-row class="mt-6" justify="center" align="center">
           <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
             Salvar Alterações
@@ -105,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { toast } from "vue3-toastify";
 import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
@@ -155,7 +163,7 @@ const rulesTelefone = [
     "Telefone inválido. Ex: (DD) 0000-0000 ou 00000-0000",
 ];
 
-// Formatação
+
 const formatCPF = (value) => {
   let numeros = value.replace(/\D/g, "").slice(0, 11);
   let part1 = numeros.slice(0, 3);
@@ -181,7 +189,7 @@ const formatData = (value) => {
 };
 
 const formatTelefone = (value) => {
-  // Remove tudo que não for número
+  
   let numeros = value.replace(/\D/g, "");
 
   if (numeros.length < 4) return numeros; 
@@ -194,10 +202,10 @@ const formatTelefone = (value) => {
 
   if (restante.length <= 4) {
     firstPart = restante;
-  } else if (restante.length === 8) { // fixo
+  } else if (restante.length === 8) {
     firstPart = restante.slice(0,4);
     lastPart = restante.slice(4);
-  } else { // celular 9 dígitos
+  } else {
     firstPart = restante.slice(0,5);
     lastPart = restante.slice(5);
   }
@@ -208,7 +216,7 @@ const formatTelefone = (value) => {
 
 
 
-// Upload de imagem
+
 function abrirExplorador() {
   inputArquivo.value.click();
 }
@@ -221,12 +229,20 @@ function carregarImagem(event) {
   }
 }
 
-// Navegação
+function removerImagem(){
+  if(imagemPerfil != null){
+    imagemPerfil.value = "Sem imagem";
+  }
+}
+watch(imagemPerfil, (i) => {
+  console.log(imagemPerfil.value)
+})
+
 function voltarHome() {
   router.push("/");
 }
 
-// Token e retrieve
+
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 const retrieve = ref();
