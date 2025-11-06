@@ -189,6 +189,7 @@
                 height="330"
                 cover
                 class="imgItem"
+                
               >
                 <template #error>
                   <img src="/png-triste-erro.png" alt="Imagem não disponível" />
