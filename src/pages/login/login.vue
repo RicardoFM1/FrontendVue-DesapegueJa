@@ -1,27 +1,20 @@
 <template>
 <div class="fundoLogin">
-        <v-btn
-          class="ml-4"
-          variant="flat"
-          color="#5865f2"
-          to="/"
-          >
-            Página home
-          </v-btn>
+        
     
         <div class="divFormLogin">
             <v-sheet style="display: flex; border-radius: 10px;
                 justify-content: center; flex-direction: column; width: 25%; height: 60%;
                 "  class="sheetLogin">
-                <v-sheet style="position: absolute; top: 23%; background-color: #e3e3e3;
-                padding: 4px 48px 4px 48px; border-radius: 6px; border: 2px solid #767676;
-                ">
-                    Login
-                </v-sheet>
+                
                 <v-form :disabled="loading" class="formLogin" ref="form" style="width: 100%;" 
                 
                 @submit.prevent="onSubmit">
-                    
+                    <div class="divImageLogo">
+  <v-img style="padding: 12px 0 0 12px;" width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
+</div>
+
+<h1 class="tituloCadastro">Login</h1>
                     <v-text-field
                     label="Email"
                     prepend-inner-icon="mdi-email"
@@ -35,7 +28,7 @@
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="show = !show"
-                        v-model="usuario.senhaHash"
+                        v-model="usuario.senha"
                         @paste.prevent
                         :type="show ? 'text' : 'password'"
                         base-color="#293559"
@@ -43,6 +36,15 @@
                     
                 </v-text-field>
                 <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Fazer login</v-btn>
+                <v-btn
+         
+          variant="flat"
+          color="#5865f2"
+          type="button"
+          to="/"
+          >
+            Página home
+          </v-btn>
                 <router-link to="/cadastro">Não tem uma conta?</router-link>
                 </v-form>
             </v-sheet>
@@ -61,7 +63,7 @@ import router from "@/router";
 
 const usuario = ref({
     email: "",
-    senhaHash: ""
+    senha: ""
 })
 const loading = ref(false)
 
@@ -73,7 +75,7 @@ const onSubmit = async () => {
   try {
     const res = await connection.post("/desapega/usuarios/login", usuario.value);
     
-    if(res.status == 200){
+    if(res.status == 200 || res.status == 201){
 
         toast.success("Login realizado com sucesso!", { autoClose: 2000 });
         localStorage.setItem("token", res.data.token);
@@ -98,7 +100,7 @@ const onSubmit = async () => {
 
 
 const disabled = computed(() => {
-if(usuario.value.email === "" || usuario.value.senha === ""){
+if(usuario.value.email == "" || usuario.value.senha == ""){
       return true
   }
   
@@ -106,5 +108,5 @@ if(usuario.value.email === "" || usuario.value.senha === ""){
 </script>
 
 <style>
-@import "../css/paginasLogineCadastro/logineCadastro.css"
+@import "../css/paginasLogineCadastro/logineCadastro.css";
 </style>
