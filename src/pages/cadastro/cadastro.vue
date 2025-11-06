@@ -141,6 +141,15 @@ import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
 import { useMask } from "../../utility/masks/mask";
 
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(token.value);
+
+onMounted(async () => {
+  
+  if (tokenExiste.value) {
+     router.push("/");
+  }});
+
 const router = useRouter();
 
 const usuario = ref({

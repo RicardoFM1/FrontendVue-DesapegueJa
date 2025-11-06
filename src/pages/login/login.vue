@@ -61,6 +61,16 @@ import '@mdi/font/css/materialdesignicons.css'
 import { connection } from "@/connection/axiosConnection";
 import router from "@/router";
 
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(token.value);
+
+onMounted(async () => {
+  
+  if (tokenExiste.value) {
+     router.push("/");
+  }});
+
+
 const usuario = ref({
     email: "",
     senha: ""
