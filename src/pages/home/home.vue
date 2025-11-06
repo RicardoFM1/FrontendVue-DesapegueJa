@@ -666,7 +666,7 @@
 <script setup>
 import router from "@/router";
 import { ref, computed } from "vue";
-<<<<<<<<< Temporary merge branch 1
+
 import { useRouter } from "vue-router"
 import { useCartStore } from '@/components/stores/cart'
 
@@ -680,21 +680,11 @@ function addToCart(item){
     image:item.image
   })
 }
-=========
->>>>>>>>> Temporary merge branch 2
+
 
 const drawer = ref(false);
 const range = ref([0, 0]);
-const categoriasList = [
-  "Roupas e acessórios",
-  "Imóveis",
-  "Ferramentas",
-  "Veículos",
-  "Móveis/Decoração",
-  "Equipamentos de escritório",
-  "Hobbies e jogos",
-  "Esportes",
-];
+
 
 const menu = ref(false);
 const search = ref("");
