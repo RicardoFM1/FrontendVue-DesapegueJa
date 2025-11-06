@@ -10,7 +10,7 @@
 
         <div class="item-details">
           <h3>{{ item.produto }}</h3>
-          <p>R$ {{ item.valor.toFixed(2) }}</p>
+          <p>R$ {{ item.valor }}</p>
         </div>
 
         <div class="item-actions">
@@ -40,10 +40,23 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
 import { computed } from 'vue'
-import { useCartStore } from '@/stores/cart' // ✅ ajuste o caminho se necessário
+import { useCartStore } from '@/stores/cart' // 
 
 const cart = useCartStore()
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(!!token.value);
+
+onMounted(async () => {
+  
+  if (!tokenExiste.value) {
+     router.push("/");
+  }});
 
 const cartItems = computed(() => cart.items)
 const subtotal = computed(() => cart.subtotal)

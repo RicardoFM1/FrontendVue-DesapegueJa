@@ -85,3 +85,12 @@
   border-radius: 30px !important;
   padding: 4px 10px;
 }
+.avatar-iniciais {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: gray !important; 
+  color: white !important;
+  font-weight: bold;
+  font-size: 22px;
+}
