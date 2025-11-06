@@ -41,7 +41,7 @@
 .profile-photo-section {
   display: flex;
   flex-direction: column;
-  align-items: center; /* centraliza horizontalmente */
+  align-items: center; 
   margin-bottom: 28px;
 }
 
@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px; /* já centralizado pelo container */
+  margin-bottom: 16px; 
 }
 
 .profile-img {
@@ -171,3 +171,6 @@
     gap: 12px;
   }
 }
+
+
+

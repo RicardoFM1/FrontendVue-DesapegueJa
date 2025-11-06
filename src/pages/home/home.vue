@@ -34,14 +34,27 @@
 
             <v-card class="pa-4" width="300">
               <v-row justify="center">
-                <v-avatar color="grey darken-2" size="70" class="d-flex align-center justify-center">
+                
+
+             <v-avatar
+  size="70"
+  class="d-flex align-center justify-center"
+  :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+>
   <template v-if="avatarUsuario.tipo === 'imagem'">
     <v-img :src="avatarUsuario.src" cover />
   </template>
+
   <template v-else>
-    <span class="white--text text-h6">{{ avatarUsuario.texto }}</span>
+    <span class="text-white text-h6 font-weight-bold">
+      {{ avatarUsuario.texto }}
+    </span>
   </template>
 </v-avatar>
+
+
+
+
 
 
               </v-row>
@@ -920,12 +933,24 @@ const getIniciais = (nome) => {
 };
 
 const avatarUsuario = computed(() => {
-  const nome = usuario.value?.nome || "??";
-  if (usuario.value?.foto_Perfil && usuario.value.foto_Perfil.startsWith("data:image")) {
-    return { tipo: "imagem", src: usuario.value.foto_Perfil };
+  const nome = usuario.value?.nome || "Usuário";
+  const foto = usuario.value?.foto_Perfil;
+
+  if (foto && foto !== "Sem imagem" && foto !== "null" && foto !== null) {
+  
+    if (foto.startsWith("data:image")) {
+      return { tipo: "imagem", src: foto };
+    }
+
+   
+    const prefixo = foto.startsWith("/9j/") ? "data:image/jpeg;base64," : "data:image/png;base64,";
+    return { tipo: "imagem", src: `${prefixo}${foto}` };
   }
+
   return { tipo: "iniciais", texto: getIniciais(nome) };
 });
+
+
 
 
 function toPerfil() {
