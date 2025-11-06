@@ -1,46 +1,66 @@
 <template>
-  <v-container class="produto-detalhes-container">
+  <v-container class="detalhes-container">
     <v-btn
-      text
-      color="blue"
       class="btn-voltar-fixo"
-      @click="voltar"
+      color="blue"
       prepend-icon="mdi-arrow-left"
+      @click="voltar"
+      variant="text"
     >
       Voltar
     </v-btn>
 
-    <v-card class="produto-card">
-      <v-img
-        :src="produto.imagem"
-        height="420"
-        class="produto-imagem"
-        cover
-      ></v-img>
+    <div class="detalhes-conteudo">
+      <div class="imagem-container">
+        <v-img
+          :src="getProdutoImage(produto.imagem)"
+          class="produto-imagem"
+          :aspect-ratio="1"
+          contain
+        ></v-img>
+      </div>
 
-      <v-card-title class="produto-titulo">
-        {{ produto.produto }}
-      </v-card-title>
+      <div class="info-container">
+        <h1 class="titulo-produto">{{ produto.produto }}</h1>
 
-      <v-card-subtitle class="produto-preco">
-        {{ formatarPreco(produto.valor) }}
-      </v-card-subtitle>
+        <div class="avaliacoes">
+          <v-icon color="amber">mdi-star</v-icon>
+          <v-icon color="amber">mdi-star</v-icon>
+          <v-icon color="amber">mdi-star</v-icon>
+          <v-icon color="amber">mdi-star</v-icon>
+          <v-icon color="amber">mdi-star-half-full</v-icon>
+          <span class="texto-avaliacao">(483)</span>
+        </div>
 
-      <v-card-text class="produto-info">
-        <p class="descricao">
-          <strong>Descrição:</strong> {{ produto.descricao }}
-        </p>
-        <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
-        <p><strong>Estado:</strong> {{ produto.estado }}</p>
-      </v-card-text>
+        <div class="preco-container">
+          <p class="preco-antigo">{{ produto.precoAntigo }}</p>
+          <p class="preco-novo">{{ formatarPreco(produto.valor) }}</p>
+          <p class="parcelamento">6x {{ parcela(produto.valor) }} sem juros</p>
+        </div>
 
-      <v-card-actions class="produto-acoes">
+        <v-btn class="btn-promo" color="blue-lighten-5">
+          R$ 20 OFF BB VISA
+        </v-btn>
+
+        <div class="informacoes-extra">
+          <p><strong>FRETE GRÁTIS ACIMA DE R$ 19</strong></p>
+          <p>Receba grátis amanhã</p>
+          <p>Retire grátis a partir de amanhã em uma agência</p>
+          <p>Devolução grátis: Você tem 30 dias após o recebimento</p>
+        </div>
+
+        <div class="detalhes-produto">
+          <p><strong>Descrição:</strong> {{ produto.descricao }}</p>
+          <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
+          <p><strong>Estado:</strong> {{ produto.estado }}</p>
+        </div>
+
         <v-btn class="btn-carrinho" @click="adicionarCarrinho(produto)">
           <v-icon left>mdi-cart</v-icon>
           ADICIONAR AO CARRINHO
         </v-btn>
-      </v-card-actions>
-    </v-card>
+      </div>
+    </div>
   </v-container>
 </template>
 
@@ -51,44 +71,67 @@ import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 
-const produtos = [
-  {
-    id: 1,
-    produto: "Carro Esportivo",
-    valor: 120000,
-    imagem: "https://cdn.vuetifyjs.com/images/parallax/material.jpg",
-    descricao:
-      "Um carro potente, confortável e com excelente desempenho nas estradas.",
-    categoria: "Veículos",
-    estado: "Excelente",
-  },
-  {
-    id: 2,
-    produto: "Carro Sedan",
-    valor: 85000,
-    imagem: "https://cdn.vuetifyjs.com/images/parallax/material.jpg",
-    descricao:
-      "Carro ideal para o dia a dia, econômico e com ótimo espaço interno.",
-    categoria: "Veículos",
-    estado: "Muito bom",
-  },
-  {
-    id: 3,
-    produto: "SUV Compacto",
-    valor: 98000,
-    imagem: "https://cdn.vuetifyjs.com/images/parallax/material.jpg",
-    descricao:
-      "SUV moderno com tecnologia embarcada e conforto premium.",
-    categoria: "Veículos",
-    estado: "Bom",
-  },
-];
 
-const produto = ref({});
+
+const itens = ref([]);
+
+async function getProdutos() {
+
+  
+
+  if (retrieve.admin == true) {
+    try {
+      const res = await Promise.race([
+        connection.get("/desapega/produtos"),
+        
+      ]);
+
+      if (res.status == 200) {
+        itens.value = res.data;
+        
+      } else {
+        toast.error("Erro ao buscar o produto");
+       
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      
+    } 
+  } else {
+    try {
+      const res = await Promise.race([
+        connection.get("/desapega/produtos?status=ativo"),
+       
+      ]);
+
+      if (res.status == 200) {
+        itens.value = res.data;
+        
+      } else {
+        toast.error("Erro ao buscar o produto");
+        
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+     
+    }
+  }
+}
 
 onMounted(() => {
   const id = parseInt(route.params.id);
-  produto.value = produtos.find((p) => p.id === id) || {};
+  
+  getProdutos()
 });
 
 function voltar() {
@@ -106,8 +149,23 @@ function formatarPreco(valor) {
     currency: "BRL",
   });
 }
+
+function parcela(valor) {
+  const valorParcela = valor / 6;
+  return valorParcela.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+function getProdutoImage(imagem) {
+  if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
+    return imagem.startsWith("data:")
+      ? imagem
+      : `data:image/png;base64,${imagem}`;
+  }
+
+  return "/png-triste-erro.png";
+}
 </script>
 
-<style>
-@import "../css/paginaDetalhesProduto/detalhes.css";
-</style>
+<style src="../css/paginaDetalhesProduto/detalhes.css"></style>
