@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useCartStore } from '@/components/stores/cart'
+import { useCartStore } from '@/stores/cart'
 
 const cart = useCartStore()
 import { useRouter } from "vue-router";

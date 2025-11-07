@@ -679,7 +679,7 @@
 <script setup>
 import router from "@/router";
 import { ref, computed, onMounted, watch, onUnmounted } from "vue";
-import { useCartStore } from "@/components/stores/cart";
+import { useCartStore } from "@/stores/cart";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
@@ -760,23 +760,27 @@ async function getRetrieve() {
   }
 }
 
-onMounted(() => {
+onMounted(async() => {
   try{
 
     if (tokenExiste.value) {
-      getRetrieve();
+      await getRetrieve();
     }
-    getCategorias();
+    await getCategorias();
       
-    getProdutos();
+    await getProdutos();
  
    
-    getVendedor();
+    await getVendedor();
   }catch(erro){
     erroGetProduto.value = true
   }
   window.addEventListener('scroll', handleScroll)
 });
+
+watch(retrieve, (r) => {
+  console.log(r, "retrieve");
+})
 
 onUnmounted(() => {
    window.removeEventListener('scroll', handleScroll)
