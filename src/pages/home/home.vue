@@ -196,17 +196,19 @@
   
           <div class="divItens">
             <v-card
-            width="395"
+            width="330"
             min-height="300"
             class="cardItem"
             v-for="(item, index) in itensFiltrados"
               :key="item + '-' + index"
             >
               <v-img
-                src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
+                :src="getProdutoImage(item.imagem)"
                 width="330"
+                position="center"
+                height="330"
+                cover
                 class="imgItem"
-                
               >
                 <template #error>
                   <img src="/png-triste-erro.png" alt="Imagem não disponível" />
@@ -320,16 +322,27 @@
               </v-chip>
 
               <div class="divBtnAdicionar">
-                <v-card-actions>
-<<<<<<<<< Temporary merge branch 1
-                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart" @click="addToCart(item)"
-                    >Adicionar ao carrinho</v-btn
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(index + 1)"
+                    density="comfortable"
                   >
-=========
-                  <v-btn variant="flat" color="#3fa34f" prepend-icon="mdi-cart">
+                    Detalhes
+                  </v-btn>
+                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart"
+                  >
                     Adicionar ao carrinho
                   </v-btn>
->>>>>>>>> Temporary merge branch 2
                 </v-card-actions>
               </div>
             </v-card>
@@ -665,26 +678,243 @@
 
 <script setup>
 import router from "@/router";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
+import { useCartStore } from "@/stores/cart";
+import { connection } from "@/connection/axiosConnection";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+import "@mdi/font/css/materialdesignicons.css";
 
-import { useRouter } from "vue-router"
-import { useCartStore } from '@/components/stores/cart'
+const token = ref();
+const tokenExiste = ref(false);
+if (localStorage.getItem("token") != null) {
+  tokenExiste.value = true;
+  token.value = localStorage.getItem("token");
+} else {
+  tokenExiste.value = false;
+}
 
-const cart = useCartStore()
+const isFixed = ref(false)
+const inputProps = {
+  outlined: true,
+  hideDetails: true
+}
 
-function addToCart(item){
-  cart.addToCart({
-    id:item.id,
-    produto:item.produto,
-    valor:item.valor,
-    image:item.image
-  })
+function handleScroll() {
+  isFixed.value = window.scrollY > 200
+}
+
+const retrieve = ref();
+const usuario = ref();
+const categorias = ref([]);
+const erroGetProduto = ref(false);
+const vendedor = ref([])
+
+
+async function getCategorias() { 
+  try {
+    const res = await connection.get(`/desapega/categorias`);
+    if (res.status == 200) {
+      console.log(res.data.nome, "Nome categoria");
+      categorias.value = res.data;
+    } else {
+      return "Sem categoria";
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
+async function getVendedor(){
+  try{
+    const res = await connection.get("/desapega/usuarios")
+    if(res.status == 200) {
+      console.log(res.data)
+      vendedor.value = res.data
+     
+    }
+    else{
+      return "Sem vendedor"
+    }
+  } 
+  catch(error){
+    return null
+  }
+}
+
+async function getRetrieve() {
+  try {
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (res && res.status === 200 && res.data) {
+      retrieve.value = res.data;
+      usuario.value = res.data;
+    } else {
+      toast.error("Erro ao buscar o usuário");
+      console.error("Resposta inesperada:", res);
+    }
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
+  }
+}
+
+onMounted(() => {
+  try{
+
+    if (tokenExiste.value) {
+      getRetrieve();
+    }
+    getCategorias();
+      
+    getProdutos();
+ 
+   
+    getVendedor();
+  }catch(erro){
+    erroGetProduto.value = true
+  }
+  window.addEventListener('scroll', handleScroll)
+});
+
+onUnmounted(() => {
+   window.removeEventListener('scroll', handleScroll)
+})
+watch(retrieve, (novoRetrieve) => {
+  console.log(novoRetrieve.admin, "admin");
+});
+
+watch(vendedor, (novoVendedor) => {
+  const umvendedor = novoVendedor.find((v) => v.id == 37)?.nome 
+console.log(umvendedor, "um vendedor")
+})
+
+
+  console.log(token.value, "token")
+
+const itens = ref([]);
+const carregandoProdutos = ref(false)
+async function getProdutos() {
+  carregandoProdutos.value = true;
+  erroGetProduto.value = false;
+
+  // Timeout de 8 segundos
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
+  );
+
+  if (retrieve.admin == true) {
+    try {
+      const res = await Promise.race([
+        connection.get("/desapega/produtos"),
+        timeout,
+      ]);
+
+      if (res.status == 200) {
+        itens.value = res.data;
+        erroGetProduto.value = false;
+      } else {
+        toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
+    }
+  } else {
+    try {
+      const res = await Promise.race([
+        connection.get("/desapega/produtos?status=ativo"),
+        timeout,
+      ]);
+
+      if (res.status == 200) {
+        itens.value = res.data;
+        erroGetProduto.value = false;
+      } else {
+        toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
+    }
+  }
+}
+
+function getProdutoImage(imagem) {
+  if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
+    return imagem.startsWith("data:")
+      ? imagem
+      : `data:image/png;base64,${imagem}`;
+  }
+
+  return "/png-triste-erro.png";
+}
+watch(erroGetProduto, (v) => console.log('erroGetProduto mudou para ->', v));
+
+function recarregarProdutos() {
+  erroGetProduto.value = false; 
+
+    getProdutos();
+
 }
 
 
+watch(itens, (novoItem) => {
+  novoItem.forEach((item) => {
+    console.log(item, "Produtos");
+  });
+});
+
+const cart = useCartStore();
+const modalAlertShow = ref(false);
+
+function addToCart(item) {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  cart.addToCart({
+    id: item.id,
+    produto: item.produto,
+    valor: item.valor,
+    image: item.image,
+  });
+}
+
 const drawer = ref(false);
 const range = ref([0, 0]);
-
+const categoriasList = [
+  "Roupas e acessórios",
+  "Imóveis",
+  "Ferramentas",
+  "Veículos",
+  "Móveis/Decoração",
+  "Equipamentos de escritório",
+  "Hobbies e jogos",
+  "Esportes",
+];
 
 const menu = ref(false);
 const search = ref("");
