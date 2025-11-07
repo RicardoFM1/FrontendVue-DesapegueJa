@@ -1,4 +1,4 @@
-// /components/stores/cart.js
+
 import { defineStore } from 'pinia'
 
 export const useCartStore = defineStore('cart', {
@@ -34,6 +34,6 @@ export const useCartStore = defineStore('cart', {
 
   getters: {
     totalItems: (state) => state.items.reduce((acc, item) => acc + item.quantidade, 0),
-    subtotal: (state) => state.items.reduce((acc, item) => acc + item.valor * item.quantidade, 0),
+    subtotal: (state) => state.items.reduce((acc, item) => acc + item.preco * item.quantidade, 0),
   },
 })

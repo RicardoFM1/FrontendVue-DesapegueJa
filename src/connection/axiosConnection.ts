@@ -1,6 +1,6 @@
 import axios from "axios";
 
-function isTokenExpired(token: string) {
+function isTokenExpired(token) {
   try {
     const payload = JSON.parse(atob(token.split(".")[1])); 
     const exp = payload.exp * 1000; 

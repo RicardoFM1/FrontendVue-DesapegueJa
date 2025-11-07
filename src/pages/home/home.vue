@@ -339,7 +339,7 @@
                     prepend-icon="mdi-cart"
                     density="comfortable"
                     class="btnAdicionar"
-                    @click="addToCart"
+                      @click="addToCart(item)"  
                   >
                     Adicionar ao carrinho
                   </v-btn>
@@ -625,15 +625,16 @@
                   </v-btn>
                   <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
                   <v-btn
-                    variant="flat"
-                    color="#3fa34f"
-                    prepend-icon="mdi-cart"
-                    density="comfortable"
-                    class="btnAdicionar"
-                    @click="addToCart"
-                  >
-                    Adicionar ao carrinho
+                  variant="flat"
+                  color="#3fa34f"
+                  prepend-icon="mdi-cart"
+                  density="comfortable"
+                  class="btnAdicionar"
+                      @click="addToCart(item)"  
+                          >
+                  Adicionar ao carrinho
                   </v-btn>
+
                 </v-card-actions>
               </div>
             </v-card>
@@ -887,20 +888,23 @@ watch(itens, (novoItem) => {
   });
 });
 
-const cart = useCartStore();
 const modalAlertShow = ref(false);
+const cart = useCartStore();
 
 function addToCart(item) {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
     return;
   }
+  console.log('ITEM RECEBIDO:', item);
+  
   cart.addToCart({
     id: item.id,
-    produto: item.produto,
-    valor: item.valor,
-    image: item.image,
+    nome: item.nome,
+    preco: item.preco,
+    image: item.imagem,
   });
+
 }
 
 const drawer = ref(false);
