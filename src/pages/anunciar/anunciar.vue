@@ -10,7 +10,7 @@
 
     <v-row>
       <v-col cols="12" md="5">
-        <!-- Imagem -->
+      
         <v-card class="card pa-3" outlined>
           <v-img
             :src="previewImage || placeholderImage"
@@ -110,7 +110,7 @@
       </v-col>
     </v-row>
 
-    <!-- Modal -->
+   
     <v-dialog v-model="modal" max-width="700">
       <v-card class="card">
         <v-card-title class="headline">Confirmar criação do produto</v-card-title>

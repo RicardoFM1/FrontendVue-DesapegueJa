@@ -1,10 +1,9 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useCartStore } from '@/stores/cart'
 
 const cart = useCartStore()
 import { useRouter } from "vue-router";
-
 const router = useRouter();
 
 const token = ref(localStorage.getItem("token") || "");
