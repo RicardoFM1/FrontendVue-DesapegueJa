@@ -4,7 +4,6 @@
       <v-card-title class="text-h5 text-center">Perfil do Usuário</v-card-title>
       <v-divider class="my-4"></v-divider>
 
-  
       <v-row class="justify-center mb-4">
         <v-col cols="12" class="text-center">
           <v-avatar class="mr-3" size="120">
@@ -36,15 +35,13 @@
           <input
             type="file"
             ref="inputArquivo"
-            accept="image/png"
-      
+            accept="image/png, image/x-png"
             @change="carregarImagem"
             style="display: none"
           />
         </v-col>
       </v-row>
 
-      
       <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
         <v-text-field
           v-model="usuario.Nome"
@@ -88,17 +85,15 @@
           @input="usuario.dataNascimento = formatData($event.target.value)"
         />
 
-       <v-text-field
-  v-model="usuario.Telefone"
-  label="Telefone"
-  prepend-inner-icon="mdi-cellphone"
-  placeholder="(DD) 00 0000-0000 ou 00 00000-0000"
-  :rules="rulesTelefone"
-  @input="usuario.Telefone = formatTelefone($event.target.value)"
-/>
+        <v-text-field
+          v-model="usuario.Telefone"
+          label="Telefone"
+          prepend-inner-icon="mdi-cellphone"
+          placeholder="(DD) 00 0000-0000 ou 00 00000-0000"
+          :rules="rulesTelefone"
+          @input="usuario.Telefone = formatTelefone($event.target.value)"
+        />
 
-
-        
         <v-row class="mt-6" justify="center" align="center">
           <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
             Salvar Alterações
@@ -124,10 +119,10 @@ const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 
 onMounted(async () => {
-  
   if (!tokenExiste.value) {
-     router.push("/");
-  }});
+    router.push("/");
+  }
+});
 
 const formRef = ref(null);
 
@@ -144,7 +139,6 @@ const mostrarSenha = ref(false);
 const loading = ref(false);
 const imagemPerfil = ref(null);
 const inputArquivo = ref(null);
-
 
 const rulesEmail = [
   (v) =>
@@ -173,7 +167,6 @@ const rulesTelefone = [
     "Telefone inválido. Ex: (DD) 0000-0000 ou 00000-0000",
 ];
 
-
 const formatCPF = (value) => {
   let numeros = value.replace(/\D/g, "").slice(0, 11);
   let part1 = numeros.slice(0, 3);
@@ -199,54 +192,75 @@ const formatData = (value) => {
 };
 
 const formatTelefone = (value) => {
-  
   let numeros = value.replace(/\D/g, "");
 
-  if (numeros.length < 4) return numeros; 
+  if (numeros.length < 4) return numeros;
 
-  const ddd = numeros.slice(0, 2);        
-  const prefixo = numeros.slice(2, 4);   
-  const restante = numeros.slice(4);      
+  const ddd = numeros.slice(0, 2);
+  const prefixo = numeros.slice(2, 4);
+  const restante = numeros.slice(4);
   let firstPart = "";
   let lastPart = "";
 
   if (restante.length <= 4) {
     firstPart = restante;
   } else if (restante.length === 8) {
-    firstPart = restante.slice(0,4);
+    firstPart = restante.slice(0, 4);
     lastPart = restante.slice(4);
   } else {
-    firstPart = restante.slice(0,5);
+    firstPart = restante.slice(0, 5);
     lastPart = restante.slice(5);
   }
 
-  return `(${ddd}) ${prefixo} ${firstPart}${lastPart ? '-' + lastPart : ''}`;
+  return `(${ddd}) ${prefixo} ${firstPart}${lastPart ? "-" + lastPart : ""}`;
 };
-
-
-
-
 
 function abrirExplorador() {
   inputArquivo.value.click();
 }
 function carregarImagem(event) {
   const arquivo = event.target.files[0];
-  if (arquivo) {
-    const reader = new FileReader();
-    reader.onload = (e) => (imagemPerfil.value = e.target.result);
-    reader.readAsDataURL(arquivo);
+  if (!arquivo) return;
+
+  console.log("Arquivo recebido:", arquivo.name, arquivo.type, arquivo.size);
+
+  
+  if (!arquivo.type.includes("png")) {
+    toast.error("Apenas imagens PNG são permitidas.");
+    event.target.value = ""; 
+    return;
   }
+
+  
+  const tamanhoMax = 1 * 1024 * 1024;
+  if (arquivo.size > tamanhoMax) {
+    toast.error("A imagem deve ter no máximo 1MB.");
+    event.target.value = "";
+    return;
+  }
+
+ 
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imagemPerfil.value = e.target.result;
+    console.log("Imagem carregada com sucesso:", e.target.result.slice(0, 50)); 
+  };
+  reader.onerror = () => {
+    toast.error("Erro ao ler o arquivo. Tente novamente.");
+  };
+
+  reader.readAsDataURL(arquivo);
 }
 
-function removerImagem(){
-  if(imagemPerfil != null){
+
+function removerImagem() {
+  if (imagemPerfil != null) {
     imagemPerfil.value = "Sem imagem";
   }
 }
 watch(imagemPerfil, (i) => {
-  console.log(imagemPerfil.value)
-})
+  console.log(imagemPerfil.value);
+});
 
 function voltarHome() {
   router.push("/");
@@ -278,7 +292,6 @@ onMounted(async () => {
       toast.error(err.response?.data?.message || "Erro ao buscar o usuário");
     }
   }
-  
 });
 
 const salvarAlteracoes = async () => {
@@ -305,7 +318,7 @@ const salvarAlteracoes = async () => {
     if (res.status === 200 || res.status === 204) {
       toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
       setTimeout(() => {
-        router.go(0)
+        router.go(0);
       }, 2000);
     } else {
       toast.error(res.data?.message || "Erro ao salvar alterações");
