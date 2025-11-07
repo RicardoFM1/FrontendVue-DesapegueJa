@@ -7,9 +7,10 @@
                 justify-content: center; flex-direction: column; width: 25%; height: 60%;
                 "  class="sheetLogin">
                 
-                <v-form :disabled="loading" class="formLogin" ref="form" style="width: 100%;" 
-                
-                @submit.prevent="onSubmit">
+                <v-form :disabled="loading"
+  class="formLogin"
+  ref="form"
+  @submit.prevent="onSubmit">
                     <div class="divImageLogo">
   <v-img style="padding: 12px 0 0 12px;" width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
 </div>
@@ -35,7 +36,17 @@
                     >
                     
                 </v-text-field>
-                <v-btn :disabled="disabled" :loading="loading" color="black" class="btnCadastrar" type="submit" block>Fazer login</v-btn>
+                <v-btn
+ :disabled="disabled"
+    :loading="loading"
+    color="black"
+    class="btnCadastrar"
+    type="submit"
+    block
+>
+  Fazer login
+</v-btn>
+
                 <v-btn
          
           variant="flat"
@@ -72,7 +83,10 @@ onMounted(() => {
 
 const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
-const onSubmit = async () => {
+const onSubmit = async (e) => {
+  if (e) e.preventDefault(); 
+  console.log("Enviando login...", usuario.value)
+
   loading.value = true;
   try {
     const res = await connection.post("/desapega/usuarios/login", usuario.value);
@@ -83,7 +97,9 @@ const onSubmit = async () => {
       router.push("/");
     }
   } catch (err) {
-    toast.error(err.response?.data?.message || "Credenciais erradas!", { autoClose: 2000 });
+    const msg = err?.response?.data?.message ?? "Credenciais erradas!";
+toast.error(msg, { autoClose: 2000 });
+console.error("Erro no login:", err)
     localStorage.removeItem("token");
   } finally {
     loading.value = false;
