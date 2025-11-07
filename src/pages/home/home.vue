@@ -800,7 +800,7 @@ async function getProdutos() {
   carregandoProdutos.value = true;
   erroGetProduto.value = false;
 
-  // Timeout de 8 segundos
+ 
   const timeout = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
   );
