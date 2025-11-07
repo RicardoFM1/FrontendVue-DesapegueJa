@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
@@ -141,7 +141,15 @@ import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
 import { useMask } from "../../utility/masks/mask";
 
+
 const router = useRouter();
+onMounted(() => {
+  if (localStorage.getItem("token")) {
+    router.push("/");
+  }
+});
+
+
 
 const usuario = ref({
   Nome: "",
