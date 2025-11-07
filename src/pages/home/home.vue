@@ -761,23 +761,27 @@ async function getRetrieve() {
   }
 }
 
-onMounted(() => {
+onMounted(async() => {
   try{
 
     if (tokenExiste.value) {
-      getRetrieve();
+      await getRetrieve();
     }
-    getCategorias();
+    await getCategorias();
       
-    getProdutos();
+    await getProdutos();
  
    
-    getVendedor();
+    await getVendedor();
   }catch(erro){
     erroGetProduto.value = true
   }
   window.addEventListener('scroll', handleScroll)
 });
+
+watch(retrieve, (r) => {
+  console.log(r, "retrieve");
+})
 
 onUnmounted(() => {
    window.removeEventListener('scroll', handleScroll)

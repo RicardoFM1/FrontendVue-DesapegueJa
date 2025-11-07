@@ -1,3 +1,4 @@
+
 <template>
   <div class="cart-container">
     <div class="cart-items">
@@ -57,15 +58,17 @@ const cart = useCartStore();
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 
-onMounted(() => {
-  if (!tokenExiste.value) router.push("/");
-});
+onMounted(async () => {
+  
+  if (!tokenExiste.value) {
+     router.push("/");
+  }});
 
 const cartItems = computed(() => cart.items);
 const subtotal = computed(() => cart.subtotal);
 const totalItems = computed(() => cart.totalItems);
 
-// ✅ Remove apenas uma unidade do item
+
 function removeItem(index) {
   const item = cartItems.value[index];
   if (item.quantidade > 1) {
@@ -75,9 +78,8 @@ function removeItem(index) {
   }
 }
 
-// ✅ Botões
 function voltar() {
-  router.push("/"); // volta pra home (ou troque pelo caminho da página de produtos)
+  router.push("/"); 
 }
 
 function comprar() {

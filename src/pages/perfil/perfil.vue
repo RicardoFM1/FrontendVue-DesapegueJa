@@ -119,6 +119,16 @@ import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(!!token.value);
+
+onMounted(async () => {
+  
+  if (!tokenExiste.value) {
+     router.push("/");
+  }});
+
 const formRef = ref(null);
 
 const usuario = ref({
@@ -242,9 +252,6 @@ function voltarHome() {
   router.push("/");
 }
 
-
-const token = ref(localStorage.getItem("token") || "");
-const tokenExiste = ref(!!token.value);
 const retrieve = ref();
 
 onMounted(async () => {
