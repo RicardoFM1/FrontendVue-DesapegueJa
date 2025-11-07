@@ -209,7 +209,6 @@
                 height="330"
                 cover
                 class="imgItem"
-                
               >
                 <template #error>
                   <img src="/png-triste-erro.png" alt="Imagem não disponível" />
@@ -340,7 +339,7 @@
                     prepend-icon="mdi-cart"
                     density="comfortable"
                     class="btnAdicionar"
-                    @click="addToCart"
+                      @click="addToCart(item)"  
                   >
                     Adicionar ao carrinho
                   </v-btn>
@@ -626,15 +625,16 @@
                   </v-btn>
                   <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
                   <v-btn
-                    variant="flat"
-                    color="#3fa34f"
-                    prepend-icon="mdi-cart"
-                    density="comfortable"
-                    class="btnAdicionar"
-                    @click="addToCart"
-                  >
-                    Adicionar ao carrinho
+                  variant="flat"
+                  color="#3fa34f"
+                  prepend-icon="mdi-cart"
+                  density="comfortable"
+                  class="btnAdicionar"
+                      @click="addToCart(item)"  
+                          >
+                  Adicionar ao carrinho
                   </v-btn>
+
                 </v-card-actions>
               </div>
             </v-card>
@@ -679,23 +679,232 @@
 
 <script setup>
 import router from "@/router";
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router"
-import { useCartStore } from '@/components/stores/cart'
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
+import { useCartStore } from "@/stores/cart";
+import { connection } from "@/connection/axiosConnection";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+import "@mdi/font/css/materialdesignicons.css";
 
-const cart = useCartStore()
+const token = ref();
+const tokenExiste = ref(false);
+if (localStorage.getItem("token") != null) {
+  tokenExiste.value = true;
+  token.value = localStorage.getItem("token");
+} else {
+  tokenExiste.value = false;
+}
+
+const isFixed = ref(false)
+const inputProps = {
+  outlined: true,
+  hideDetails: true
+}
+
+function handleScroll() {
+  isFixed.value = window.scrollY > 200
+}
+
+const retrieve = ref();
+const usuario = ref();
+const categorias = ref([]);
+const erroGetProduto = ref(false);
+const vendedor = ref([])
+
+
+async function getCategorias() { 
+  try {
+    const res = await connection.get(`/desapega/categorias`);
+    if (res.status == 200) {
+      console.log(res.data.nome, "Nome categoria");
+      categorias.value = res.data;
+    } else {
+      return "Sem categoria";
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
+async function getVendedor(){
+  try{
+    const res = await connection.get("/desapega/usuarios")
+    if(res.status == 200) {
+      console.log(res.data)
+      vendedor.value = res.data
+     
+    }
+    else{
+      return "Sem vendedor"
+    }
+  } 
+  catch(error){
+    return null
+  }
+}
+
+async function getRetrieve() {
+  try {
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (res && res.status === 200 && res.data) {
+      retrieve.value = res.data;
+      usuario.value = res.data;
+    } else {
+      toast.error("Erro ao buscar o usuário");
+      console.error("Resposta inesperada:", res);
+    }
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
+  }
+}
+
+onMounted(() => {
+  try{
+
+    if (tokenExiste.value) {
+      getRetrieve();
+    }
+    getCategorias();
+      
+    getProdutos();
+ 
+   
+    getVendedor();
+  }catch(erro){
+    erroGetProduto.value = true
+  }
+  window.addEventListener('scroll', handleScroll)
+});
+
+onUnmounted(() => {
+   window.removeEventListener('scroll', handleScroll)
+})
+watch(retrieve, (novoRetrieve) => {
+  console.log(novoRetrieve.admin, "admin");
+});
+
+watch(vendedor, (novoVendedor) => {
+  const umvendedor = novoVendedor.find((v) => v.id == 37)?.nome 
+console.log(umvendedor, "um vendedor")
+})
+
+
+  console.log(token.value, "token")
+
+const itens = ref([]);
+const carregandoProdutos = ref(false)
+async function getProdutos() {
+  carregandoProdutos.value = true;
+  erroGetProduto.value = false;
+
+  // Timeout de 8 segundos
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
+  );
+
+  if (retrieve.admin == true) {
+    try {
+      const res = await Promise.race([
+        connection.get("/desapega/produtos"),
+        timeout,
+      ]);
+
+      if (res.status == 200) {
+        itens.value = res.data;
+        erroGetProduto.value = false;
+      } else {
+        toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
+    }
+  } else {
+    try {
+      const res = await Promise.race([
+        connection.get("/desapega/produtos?status=ativo"),
+        timeout,
+      ]);
+
+      if (res.status == 200) {
+        itens.value = res.data;
+        erroGetProduto.value = false;
+      } else {
+        toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
+    }
+  }
+}
+
+function getProdutoImage(imagem) {
+  if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
+    return imagem.startsWith("data:")
+      ? imagem
+      : `data:image/png;base64,${imagem}`;
+  }
+
+  return "/png-triste-erro.png";
+}
+watch(erroGetProduto, (v) => console.log('erroGetProduto mudou para ->', v));
+
+function recarregarProdutos() {
+  erroGetProduto.value = false; 
+
+    getProdutos();
+
+}
+
+
+watch(itens, (novoItem) => {
+  novoItem.forEach((item) => {
+    console.log(item, "Produtos");
+  });
+});
+
+const modalAlertShow = ref(false);
+const cart = useCartStore();
 
 function addToCart(item) {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
     return;
   }
+  console.log('ITEM RECEBIDO:', item);
+  
   cart.addToCart({
-    id:item.id,
-    produto:item.produto,
-    valor:item.valor,
-    image:item.image
-  })
+    id: item.id,
+    nome: item.nome,
+    preco: item.preco,
+    image: item.imagem,
+  });
+
 }
 
 const drawer = ref(false);
