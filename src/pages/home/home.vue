@@ -808,8 +808,11 @@ onMounted(async() => {
     if (tokenExiste.value) {
       await getRetrieve();
     }
-    await getCategorias();
-    await getVendedor();
+    setTimeout(async() => {
+
+      await getCategorias();
+      await getVendedor();
+    }, 1000);
       
  
    

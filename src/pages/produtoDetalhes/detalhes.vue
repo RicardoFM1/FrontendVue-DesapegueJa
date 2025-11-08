@@ -216,7 +216,7 @@ function getProdutoImage(imagem) {
   return "/png-triste-erro.png";
 }
 
-// ---------- Lifecycle ----------
+
 onMounted(async () => {
   if (tokenExiste.value) await getRetrieve();
   await Promise.all([getCategorias(), getVendedor(), getProdutos()]);
