@@ -1,9 +1,14 @@
 <template>
-  <v-container style="display: flex;" class="containerAllPerfil">
+  <v-container style="display: flex;" class="pa-6" v-if="tokenExiste">
+  
+    <v-container  class="containerAllPerfil">
 
  
-  <v-container class="pa-6" v-if="tokenExiste">
-    <v-card class="mx-auto pa-6" max-width="600">
+     <div v-if="loadingInit" class="text-center pa-10">
+        <v-progress-circular indeterminate color="primary" size="64" />
+        <p class="mt-3">Carregando informações...</p>
+      </div>
+    <v-card v-else class="mx-auto pa-6" max-width="600">
       <v-card-title class="text-h5 text-center">Perfil do Usuário</v-card-title>
       <v-divider class="my-4"></v-divider>
 
@@ -98,13 +103,13 @@
         />
 
         <v-row class="mt-6" justify="center" align="center">
-          <v-btn color="grey" class="mr-3" variant="outlined" @click="recarregarPagina">
+          <v-btn color="grey" class="mr-3" variant="outlined" type="button" @click="recarregarPagina">
             Recarregar
           </v-btn>
           <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
             Salvar Alterações
           </v-btn>
-          <v-btn color="grey" variant="outlined" @click="voltarHome">
+          <v-btn color="grey" variant="outlined" type="button" @click="voltarHome">
             Cancelar
           </v-btn>
         </v-row>
@@ -112,24 +117,31 @@
     </v-card>
   </v-container>
   <v-container class="pa-6" v-if="tokenExiste">
-    <v-card class="mx-auto pa-6" max-width="600">
+    <div v-if="loadingInit" class="text-center pa-10">
+        <v-progress-circular indeterminate color="primary" size="64" />
+        <p class="mt-3">Carregando informações...</p>
+      </div>
+    <v-card v-else class="mx-auto pa-6" max-width="600">
       <v-card-title class="text-h5 pa-5 text-center">
         Endereço do usuário
       </v-card-title>
       <v-divider class="my-4"></v-divider>
-      <v-form>
+      <v-form @submit.prevent="salvarAlteracoesEndereco">
         <v-text-field 
         label="Estado"
+        v-model="endereco.Estado"
         >
 
         </v-text-field>
         <v-text-field 
         label="Cidade"
+        v-model="endereco.Cidade"
         >
 
         </v-text-field>
         <v-text-field 
         label="Bairro"
+        v-model="endereco.Bairro"
         >
 
         </v-text-field>
@@ -138,6 +150,7 @@
           <v-text-field 
           label="Rua"
           class="ml-3 mr-3"   
+          v-model="endereco.Rua"
           >
           
         </v-text-field>
@@ -146,12 +159,15 @@
         label="Número"
         class="mr-3"
         max-width="50%"
+        v-model="endereco.Numero"
         >
 
         </v-text-field>
       </v-row>
       <v-select
         label="Tipo de logradouro"
+        v-model="endereco.Logradouro"
+        
         :items="[
           { title: 'Rua', value: 'rua'},
           { title: 'Avenida', value: 'avenida'},
@@ -164,15 +180,20 @@
         </v-select>
         <v-text-field 
         label="Complemento"
+        v-model="endereco.Complemento"
         >
 
         </v-text-field>
          <v-select
          label="Status"
+         v-model="endereco.Status"
          :items="[
           { title: 'Ativo', value: 'ativo'},
           { title: 'Inativo', value: 'inativo'}
+        
          ]"
+         item-title="title"
+         item-value="value"
          >
            >
            
@@ -180,15 +201,61 @@
         
         <v-row  class="mt-6" justify="center" align="center">
 
-          <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
+          <v-btn color="primary" :loading="loadingEndereco" class="mr-3" type="submit">
             Salvar Alterações
           </v-btn>
-          <v-btn color="grey" variant="outlined" @click="voltarHome">
+          <v-btn color="grey" variant="outlined" type="button" @click="voltarHome">
             Cancelar
           </v-btn>
         </v-row>
       </v-form>
     </v-card>
+    <v-row class="mt-4" justify="center" align="center">
+      <v-btn
+    text="Excluir conta"
+    color="red"
+    @click="confirmacaoSair = !confirmacaoSair"
+    >
+  </v-btn>
+</v-row>
+<v-dialog 
+        max-width="500"
+        v-model="confirmacaoSair" 
+        v-if="confirmacaoSair">
+          <v-card class="pa-4" elevation="8" rounded="xl">
+      <v-card-title class="text-center font-weight-bold text-h4">
+        <v-icon color="error"  size="32" class="mr-2">mdi-alert-circle-outline</v-icon>
+        Confirmar Exclusão
+      </v-card-title>
+
+      <v-card-text class="text-center text-h5 text-medium-emphasis">
+        Deseja realmente excluir sua conta?
+      </v-card-text>
+
+      <v-card-actions class="justify-center mt-2">
+        <v-btn
+          color="grey"
+          variant="outlined"
+          rounded="xl"
+          @click="confirmacaoSair = false"
+          width="120"
+        >
+          Cancelar
+        </v-btn>
+
+        <v-btn
+          color="error"
+          variant="flat"
+          rounded="xl"
+          width="120"
+          :loading="loadingExclusao"
+          @click="ExcluirConta"
+        >
+          EXCLUIR
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+        </v-dialog>
   </v-container>
    </v-container>
 </template>
@@ -198,6 +265,7 @@ import { ref, onMounted, watch } from "vue";
 import { toast } from "vue3-toastify";
 import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
+
 
 const router = useRouter();
 
@@ -221,8 +289,20 @@ const usuario = ref({
   Telefone: "",
 });
 
+const endereco = ref({
+  Estado: "",
+  Cidade: "",
+  Bairro: "",
+  Rua: "",
+  Numero: "",
+  Logradouro: "",
+  Complemento: "",
+  Status: ""
+})
+
 const mostrarSenha = ref(false);
 const loading = ref(false);
+const loadingEndereco = ref(false);
 const imagemPerfil = ref(null);
 const inputArquivo = ref(null);
 
@@ -357,32 +437,95 @@ function voltarHome() {
 }
 
 const retrieve = ref();
+const loadingInit = ref(true);
 
 onMounted(async () => {
-  if (tokenExiste.value) {
-    try {
-      const res = await connection.get("/desapega/usuarios/retrieve", {
-        headers: { Authorization: `Bearer ${token.value}` },
-      });
-      if (res.status === 200 && res.data) {
-        retrieve.value = res.data;
+  if (!tokenExiste.value) {
+    router.push("/");
+    return;
+  }
 
-        usuario.value = {
-          Nome: res.data.nome,
-          email: res.data.email,
-          senha: "",
-          CPF: res.data.cpf,
-          Telefone: res.data.telefone ? formatTelefone(res.data.telefone) : "",
-          dataNascimento: res.data.data_Nascimento || "",
-        };
+  try {
+   
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
 
-        imagemPerfil.value = res.data.foto_Perfil || null;
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Erro ao buscar o usuário");
+    if (res.status === 200 && res.data) {
+      retrieve.value = res.data;
+
+      usuario.value = {
+        Nome: res.data.nome,
+        email: res.data.email,
+        senha: "",
+        CPF: res.data.cpf,
+        Telefone: res.data.telefone ? formatTelefone(res.data.telefone) : "",
+        dataNascimento: res.data.data_Nascimento || "",
+      };
+
+      imagemPerfil.value = res.data.foto_Perfil || null;
     }
+
+   
+    if (retrieve.value && retrieve.value.id) {
+      const resEnderecos = await connection.get(`/desapega/enderecos/${retrieve.value.id}`, {
+        headers: { Authorization: `Bearer ${token.value}` }
+      });
+
+      if (resEnderecos.status === 200 && resEnderecos.data) {
+        endereco.value = {
+          Estado: resEnderecos.data.estado,
+          Cidade: resEnderecos.data.cidade,
+          Bairro: resEnderecos.data.bairro,
+          Rua: resEnderecos.data.rua,
+          Numero: resEnderecos.data.numero,
+          Logradouro: resEnderecos.data.tipo_de_logradouro,
+          Complemento: resEnderecos.data.complemento,
+          Status: resEnderecos.data.status
+        };
+      }
+    }
+
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao buscar dados do usuário ou endereço");
+  }
+  finally {
+    loadingInit.value = false; 
   }
 });
+
+const confirmacaoSair = ref(false)
+const loadingExclusao = ref(false)
+
+
+const ExcluirConta = async() => {
+  loadingExclusao.value = true
+  try{
+    if (retrieve.value && retrieve.value.id) {
+      const body = {
+        status: "inativo",
+        email: ""
+      }
+      const res = await connection.patch(`/desapega/usuarios/${retrieve.value.id}`, body, {
+        headers: { Authorization: `Bearer ${token.value}` }
+      });
+      if (res.status === 200 || res.status === 204) {
+      toast.success("Conta excluída com sucesso!", { autoClose: 2000 });
+      localStorage.removeItem("token")
+      setTimeout(() => {
+        router.go(0)
+      }, 2000);
+    } else {
+      toast.error(res.data?.message || "Erro ao excluir conta");
+    }
+  
+}
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao excluir conta");
+  } finally {
+    loadingExclusao.value = false;
+  }
+}
 
 const salvarAlteracoes = async () => {
   loading.value = true;
@@ -423,4 +566,39 @@ if (usuario.value.senha && usuario.value.senha.trim() !== "") {
     loading.value = false;
   }
 };
+const salvarAlteracoesEndereco = async () => {
+  loadingEndereco.value = true
+  try{
+    const body = {
+  estado: endereco.value.Estado,
+  cidade: endereco.value.Cidade,
+  bairro: endereco.value.Bairro,
+  rua: endereco.value.Rua,
+  numero: endereco.value.Numero,
+  logradouro: endereco.value.Logradouro,
+  complemento: endereco.value.Complemento,
+  status:endereco.value.Status
+    }
+    const res = await connection.patch(`/desapega/enderecos/${retrieve.value.id}`, body,
+      {
+        headers: {
+          Authorization: `Bearer ${token.value}`
+        }
+      }
+    )
+    if (res.status === 200 || res.status === 204) {
+      
+      toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
+      setTimeout(() => {
+        router.go(0);
+      }, 2000);
+    } else {
+      toast.error(res.data?.message || "Erro ao salvar alterações");
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao atualizar perfil");
+  }finally{
+    loadingEndereco.value = false
+  }
+}
 </script>
