@@ -127,6 +127,14 @@
       </v-card-title>
       <v-divider class="my-4"></v-divider>
       <v-form @submit.prevent="salvarAlteracoesEndereco">
+         <v-text-field 
+        label="CEP"
+        v-model="endereco.Cep"
+        placeholder="00000-00"
+        @input="onInputCep"
+        >
+
+        </v-text-field>
         <v-text-field 
         label="Estado"
         v-model="endereco.Estado"
@@ -290,6 +298,7 @@ const usuario = ref({
 });
 
 const endereco = ref({
+  Cep: "",
   Estado: "",
   Cidade: "",
   Bairro: "",
@@ -332,6 +341,48 @@ const rulesTelefone = [
     /^\(\d{2,3}\)\s\d{2}\s\d{4,5}-\d{4}$/.test(v) ||
     "Telefone inválido. Ex: (DD) 0000-0000 ou 00000-0000",
 ];
+
+const formatCep = (value) => {
+  
+  let numeros = value.replace(/\D/g, "").slice(0, 8);
+
+  let parte1 = numeros.slice(0, 5);
+  let parte2 = numeros.slice(5, 8);
+
+  if (parte2) return `${parte1}-${parte2}`;
+  return parte1;
+};
+
+const buscarEnderecoViaCep = async () => {
+  const cepNumeros = endereco.value.Cep.replace(/\D/g, ""); 
+  if (cepNumeros.length !== 8) return; 
+
+  try {
+    const res = await connection.get(`https://viacep.com.br/ws/${cepNumeros}/json/`);
+    if (res.data.erro) {
+      toast.error("CEP não encontrado");
+      return;
+    }
+
+    endereco.value.Rua = res.data.logradouro || "";
+    endereco.value.Bairro = res.data.bairro || "";
+    endereco.value.Cidade = res.data.localidade || "";
+    endereco.value.Estado = res.data.uf || "";
+  } catch (err) {
+    toast.error("Erro ao buscar endereço via CEP");
+  }
+};
+
+const onInputCep = (event) => {
+
+  endereco.value.Cep = formatCep(event.target.value);
+
+  
+  const cepNumeros = endereco.value.Cep.replace(/\D/g, "");
+  if (cepNumeros.length === 8) {
+    buscarEnderecoViaCep();
+  }
+};
 
 const formatCPF = (value) => {
   let numeros = value.replace(/\D/g, "").slice(0, 11);
@@ -474,6 +525,7 @@ onMounted(async () => {
 
       if (resEnderecos.status === 200 && resEnderecos.data) {
         endereco.value = {
+          Cep: resEnderecos.data.cep,
           Estado: resEnderecos.data.estado,
           Cidade: resEnderecos.data.cidade,
           Bairro: resEnderecos.data.bairro,
@@ -570,6 +622,7 @@ const salvarAlteracoesEndereco = async () => {
   loadingEndereco.value = true
   try{
     const body = {
+  cep: endereco.value.Cep,
   estado: endereco.value.Estado,
   cidade: endereco.value.Cidade,
   bairro: endereco.value.Bairro,
