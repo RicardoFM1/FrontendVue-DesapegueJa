@@ -1,4 +1,7 @@
 <template>
+  <v-container style="display: flex;" class="containerAllPerfil">
+
+ 
   <v-container class="pa-6" v-if="tokenExiste">
     <v-card class="mx-auto pa-6" max-width="600">
       <v-card-title class="text-h5 text-center">Perfil do Usuário</v-card-title>
@@ -95,6 +98,9 @@
         />
 
         <v-row class="mt-6" justify="center" align="center">
+          <v-btn color="grey" class="mr-3" variant="outlined" @click="recarregarPagina">
+            Recarregar
+          </v-btn>
           <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
             Salvar Alterações
           </v-btn>
@@ -105,6 +111,86 @@
       </v-form>
     </v-card>
   </v-container>
+  <v-container class="pa-6" v-if="tokenExiste">
+    <v-card class="mx-auto pa-6" max-width="600">
+      <v-card-title class="text-h5 pa-5 text-center">
+        Endereço do usuário
+      </v-card-title>
+      <v-divider class="my-4"></v-divider>
+      <v-form>
+        <v-text-field 
+        label="Estado"
+        >
+
+        </v-text-field>
+        <v-text-field 
+        label="Cidade"
+        >
+
+        </v-text-field>
+        <v-text-field 
+        label="Bairro"
+        >
+
+        </v-text-field>
+        <v-row>
+
+          <v-text-field 
+          label="Rua"
+          class="ml-3 mr-3"   
+          >
+          
+        </v-text-field>
+       
+        <v-text-field 
+        label="Número"
+        class="mr-3"
+        max-width="50%"
+        >
+
+        </v-text-field>
+      </v-row>
+      <v-select
+        label="Tipo de logradouro"
+        :items="[
+          { title: 'Rua', value: 'rua'},
+          { title: 'Avenida', value: 'avenida'},
+          { title: 'Praça', value: 'praca'},
+          { title: 'Travessa', value: 'travessa'},
+          { title: 'Outros', value: 'outros'}
+        ]"
+        >
+
+        </v-select>
+        <v-text-field 
+        label="Complemento"
+        >
+
+        </v-text-field>
+         <v-select
+         label="Status"
+         :items="[
+          { title: 'Ativo', value: 'ativo'},
+          { title: 'Inativo', value: 'inativo'}
+         ]"
+         >
+           >
+           
+          </v-select>
+        
+        <v-row  class="mt-6" justify="center" align="center">
+
+          <v-btn color="primary" :loading="loading" class="mr-3" type="submit">
+            Salvar Alterações
+          </v-btn>
+          <v-btn color="grey" variant="outlined" @click="voltarHome">
+            Cancelar
+          </v-btn>
+        </v-row>
+      </v-form>
+    </v-card>
+  </v-container>
+   </v-container>
 </template>
 
 <script setup>
@@ -250,6 +336,10 @@ function carregarImagem(event) {
   };
 
   reader.readAsDataURL(arquivo);
+}
+
+function recarregarPagina(){
+  router.go(0)
 }
 
 
