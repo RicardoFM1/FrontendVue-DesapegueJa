@@ -135,12 +135,43 @@
         >
 
         </v-text-field>
-        <v-text-field 
+        <v-select
         label="Estado"
         v-model="endereco.Estado"
+        :items="[
+            { title: 'Acre', value: 'AC' },
+  { title: 'Alagoas', value: 'AL' },
+  { title: 'Amapá', value: 'AP' },
+  { title: 'Amazonas', value: 'AM' },
+  { title: 'Bahia', value: 'BA' },
+  { title: 'Ceará', value: 'CE' },
+  { title: 'Distrito Federal', value: 'DF' },
+  { title: 'Espírito Santo', value: 'ES' },
+  { title: 'Goiás', value: 'GO' },
+  { title: 'Maranhão', value: 'MA' },
+  { title: 'Mato Grosso', value: 'MT' },
+  { title: 'Mato Grosso do Sul', value: 'MS' },
+  { title: 'Minas Gerais', value: 'MG' },
+  { title: 'Pará', value: 'PA' },
+  { title: 'Paraíba', value: 'PB' },
+  { title: 'Paraná', value: 'PR' },
+  { title: 'Pernambuco', value: 'PE' },
+  { title: 'Piauí', value: 'PI' },
+  { title: 'Rio de Janeiro', value: 'RJ' },
+  { title: 'Rio Grande do Norte', value: 'RN' },
+  { title: 'Rio Grande do Sul', value: 'RS' },
+  { title: 'Rondônia', value: 'RO' },
+  { title: 'Roraima', value: 'RR' },
+  { title: 'Santa Catarina', value: 'SC' },
+  { title: 'São Paulo', value: 'SP' },
+  { title: 'Sergipe', value: 'SE' },
+  { title: 'Tocantins', value: 'TO' }
+        ]"
+        :item-title="title"
+        :item-value="value"
         >
 
-        </v-text-field>
+        </v-select>
         <v-text-field 
         label="Cidade"
         v-model="endereco.Cidade"
@@ -182,7 +213,11 @@
           { title: 'Praça', value: 'praca'},
           { title: 'Travessa', value: 'travessa'},
           { title: 'Outros', value: 'outros'}
+
+          
         ]"
+        item-title="title"
+         item-value="value"
         >
 
         </v-select>
@@ -219,7 +254,7 @@
       </v-form>
     </v-card>
     <v-row class="mt-4" justify="center" align="center">
-      <v-btn
+      <v-btn v-if="!loadingInit"
     text="Excluir conta"
     color="red"
     @click="confirmacaoSair = !confirmacaoSair"
