@@ -300,14 +300,18 @@ const salvarAlteracoes = async () => {
     const cpfFormatado = usuario.value.CPF?.replace(/[./-]/g, "") || "";
     const telefoneFormatado = usuario.value.Telefone?.replace(/\D/g, "") || "";
     const body = {
-      nome: usuario.value.Nome,
-      email: usuario.value.email,
-      senha: usuario.value.senha,
-      cpf: cpfFormatado,
-      telefone: telefoneFormatado,
-      data_de_nascimento: usuario.value.dataNascimento,
-      foto_de_perfil: imagemPerfil.value || null,
-    };
+  nome: usuario.value.Nome,
+  email: usuario.value.email,
+  cpf: cpfFormatado,
+  telefone: telefoneFormatado,
+  data_de_nascimento: usuario.value.dataNascimento,
+  foto_de_perfil: imagemPerfil.value || null,
+};
+
+
+if (usuario.value.senha && usuario.value.senha.trim() !== "") {
+  body.senha = usuario.value.senha;
+}
     const res = await connection.patch(
       `/desapega/usuarios/${retrieve.value.id}`,
       body,

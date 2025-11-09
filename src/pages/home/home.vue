@@ -27,17 +27,33 @@ isto?
           >
             Carrinho
           </v-btn>
+          
+          
+ 
 
-          <v-menu v-model="menu" offset-y>
-            <template #activator="{ props }">
-              <v-btn :disabled="carregandoProdutos" v-bind="props">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
+ 
+ 
 
-            <v-card class="pa-4" width="300">
-              <v-row justify="center">
-                
+
+          <v-menu v-model="menu" offset-y location="bottom end">
+               <template #activator="{ props }">
+    <v-tooltip top>
+      <template #activator="{ props: tooltip }">
+        <v-btn
+          v-bind="{ ...props, ...tooltip }"
+          :disabled="carregandoProdutos"
+          variant="text"
+        >
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+      <span>Mais opções</span>
+    </v-tooltip>
+  </template>
+
+              <v-card class="pa-4" width="300">
+                <v-row justify="center">
+                  
 
              <v-avatar
   size="70"
@@ -54,11 +70,6 @@ isto?
     </span>
   </template>
 </v-avatar>
-
-
-
-
-
 
               </v-row>
               <v-row justify="center">
@@ -82,7 +93,7 @@ isto?
                   <span>{{ usuario?.email }}</span>
                 </v-tooltip>
               </v-row>
-
+              
               <v-divider class="my-3"></v-divider>
 
               <v-btn
@@ -90,9 +101,10 @@ isto?
                 color="#eaece7"
                 variant="flat"
                 class="mb-4"
+                prepend-icon="mdi-account"
                 @click="toPerfil"
                 :disabled="carregandoProdutos"
-              >
+                >
                 PERFIL
               </v-btn>
               <v-btn
@@ -100,15 +112,55 @@ isto?
                 color="#cc0000"
                 variant="flat"
                 class="mb-4"
-                @click="removerToken"
+                prepend-icon="mdi-logout"
+                @click="buttonSairClicado = !buttonSairClicado"
                 :disabled="carregandoProdutos"
               >
                 SAIR
               </v-btn>
+              
             </v-card>
           </v-menu>
+          
         </v-app-bar>
+        <v-dialog 
+        max-width="500"
+        v-model="buttonSairClicado" 
+        v-if="buttonSairClicado">
+          <v-card class="pa-4" elevation="8" rounded="xl">
+      <v-card-title class="text-center font-weight-bold text-h4">
+        <v-icon color="error"  size="32" class="mr-2">mdi-alert-circle-outline</v-icon>
+        Confirmar saída
+      </v-card-title>
 
+      <v-card-text class="text-center text-h5 text-medium-emphasis">
+        Tem certeza de que deseja sair da sua conta?
+      </v-card-text>
+
+      <v-card-actions class="justify-center mt-2">
+        <v-btn
+          color="grey"
+          variant="outlined"
+          rounded="xl"
+          @click="buttonSairClicado = false"
+          width="120"
+        >
+          Cancelar
+        </v-btn>
+
+        <v-btn
+          color="error"
+          variant="flat"
+          rounded="xl"
+          width="120"
+          :loading="loadingLogout"
+          @click="FazerLogout"
+        >
+          Sair
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+        </v-dialog>
         <v-navigation-drawer v-model="drawer" :width="345">
           <div class="divLabelSlider">
             <p>Preço</p>
@@ -703,6 +755,9 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 
+const menu = ref(false);
+const menuButton = ref(null)
+
 const token = ref();
 const tokenExiste = ref(false);
 if (localStorage.getItem("token") != null) {
@@ -983,7 +1038,7 @@ const categoriasList = [
   "Esportes",
 ];
 
-const menu = ref(false);
+
 const search = ref("");
 
 const itensFiltrados = computed(() =>
@@ -1030,13 +1085,20 @@ function toPerfil() {
   router.push("/perfil");
 }
 
-function removerToken() {
-  localStorage.removeItem("token");
-  router.push("/login");
+const buttonSairClicado = ref(false)
+const loadingLogout = ref(false)
+function FazerLogout() {
+  loadingLogout.value = true
+  setTimeout(() => {
+    localStorage.removeItem("token");
+    router.push("/login");
+    loadingLogout.value = false
+  }, 2000);
+  
 }
 
-console.log("FOTO PERFIL REAL:", usuario.value?.foto_Perfil);
-console.log("Tamanho da string:", usuario.value?.foto_Perfil?.length);
+
+
 
 function toDetalhes(id) {
   router.push(`/produto/${id}`);
