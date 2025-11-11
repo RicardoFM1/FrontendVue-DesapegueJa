@@ -139,6 +139,7 @@
         label="Estado"
         v-model="endereco.Estado"
         :items="[
+           { title: '', value: '' },
             { title: 'Acre', value: 'AC' },
   { title: 'Alagoas', value: 'AL' },
   { title: 'Amapá', value: 'AP' },
@@ -208,6 +209,7 @@
         v-model="endereco.Logradouro"
         
         :items="[
+           { title: '', value: '' },
           { title: 'Rua', value: 'rua'},
           { title: 'Avenida', value: 'avenida'},
           { title: 'Praça', value: 'praca'},
@@ -231,6 +233,7 @@
          label="Status"
          v-model="endereco.Status"
          :items="[
+           { title: '', value: '' },
           { title: 'Ativo', value: 'ativo'},
           { title: 'Inativo', value: 'inativo'}
         
