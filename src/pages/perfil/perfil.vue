@@ -53,7 +53,7 @@
       <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
         <v-text-field
           v-model="usuario.Nome"
-          label="Nome Completo"
+          label="Nome de usuário"
           prepend-inner-icon="mdi-account"
         />
 
