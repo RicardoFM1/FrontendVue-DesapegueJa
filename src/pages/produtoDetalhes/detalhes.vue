@@ -63,9 +63,7 @@
           <p class="parcelamento">6x {{ parcela(produto.valor) }} sem juros</p>
         </div>
 
-        <v-btn class="btn-promo" color="blue-lighten-5">
-          R$ 20 OFF BB VISA
-        </v-btn>
+
 
         <div class="informacoes-extra">
           <p><strong>FRETE GRÁTIS ACIMA DE R$ 19</strong></p>
