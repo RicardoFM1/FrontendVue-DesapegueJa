@@ -7,6 +7,7 @@ import Anunciar from '@/pages/anunciar/anunciar.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import Detalhes from '@/pages/produtoDetalhes/detalhes.vue'
 
+
 const routes = [
   {path: "/login", name: 'Login', component: Login},
   {path: "/", name: 'Home', component: Home},

@@ -339,7 +339,7 @@
                     prepend-icon="mdi-cart"
                     density="comfortable"
                     class="btnAdicionar"
-                    @click="addToCart"
+                      @click="addToCart(item)"  
                   >
                     Adicionar ao carrinho
                   </v-btn>
@@ -625,15 +625,16 @@
                   </v-btn>
                   <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
                   <v-btn
-                    variant="flat"
-                    color="#3fa34f"
-                    prepend-icon="mdi-cart"
-                    density="comfortable"
-                    class="btnAdicionar"
-                    @click="addToCart"
-                  >
-                    Adicionar ao carrinho
+                  variant="flat"
+                  color="#3fa34f"
+                  prepend-icon="mdi-cart"
+                  density="comfortable"
+                  class="btnAdicionar"
+                      @click="addToCart(item)"  
+                          >
+                  Adicionar ao carrinho
                   </v-btn>
+
                 </v-card-actions>
               </div>
             </v-card>
@@ -760,23 +761,27 @@ async function getRetrieve() {
   }
 }
 
-onMounted(() => {
+onMounted(async() => {
   try{
 
     if (tokenExiste.value) {
-      getRetrieve();
+      await getRetrieve();
     }
-    getCategorias();
+    await getCategorias();
       
-    getProdutos();
+    await getProdutos();
  
    
-    getVendedor();
+    await getVendedor();
   }catch(erro){
     erroGetProduto.value = true
   }
   window.addEventListener('scroll', handleScroll)
 });
+
+watch(retrieve, (r) => {
+  console.log(r, "retrieve");
+})
 
 onUnmounted(() => {
    window.removeEventListener('scroll', handleScroll)
@@ -799,7 +804,7 @@ async function getProdutos() {
   carregandoProdutos.value = true;
   erroGetProduto.value = false;
 
-  // Timeout de 8 segundos
+ 
   const timeout = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
   );
@@ -887,20 +892,23 @@ watch(itens, (novoItem) => {
   });
 });
 
-const cart = useCartStore();
 const modalAlertShow = ref(false);
+const cart = useCartStore();
 
 function addToCart(item) {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
     return;
   }
+  console.log('ITEM RECEBIDO:', item);
+  
   cart.addToCart({
     id: item.id,
-    produto: item.produto,
-    valor: item.valor,
-    image: item.image,
+    nome: item.nome,
+    preco: item.preco,
+    image: item.imagem,
   });
+
 }
 
 const drawer = ref(false);
