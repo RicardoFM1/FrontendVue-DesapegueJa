@@ -74,18 +74,11 @@
                 dense
               ></v-text-field>
             </v-col>
+           
             <v-col cols="12" sm="4">
               <v-select
-                v-model="estado"
-                :items="estados"
-                label="Estado de Conservação"
-                dense
-              ></v-select>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-select
-                v-model="categoria"
-                :items="categorias"
+                v-model="categoria.nome"
+                :items="categorias.nome"
                 label="Categoria"
                 dense
               ></v-select>
@@ -104,8 +97,8 @@
             </v-row>
             
             <v-row justify="end" class="mt-4">
-              <v-btn class="secondary" small @click="editQuick">Editar rápido</v-btn>
-            <v-btn class="secondary" outlined @click="resetForm">Cancelar</v-btn>
+            <v-btn class="secondary" outlined @click="Voltar">Voltar</v-btn>
+            <v-btn class="secondary" outlined @click="resetForm">Limpar</v-btn>
             <v-btn class="create-btn ml-2" @click="openModal">Criar</v-btn>
           </v-row>
         </v-card>
@@ -151,7 +144,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { connection } from '@/connection/axiosConnection';
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -159,11 +153,31 @@ const router = useRouter();
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 
+const categorias = ref([]);
+
+console.log(categorias.value)
+async function getCategorias() { 
+  try {
+    const res = await connection.get("/desapega/categorias");
+    if (res.status == 200) {
+      console.log(res.data, "Nome categoria");
+      categorias.value = res.data;
+    } else {
+      return "Sem categoria";
+    }
+  } catch (error) {
+    return null;
+  }
+}
+ 
+
 onMounted(async () => {
   
+  await getCategorias()
   if (!tokenExiste.value) {
      router.push("/");
-  }});
+  }
+  });
   
 const title = ref('Tênis esportivo preto')
 const preco = ref(199.90)
@@ -176,8 +190,7 @@ const fitContain = ref(false)
 const modal = ref(false)
 const placeholderImage = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'1200\' height=\'900\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%23090f13\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' fill=\'%2399aab3\' font-family=\'Arial, sans-serif\' font-size=\'28\' dominant-baseline=\'middle\' text-anchor=\'middle\'%3EPreview da imagem%3C/text%3E%3C/svg%3E'
 
-const estados = ['Novo','Seminovo','Usado','Com Defeito']
-const categorias = ['Calçados','Eletrônicos','Roupas','Livros','Outros']
+
 
 const formattedPrice = computed(() => preco.value.toLocaleString('pt-BR',{style:'currency', currency:'BRL'}))
 
@@ -189,21 +202,24 @@ function onImageChange(e){
   reader.readAsDataURL(f)
 }
 
-function clearImage(){
-  previewImage.value = ''
-  if ($refs.imageInput) $refs.imageInput.value = ''
-}
+// function clearImage(){
+//   previewImage.value = ''
+//   if ($refs.imageInput) $refs.imageInput.value = ''
+// }
 
 function toggleFit(){ fitContain.value = !fitContain.value }
 function resetForm(){
   if(confirm('Deseja limpar o formulário?')){
-    title.value = 'Tênis esportivo preto'
-    preco.value = 199.90
-    estado.value = 'Seminovo'
-    categoria.value = 'Calçados'
-    descricao.value = 'Tênis em bom estado, pouco uso. Tamanho 42. Pequeno desgaste na sola.'
+    title.value = ''
+    preco.value = 0
+    estado.value = ''
+    categoria.value = ''
+    descricao.value = ''
     clearImage()
   }
+}
+function Voltar(){
+  router.push("/")
 }
 function openModal(){ modal.value = true }
 function confirmCreate(){ alert('Produto criado com sucesso! (simulação)'); modal.value = false; resetForm() }
