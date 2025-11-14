@@ -46,7 +46,7 @@
       </div>
 
       <div class="info-container">
-        <h1 class="titulo-produto">{{ produto.produto }}</h1>
+        <h1 class="titulo-produto">{{ produto.nome }}</h1>
 
         <div class="avaliacoes">
           <v-icon color="amber">mdi-star</v-icon>
@@ -58,14 +58,12 @@
         </div>
 
         <div class="preco-container">
-          <p class="preco-antigo">{{ produto.precoAntigo }}</p>
-          <p class="preco-novo">{{ formatarPreco(produto.valor) }}</p>
-          <p class="parcelamento">6x {{ parcela(produto.valor) }} sem juros</p>
+          <p class="preco-novo">{{ precoFormatado }}</p>
+          
+          
         </div>
 
-        <v-btn class="btn-promo" color="blue-lighten-5">
-          R$ 20 OFF BB VISA
-        </v-btn>
+     
 
         <div class="informacoes-extra">
           <p><strong>FRETE GRÁTIS ACIMA DE R$ 19</strong></p>
@@ -76,21 +74,56 @@
 
         <div class="detalhes-produto">
           <p><strong>Descrição:</strong> {{ produto.descricao }}</p>
-          <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
-          <p><strong>Estado:</strong> {{ produto.estado }}</p>
+          <p><strong>Categoria:</strong> {{ categoriaNome }}</p>
+          <p><strong>Anunciado em:</strong> {{ produto.data_post }}</p>
+          <p><strong>Vendedor:</strong> {{ vendedorNome }}</p>
         </div>
 
-        <v-btn class="btn-carrinho" @click="adicionarCarrinho(produto)">
+        <v-btn class="btn-carrinho" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
           <v-icon left>mdi-cart</v-icon>
           ADICIONAR AO CARRINHO
         </v-btn>
       </div>
     </div>
   </v-container>
+   <v-dialog
+            max-width="500"
+            v-model="usuarioNaoLogado"
+            v-if="usuarioNaoLogado == true"
+          >
+            <v-card title="Aviso">
+              <template #prepend>
+                <v-icon size="42" color="yellow">mdi-alert</v-icon>
+              </template>
+              <v-card-text>
+                Usuário sem permissão para executar esta ação! Tente primeiro
+                fazer login.
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  text="Fazer login"
+                  base-color="green"
+                  variant="flat"
+                  v-model="usuarioNaoLogado"
+                  @click="toLogin"
+                  :disabled="carregandoProdutos"
+                >
+                </v-btn>
+                <v-btn
+                  text="Ok"
+                  base-color="blue"
+                  v-model="usuarioNaoLogado"
+                  @click="usuarioNaoLogado = false"
+                  :disabled="carregandoProdutos"
+                >
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
@@ -99,7 +132,7 @@ import "vue3-toastify/dist/index.css";
 const route = useRoute();
 const router = useRouter();
 
-// ---------- Variáveis compartilhadas ----------
+
 const token = ref();
 const tokenExiste = ref(false);
 if (localStorage.getItem("token")) {
@@ -115,8 +148,11 @@ const itens = ref([]);
 const produto = ref({});
 const erroGetProduto = ref(false);
 const carregandoProdutos = ref(false);
+const categoriaNome = ref();
+const vendedorNome = ref();
+const usuarioNaoLogado = ref(false)
+const loadingAdicionar = ref(false)
 
-// ---------- Funções reutilizadas ----------
 async function getRetrieve() {
   try {
     const res = await connection.get("/desapega/usuarios/retrieve", {
@@ -131,14 +167,8 @@ async function getRetrieve() {
   }
 }
 
-async function getCategorias() {
-  try {
-    const res = await connection.get(`/desapega/categorias`);
-    if (res.status === 200) categorias.value = res.data;
-  } catch (error) {
-    toast.error("Erro ao carregar categorias");
-  }
-}
+
+
 
 async function getVendedor() {
   try {
@@ -178,6 +208,37 @@ async function getProdutos() {
   }
 }
 
+async function getCategorias() {
+  try {
+    const res = await connection.get(`/desapega/categorias`);
+    if (res.status === 200){
+      categorias.value = res.data;
+    } 
+  } catch (error) {
+    toast.error("Erro ao carregar categorias");
+  }
+}
+watch(produto, (p) => {
+console.log(p, "produto")
+})
+watch(categorias, (c) => {
+console.log(c, "categorias")
+})
+watch(categoriaNome, (c) => {
+console.log(c)
+})
+watch([produto, categorias], ([p, c]) => {
+  if (!p || !p.categoria_id || !c.length) return;
+
+  const cat = c.find(cat => cat.id == p.categoria_id) || "";
+  categoriaNome.value = cat ? cat.nome : "";
+});
+watch([produto, vendedor], ([p, v]) => {
+  if (!v || !p.usuario_id || !v.length) return;
+
+  const vendedor = v.find(vend => vend.id == p.usuario_id) || "";
+  vendedorNome.value = vendedor ? vendedor.nome : "";
+});
 function recarregarProdutos() {
   getProdutos();
 }
@@ -186,26 +247,7 @@ function voltar() {
   router.back();
 }
 
-function adicionarCarrinho(produto) {
-  console.log("Adicionado ao carrinho:", produto);
-  toast.success("Produto adicionado ao carrinho!");
-}
 
-function formatarPreco(valor) {
-  if (!valor) return "R$ 0,00";
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function parcela(valor) {
-  const valorParcela = valor / 6;
-  return valorParcela.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
 
 function getProdutoImage(imagem) {
   if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
@@ -216,12 +258,53 @@ function getProdutoImage(imagem) {
   return "/png-triste-erro.png";
 }
 
+const precoFormatado = computed(() => {
+  if (!produto.value.preco) return "";
+  return (produto.value.preco / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+});
 
 onMounted(async () => {
   if (tokenExiste.value) await getRetrieve();
-  await Promise.all([getCategorias(), getVendedor(), getProdutos()]);
+  await Promise.all([getProdutos(), getCategorias(), getVendedor() ]);
+  
 });
+async function adicionarAoCarrinho(){
+  loadingAdicionar.value = true
+  if(!retrieve.value?.id){
+    usuarioNaoLogado.value = true
+    return;
+  }
+  try{
 
+    const body = {
+      usuario_id: retrieve.value?.id,
+      produto_id: produto.value.id,
+      quantidade: 1
+    }
+    console.log(body, "carrinho")
+    const res = await connection.post("/desapega/carrinho", body, {
+      headers:{
+        Authorization: `Bearer ${token.value}`
+      }
+    })
+    if(res.status == 201 || res.status == 200){
+      toast.success("Produto adicionado ao carrinho!");
+    }
+    // dps mudar a quantidade, quando clicar dnv adicionar mais 1 se caso já tiver no carrinho
+  }catch(err){
+   toast.error(err.response.data.message || "Erro ao adicionar ao carrinho") 
+  }finally{
+    loadingAdicionar.value = false
+  }
+
+  
+}
+function toLogin(){
+    router.push("/login")
+  }
 watch(retrieve, (novo) => {
   console.log("Usuário:", novo);
 });

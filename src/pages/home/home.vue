@@ -385,7 +385,7 @@ isto?
                     variant="flat"
                     color="#2196F3"
                     class="btnDetalhes"
-                    @click="toDetalhes(index + 1)"
+                    @click="toDetalhes(item.id)"
                     density="comfortable"
                     :disabled="carregandoProdutos"
                   >
@@ -683,13 +683,13 @@ isto?
                     variant="flat"
                     color="#2196F3"
                     class="btnDetalhes"
-                    @click="toDetalhes(index + 1)"
+                    @click="toDetalhes(item.id)"
                     density="comfortable"
                     :disabled="carregandoProdutos"
                   >
                     Detalhes
                   </v-btn>
-                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                 
                   <v-btn
                   variant="flat"
                   color="#3fa34f"
