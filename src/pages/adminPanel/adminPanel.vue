@@ -33,53 +33,61 @@
 </template>
 
 <script setup>
+import { connection } from "@/connection/axiosConnection";
 import { ref, onMounted } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
+
 
 const router = useRouter();
 const users = ref([]);
 const retrieve = ref(null);
 
-async function getRetrieve() {
+async function getRetrieve(token) {
   try {
     const res = await connection.get("/desapega/usuarios/retrieve", {
-      headers: { Authorization: `Bearer ${token.value}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
-    if (res && res.status === 200 && res.data) {
-      retrieve.value = res.data;
-      
-    } else {
-      toast.error("Erro ao buscar o usuário");
-      console.error("Resposta inesperada:", res);
-    }
-  } catch (error) {
-    console.error("Erro na requisição:", error);
-    toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
+
+    retrieve.value = res.data;
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+async function getUsers(token) {
+  try {
+    const res = await connection.get("/desapega/usuarios", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    users.value = res.data ?? [];
+  } catch (err) {
+    console.error(err);
   }
 }
 
 onMounted(async () => {
   const token = localStorage.getItem("token");
-  if (!token || retrieve.value.admin !== true) {
-    router.push("/");
+
+  if (!token) return router.push("/");
+
+  const ok = await getRetrieve(token);
+
+  if (!ok || retrieve.value?.admin !== true) {
+    return router.push("/");
   }
-  if (tokenExiste.value) {
-      getRetrieve();
-    }
+
+  await getUsers(token);
 });
 
-const voltar = () => {
-  router.push("/");
-};
+const voltar = () => router.push("/");
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString("pt-BR");
-};
-
-
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString("pt-BR");
 </script>
 
-<style scoped>
-@import "@/pages/css/paginaAdminPanel/admin.css";
+<style>
+@import "../css/paginaAdminPanel/admin.css";
 </style>
