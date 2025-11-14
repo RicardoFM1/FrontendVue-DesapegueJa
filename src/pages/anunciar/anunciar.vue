@@ -7,39 +7,54 @@
       </div>
       <div class="panel-subtitle">Vendas • Usados</div>
     </v-row>
+    <v-form ref="form">
 
-    <v-row>
-      <v-col cols="12" md="5">
+     <v-row>
+  <v-col cols="12" md="5">
+
+    <v-card class="card pa-3" outlined>
       
-        <v-card class="card pa-3" outlined>
-          <v-img
-            :src="previewImage || placeholderImage"
-            class="image-preview mb-2"
-            :contain="fitContain"
-          ></v-img>
+      <!-- PREVIEW DA IMAGEM -->
+      <v-img
+        :src="previewImage || placeholderImage"
+        class="image-preview mb-2"
+        :contain="fitContain"
+      ></v-img>
 
-          <v-row class="image-actions mb-2" align="center" justify="space-between">
-              <v-row style="margin: 12px; display: flex; gap: 18px" dense>
-            <v-btn class="btn" @click="$refs.imageInput.click()" small>
-              📁 Escolher imagem
-            </v-btn>
-              <v-btn class="btn" small @click="clearImage">✖ Limpar</v-btn>
-              <v-btn class="btn" small @click="toggleFit">🔍 Ajustar</v-btn>
-            </v-row>
-          </v-row>
+      <!-- BOTÕES DA IMAGEM -->
+      <v-row class="image-actions mb-2" align="center" justify="space-between">
+        <v-row style="margin: 12px; display: flex; gap: 18px" dense>
+          
+          <v-btn class="btn" small @click="imageInput.click()">
+            📁 Escolher imagem
+          </v-btn>
 
-          <input
-            ref="imageInput"
-            type="file"
-            accept="image/*"
-            class="d-none"
-            @change="onImageChange"
-          />
+          <v-btn class="btn" small @click="removerImagem">
+            ✖ Remover
+          </v-btn>
 
-          <v-row justify="space-between" class="text-caption">
-            <div class="small">Formato aceito: PNG • Max 1MB</div>
-            <div class="small">Verificação rápida de qualidade</div>
-          </v-row>
+          <v-btn class="btn" small @click="toggleFit">
+            🔍 Ajustar
+          </v-btn>
+
+        </v-row>
+      </v-row>
+
+      <!-- INPUT REAL -->
+      <input
+        ref="imageInput"
+        type="file"
+        accept="image/png"
+        class="d-none"
+        @change="carregarImagem"
+      />
+
+      <v-row justify="space-between" class="text-caption">
+        <div class="small">Formato aceito: PNG • Max 1MB</div>
+        <div class="small">Verificação rápida de qualidade</div>
+      </v-row>
+
+    
         </v-card>
       </v-col>
 
@@ -48,93 +63,101 @@
           <v-row justify="space-between" align="center">
             <v-col>
               <v-text-field
-                v-model="titulo"
-                label="Título do produto"
-                hide-details
-                dense
+              v-model="titulo"
+              label="Título do produto"
+              hide-details
+              :rules="[rules.required]"
+              dense
               ></v-text-field>
               <div class="small">Título exibido para compradores</div>
             </v-col>
             <v-col class="d-flex flex-column align-end">
               <div class="price">R$ {{ preco }}</div>
               <div class="ola" style="display: flex; flex-direction: row;">
-                  
-                  <v-chip class="chip ma-1" outlined>{{ categoriasNome }}</v-chip>
+                
+                <v-chip class="chip ma-1" outlined>{{ categoriasNome }}</v-chip>
               </div>
             </v-col>
           </v-row>
-
+          
           <v-row class="mt-4" dense>
             <v-col cols="12" sm="4">
               <v-text-field
-                v-model.number="preco"
-                label="Preço (R$)"
-                type="number"
-                step="0.01"
-                dense
+              v-model.number="preco"
+              label="Preço (R$)"
+              type="number"
+              step="0.01"
+              min="0"
+              @input="apenasPositivo"
+              dense
+              :rules="[rules.required, rules.preco]"
               ></v-text-field>
             </v-col>
-           
+            
             <v-col cols="12" sm="4">
               <v-select
-                v-model="categoria"
-                :items="categorias"
-                item-title="nome"
-                item-value="id"
-                label="Categoria"
-                dense
+              v-model="categoria"
+              :items="categorias"
+              item-title="nome"
+              item-value="id"
+              label="Categoria"
+              dense
+              :rules="[rules.required]"
               ></v-select>
             </v-col>
-             <v-col cols="12" sm="4">
+            <v-col cols="12" sm="4">
               <v-text-field
-                v-model="estoque"
-                label="Quantidade em estoque"
-                type="number"
-                step="1"
-                dense
+              v-model="estoque"
+              label="Quantidade em estoque"
+              type="number"
+              step="1"
+              min="1"
+              @input="apenasPositivo"
+              dense
+              :rules="[rules.required, rules.estoque]"
               ></v-text-field>
             </v-col>
           </v-row>
-
+          
           <v-textarea
-            v-model="descricao"
-            label="Descrição"
-            rows="4"
-            class="mt-4"
-            ></v-textarea>
-            
-            <v-row justify="space-between" align="center" class="mt-2">
-                <div class="small">Adicione mais fotos para aumentar a chance de venda.</div>
-            </v-row>
-            
-            <v-row justify="end" class="mt-4">
+          v-model="descricao"
+          label="Descrição"
+          rows="4"
+          class="mt-4"
+          ></v-textarea>
+          
+          <v-row justify="space-between" align="center" class="mt-2">
+            <div class="small">Adicione mais fotos para aumentar a chance de venda.</div>
+          </v-row>
+          
+          <v-row justify="end" class="mt-4">
             <v-btn class="secondary" outlined @click="Voltar">Voltar</v-btn>
             <v-btn class="secondary" outlined @click="resetForm">Limpar</v-btn>
-            <v-btn class="create-btn ml-2" @click="openModal">Criar</v-btn>
+            <v-btn class="create-btn ml-2" @click="validarAntesDeCriar">Criar</v-btn>
           </v-row>
         </v-card>
       </v-col>
     </v-row>
-
-   
+    
+    
     <v-dialog v-model="modal" max-width="700">
       <v-card class="card">
         <v-card-title class="headline">Confirmar criação do produto</v-card-title>
         <v-card-subtitle>Revise as informações antes de confirmar.</v-card-subtitle>
-
+        
         <v-card-text>
           <v-row>
             <v-col cols="4">
               <v-img :src="previewImage || placeholderImage" height="120"></v-img>
-            </v-col>
-            <v-col cols="8">
-              <div class="d-flex justify-space-between">
-                <strong>{{ titulo }}</strong>
-                <span class="price">R$ {{ preco }}</span>
-              </div>
-              <v-row class="mt-2" dense>
-              
-                <v-chip class="chip ma-1" outlined>Categoria: {{ categoriasNome }}</v-chip>
+              </v-col>
+              <v-col cols="8">
+                <div class="d-flex justify-space-between">
+                  <strong>{{ titulo }}</strong>
+                  <span class="price">R$ {{ preco }}</span>
+                </div>
+                <v-row class="mt-2" dense>
+                  
+                  <v-chip class="chip ma-1" outlined>Categoria: {{ categoriasNome }}</v-chip>
                 <v-chip class="chip ma-1" outlined>Estoque: {{ estoque }}</v-chip>
               </v-row>
               <div class="mt-2">
@@ -151,7 +174,9 @@
           <v-btn class="btn primary" :loading="loadingConfirmar" @click="confirmarAnuncio">Confirmar</v-btn>
         </v-card-actions>
       </v-card>
+      
     </v-dialog>
+  </v-form>
   </v-container>
 </template>
 
@@ -262,13 +287,45 @@ function resetForm(){
     categoria.value = ''
     descricao.value = ''
     estoque.value = 0
-    clearImage()
+    previewImage.value = ''
   }
 }
 function Voltar(){
   router.push("/")
 }
-function openModal(){ modal.value = true }
+
+function apenasPositivo(e) {
+  const valor = Number(e.target.value);
+  if (valor < 0) e.target.value = 0;
+}
+
+const form = ref(null)
+const formValido = ref(false)
+
+const rules = {
+  required: v => !!v || "Campo obrigatório",
+  min3: v => (v?.length >= 3) || "Mínimo de 3 caracteres",
+  min10: v => (v?.length >= 10) || "Escreva pelo menos 10 caracteres",
+  preco: v => v > 0 || "Preço inválido",
+  estoque: v => v > 0 || "Estoque deve ser maior que 0"
+}
+
+async function validarAntesDeCriar() {
+  const resultado = await form.value.validate();
+
+  if (!resultado.valid) {
+    toast.error("Corrija os campos destacados")
+    return
+  }
+
+  if (!previewImage.value) {
+    toast.error("Adicione uma imagem")
+    return
+  }
+
+  modal.value = true
+}
+
 const loadingConfirmar = ref(false)
 
 async function confirmarAnuncio()
@@ -285,6 +342,22 @@ async function confirmarAnuncio()
     categoria_id: categoria.value,
     estoque: estoque.value
     
+  }
+  if (!titulo.value || titulo.value.length < 3) {
+    return toast.error("Título inválido")
+  }
+  if (!preco.value || preco.value <= 0) {
+    return toast.error("Preço inválido")
+  }
+  if (!estoque.value || estoque.value <= 0) {
+    return toast.error("Estoque deve ser maior que 0")
+  }
+  if (!categoria.value) {
+    return toast.error("Selecione uma categoria válida")
+  }
+   if (!imagem.value) {
+    toast.error("Envie uma imagem para o anúncio");
+    return;
   }
   const res = await connection.post("/desapega/produtos", body, {
     headers: {
@@ -306,6 +379,51 @@ async function confirmarAnuncio()
 
 }
 
+const arquivoImagem = ref(null);
+const imageInput = ref(null);
+
+
+function abrirInput() {
+  imageInput.value.click();
+}
+
+
+function carregarImagem(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+
+
+  if (!arquivo.type.includes("png")) {
+    toast.error("Apenas imagens PNG são permitidas.");
+    event.target.value = "";
+    return;
+  }
+
+
+  const maxSize = 1 * 1024 * 1024;
+  if (arquivo.size > maxSize) {
+    toast.error("A imagem deve ter no máximo 1MB.");
+    event.target.value = "";
+    return;
+  }
+
+ 
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImage.value = e.target.result;
+    arquivoImagem.value = arquivo;
+  };
+  reader.onerror = () => {
+    toast.error("Erro ao ler o arquivo. Tente novamente.");
+  };
+  reader.readAsDataURL(arquivo);
+}
+
+
+function removerImagem() {
+  previewImage.value = null;
+  arquivoImagem.value = null;
+}
 
 </script>
 <style>
