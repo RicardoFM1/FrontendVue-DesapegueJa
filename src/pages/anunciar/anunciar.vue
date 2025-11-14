@@ -389,7 +389,12 @@ async function confirmarAnuncio() {
 
   } finally {
     loadingConfirmar.value = false;
-    resetForm()
+    titulo.value = ''
+    preco.value = 0
+    categoria.value = ''
+    descricao.value = ''
+    estoque.value = 0
+    previewImage.value = ''
   }
 }
 
