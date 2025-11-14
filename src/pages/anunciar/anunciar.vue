@@ -14,14 +14,14 @@
 
     <v-card class="card pa-3" outlined>
       
-      <!-- PREVIEW DA IMAGEM -->
+   
       <v-img
         :src="previewImage || placeholderImage"
         class="image-preview mb-2"
         :contain="fitContain"
       ></v-img>
 
-      <!-- BOTÕES DA IMAGEM -->
+     
       <v-row class="image-actions mb-2" align="center" justify="space-between">
         <v-row style="margin: 12px; display: flex; gap: 18px" dense>
           
@@ -40,7 +40,7 @@
         </v-row>
       </v-row>
 
-      <!-- INPUT REAL -->
+ 
       <input
         ref="imageInput"
         type="file"
@@ -190,7 +190,7 @@ import "@mdi/font/css/materialdesignicons.css";
 
 
 const router = useRouter();
-
+const imagem = ref(null);
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 const retrieve = ref();
@@ -328,56 +328,71 @@ async function validarAntesDeCriar() {
 
 const loadingConfirmar = ref(false)
 
-async function confirmarAnuncio()
+async function confirmarAnuncio() {
+  loadingConfirmar.value = true;
 
-{ 
-  loadingConfirmar.value = true
- try{
-  const body = {
-    usuario_id: retrieve.value.id,
-    nome: titulo.value,
-    data_post: new Date().toISOString().slice(0, 19).replace("T", " "),
-    preco: preco.value * 100,
-    descricao: descricao.value,
-    categoria_id: categoria.value,
-    estoque: estoque.value
-    
-  }
-  if (!titulo.value || titulo.value.length < 3) {
-    return toast.error("Título inválido")
-  }
-  if (!preco.value || preco.value <= 0) {
-    return toast.error("Preço inválido")
-  }
-  if (!estoque.value || estoque.value <= 0) {
-    return toast.error("Estoque deve ser maior que 0")
-  }
-  if (!categoria.value) {
-    return toast.error("Selecione uma categoria válida")
-  }
-   if (!imagem.value) {
-    toast.error("Envie uma imagem para o anúncio");
-    return;
-  }
-  const res = await connection.post("/desapega/produtos", body, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
+  try {
+    // validações antes do envio
+    if (!titulo.value || titulo.value.length < 3) {
+      return toast.error("Título inválido");
     }
-  })
-  if(res.status == 200 || res.status == 201){
-    toast.success("Produto anunciado com sucesso!")
-  }
-  else{
-    toast.error("Erro ao anunciar o produto")
-  }
- }catch(err){
-  console.log(err.response.data.message)
-  toast.error(err.response.data.message || "Erro ao anunciar o produto")
- }finally{
-  loadingConfirmar.value = false
- }
 
+    if (!preco.value || preco.value <= 0) {
+      return toast.error("Preço inválido");
+    }
+
+    if (!estoque.value || estoque.value <= 0) {
+      return toast.error("Estoque deve ser maior que 0");
+    }
+
+    if (!categoria.value) {
+      return toast.error("Selecione uma categoria");
+    }
+
+    if (!imagem.value) {
+      return toast.error("Envie uma imagem PNG válida");
+    }
+
+    const body = {
+      usuario_id: retrieve.value?.id,
+      nome: titulo.value,
+      data_post: new Date().toISOString().slice(0, 19).replace("T", " "),
+      preco: preco.value * 100, 
+      descricao: descricao.value,
+      categoria_id: categoria.value,
+      estoque: estoque.value,
+      imagem: imagem.value 
+    };
+
+    const res = await connection.post("/desapega/produtos", body, {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    });
+
+    if (res?.status === 200 || res?.status === 201) {
+      toast.success("Produto anunciado com sucesso!");
+      modal.value = false;
+    } else {
+      toast.error("Erro inesperado ao anunciar o produto");
+    }
+
+  } catch (err) {
+    console.error("Erro ao anunciar:", err);
+
+    const msg =
+      err.response?.data?.message ||
+      err.message ||
+      "Erro inesperado ao anunciar o produto";
+
+    toast.error(msg);
+
+  } finally {
+    loadingConfirmar.value = false;
+    resetForm()
+  }
 }
+
 
 const arquivoImagem = ref(null);
 const imageInput = ref(null);
@@ -392,29 +407,22 @@ function carregarImagem(event) {
   const arquivo = event.target.files[0];
   if (!arquivo) return;
 
-
   if (!arquivo.type.includes("png")) {
     toast.error("Apenas imagens PNG são permitidas.");
     event.target.value = "";
     return;
   }
 
-
-  const maxSize = 1 * 1024 * 1024;
-  if (arquivo.size > maxSize) {
+  if (arquivo.size > 1024 * 1024) {
     toast.error("A imagem deve ter no máximo 1MB.");
     event.target.value = "";
     return;
   }
 
- 
   const reader = new FileReader();
   reader.onload = (e) => {
-    previewImage.value = e.target.result;
-    arquivoImagem.value = arquivo;
-  };
-  reader.onerror = () => {
-    toast.error("Erro ao ler o arquivo. Tente novamente.");
+    previewImage.value = e.target.result;  
+    imagem.value = e.target.result;        
   };
   reader.readAsDataURL(arquivo);
 }
