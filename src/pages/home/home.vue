@@ -177,15 +177,6 @@ isto?
           ></v-range-slider>
 
           <v-divider></v-divider>
-          <p class="subtitleConservacao">Estado de conservação</p>
-          <div class="divCheckboxFiltros">
-            <v-checkbox label="Excelente" hide-details></v-checkbox>
-            <v-checkbox label="Muito bom" hide-details></v-checkbox>
-            <v-checkbox label="Bom" hide-details></v-checkbox>
-            <v-checkbox label="Ruim" hide-details></v-checkbox>
-            <v-checkbox label="Muito ruim" hide-details></v-checkbox>
-            <v-checkbox label="Péssimo" hide-details></v-checkbox>
-          </div>
 
           <v-divider></v-divider>
           <p class="subtitleCategoria">Categoria:</p>
@@ -476,15 +467,6 @@ isto?
           ></v-range-slider>
 
           <v-divider></v-divider>
-          <p class="subtitleConservacao">Estado de conservação</p>
-          <div class="divCheckboxFiltros">
-            <v-checkbox label="Excelente" hide-details></v-checkbox>
-            <v-checkbox label="Muito bom" hide-details></v-checkbox>
-            <v-checkbox label="Bom" hide-details></v-checkbox>
-            <v-checkbox label="Ruim" hide-details></v-checkbox>
-            <v-checkbox label="Muito ruim" hide-details></v-checkbox>
-            <v-checkbox label="Péssimo" hide-details></v-checkbox>
-          </div>
 
           <v-divider></v-divider>
           <p class="subtitleCategoria">Categoria:</p>
