@@ -382,13 +382,14 @@ isto?
                   >
                     Detalhes
                   </v-btn>
-                  <!-- Depois colocar o id que vem no produto no @click de cima indo para detalhes -->
+                 
                   <v-btn
                     variant="flat"
                     color="#3fa34f"
                     prepend-icon="mdi-cart"
                     density="comfortable"
                     class="btnAdicionar"
+                    :loading="loadingAdicionar"
                       @click="addToCart(item)"  
                       :disabled="carregandoProdutos"
                   >
@@ -678,6 +679,7 @@ isto?
                   prepend-icon="mdi-cart"
                   density="comfortable"
                   class="btnAdicionar"
+                    :loading="loadingAdicionar"
                       @click="addToCart(item)"  
                       :disabled="carregandoProdutos"
                           >
@@ -731,7 +733,6 @@ isto?
 <script setup>
 import router from "@/router";
 import { ref, computed, onMounted, watch, onUnmounted } from "vue";
-import { useCartStore } from "@/stores/cart";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
@@ -989,36 +990,44 @@ watch(itens, (novoItem) => {
 });
 
 const modalAlertShow = ref(false);
-const cart = useCartStore();
+const loadingAdicionar = ref(false)
 
-function addToCart(item) {
+async function addToCart(item) {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
     return;
   }
+  loadingAdicionar.value = true
   console.log('ITEM RECEBIDO:', item);
-  
-  cart.addToCart({
-    id: item.id,
-    nome: item.nome,
-    preco: item.preco,
-    image: item.imagem,
-  });
+  try{
+
+    const body = {
+      usuario_id: retrieve.value?.id,
+      produto_id: item.id,
+      quantidade: 1
+    }
+    console.log(body, "carrinho")
+    const res = await connection.post("/desapega/carrinho", body, {
+      headers:{
+        Authorization: `Bearer ${token.value}`
+      }
+    })
+    if(res.status == 201 || res.status == 200){
+      toast.success("Produto adicionado ao carrinho!");
+    }
+    // dps mudar a quantidade, quando clicar dnv adicionar mais 1 se caso já tiver no carrinho
+  }catch(err){
+   toast.error(err.response.data.message || "Erro ao adicionar ao carrinho") 
+  }finally{
+    loadingAdicionar.value = false
+  }
+
 
 }
 
 const drawer = ref(false);
 const range = ref([0, 0]);
-const categoriasList = [
-  "Roupas e acessórios",
-  "Imóveis",
-  "Ferramentas",
-  "Veículos",
-  "Móveis/Decoração",
-  "Equipamentos de escritório",
-  "Hobbies e jogos",
-  "Esportes",
-];
+const categoriasList = [];
 
 
 const search = ref("");
