@@ -332,7 +332,7 @@ async function confirmarAnuncio() {
   loadingConfirmar.value = true;
 
   try {
-    // validações antes do envio
+   
     if (!titulo.value || titulo.value.length < 3) {
       return toast.error("Título inválido");
     }

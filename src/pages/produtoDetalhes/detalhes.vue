@@ -79,7 +79,7 @@
           <p><strong>Vendedor:</strong> {{ vendedorNome }}</p>
         </div>
 
-        <v-btn class="btn-carrinho" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
+        <v-btn class="btn-carrinho" :disabled="loadingInformacoes" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
           <v-icon left>mdi-cart</v-icon>
           ADICIONAR AO CARRINHO
         </v-btn>
@@ -271,8 +271,11 @@ onMounted(async () => {
   await Promise.all([getProdutos(), getCategorias(), getVendedor() ]);
   
 });
+const loadingInformacoes = ref(true)
+
 async function adicionarAoCarrinho(){
   loadingAdicionar.value = true
+  loadingInformacoes.value = true
   if(!retrieve.value?.id){
     usuarioNaoLogado.value = true
     return;
@@ -293,11 +296,12 @@ async function adicionarAoCarrinho(){
     if(res.status == 201 || res.status == 200){
       toast.success("Produto adicionado ao carrinho!");
     }
-    // dps mudar a quantidade, quando clicar dnv adicionar mais 1 se caso já tiver no carrinho
+    
   }catch(err){
    toast.error(err.response.data.message || "Erro ao adicionar ao carrinho") 
   }finally{
     loadingAdicionar.value = false
+    loadingInformacoes.value = true
   }
 
   

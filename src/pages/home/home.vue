@@ -378,7 +378,7 @@ isto?
                     class="btnDetalhes"
                     @click="toDetalhes(item.id)"
                     density="comfortable"
-                    :disabled="carregandoProdutos"
+                    :disabled="carregandoInformacoes"
                   >
                     Detalhes
                   </v-btn>
@@ -389,9 +389,9 @@ isto?
                     prepend-icon="mdi-cart"
                     density="comfortable"
                     class="btnAdicionar"
-                    :loading="loadingAdicionar"
+                   
                       @click="addToCart(item)"  
-                      :disabled="carregandoProdutos"
+                      :disabled="carregandoInformacoes"
                   >
                     Adicionar ao carrinho
                   </v-btn>
@@ -668,7 +668,7 @@ isto?
                     class="btnDetalhes"
                     @click="toDetalhes(item.id)"
                     density="comfortable"
-                    :disabled="carregandoProdutos"
+                    :disabled="carregandoInformacoes"
                   >
                     Detalhes
                   </v-btn>
@@ -679,9 +679,9 @@ isto?
                   prepend-icon="mdi-cart"
                   density="comfortable"
                   class="btnAdicionar"
-                    :loading="loadingAdicionar"
+                  
                       @click="addToCart(item)"  
-                      :disabled="carregandoProdutos"
+                      :disabled="carregandoInformacoes"
                           >
                   Adicionar ao carrinho
                   </v-btn>
@@ -765,9 +765,10 @@ const usuario = ref();
 const categorias = ref([]);
 const erroGetProduto = ref(false);
 const vendedor = ref([])
+const carregandoInformacoes = ref(true)
 
-
-async function getCategorias() { 
+async function getCategorias() {
+  carregandoInformacoes.value = true 
   try {
     const res = await connection.get(`/desapega/categorias`);
     if (res.status == 200) {
@@ -778,10 +779,13 @@ async function getCategorias() {
     }
   } catch (error) {
     return null;
+  }finally{
+    carregandoInformacoes.value = false
   }
 }
 
 async function getVendedor(){
+  carregandoInformacoes.value = true 
   try{
     const res = await connection.get("/desapega/usuarios")
     if(res.status == 200) {
@@ -795,6 +799,8 @@ async function getVendedor(){
   } 
   catch(error){
     return null
+  }finally{
+  carregandoInformacoes.value = false 
   }
 }
 
@@ -990,40 +996,39 @@ watch(itens, (novoItem) => {
 });
 
 const modalAlertShow = ref(false);
-const loadingAdicionar = ref(false)
+
 
 async function addToCart(item) {
-  if (tokenExiste.value == false) {
+  if (!tokenExiste.value) {
     modalAlertShow.value = !modalAlertShow.value;
     return;
   }
-  loadingAdicionar.value = true
-  console.log('ITEM RECEBIDO:', item);
-  try{
 
-    const body = {
-      usuario_id: retrieve.value?.id,
-      produto_id: item.id,
-      quantidade: 1
-    }
-    console.log(body, "carrinho")
-    const res = await connection.post("/desapega/carrinho", body, {
-      headers:{
-        Authorization: `Bearer ${token.value}`
+  const body = {
+    usuario_id: retrieve.value?.id,
+    produto_id: item.id,
+    quantidade: 1
+  };
+
+ try {
+    await toast.promise(
+      connection.post("/desapega/carrinho", body, {
+        headers: {
+          Authorization: `Bearer ${token.value}`
+        }
+      }),
+      {
+        pending: "Adicionando ao carrinho...",
+        success: "Produto adicionado ao carrinho!",
+        error:"Erro ao adicionar ao carrinho ou o produto já está no carrinho"
       }
-    })
-    if(res.status == 201 || res.status == 200){
-      toast.success("Produto adicionado ao carrinho!");
-    }
-    // dps mudar a quantidade, quando clicar dnv adicionar mais 1 se caso já tiver no carrinho
-  }catch(err){
-   toast.error(err.response.data.message || "Erro ao adicionar ao carrinho") 
-  }finally{
-    loadingAdicionar.value = false
+    );
+  } catch (err) {
+  
+    console.error("Erro adicionar ao carrinho:", err);
   }
-
-
 }
+
 
 const drawer = ref(false);
 const range = ref([0, 0]);

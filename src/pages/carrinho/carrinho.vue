@@ -50,10 +50,8 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useCartStore } from "@/stores/cart";
 
 const router = useRouter();
-const cart = useCartStore();
 
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
