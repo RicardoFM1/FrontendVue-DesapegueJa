@@ -152,6 +152,7 @@ const categoriaNome = ref();
 const vendedorNome = ref();
 const usuarioNaoLogado = ref(false)
 const loadingAdicionar = ref(false)
+const loadingInformacoes = ref(true)
 
 async function getRetrieve() {
   try {
@@ -171,16 +172,19 @@ async function getRetrieve() {
 
 
 async function getVendedor() {
+  loadingInformacoes.value = true
   try {
     const res = await connection.get("/desapega/usuarios");
     if (res.status === 200) vendedor.value = res.data;
   } catch (error) {
     toast.error("Erro ao buscar vendedores");
   }
+  loadingInformacoes.value = false
 }
 
 async function getProdutos() {
   carregandoProdutos.value = true;
+  loadingInformacoes.value = true
   erroGetProduto.value = false;
   const timeout = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
@@ -205,10 +209,12 @@ async function getProdutos() {
     toast.error("Erro ao carregar produto");
   } finally {
     carregandoProdutos.value = false;
+    loadingInformacoes.value = false
   }
 }
 
 async function getCategorias() {
+loadingInformacoes.value = true
   try {
     const res = await connection.get(`/desapega/categorias`);
     if (res.status === 200){
@@ -216,6 +222,8 @@ async function getCategorias() {
     } 
   } catch (error) {
     toast.error("Erro ao carregar categorias");
+  }finally{
+    loadingInformacoes.value = false
   }
 }
 watch(produto, (p) => {
@@ -271,11 +279,11 @@ onMounted(async () => {
   await Promise.all([getProdutos(), getCategorias(), getVendedor() ]);
   
 });
-const loadingInformacoes = ref(true)
+
 
 async function adicionarAoCarrinho(){
   loadingAdicionar.value = true
-  loadingInformacoes.value = true
+ 
   if(!retrieve.value?.id){
     usuarioNaoLogado.value = true
     return;
@@ -301,7 +309,7 @@ async function adicionarAoCarrinho(){
    toast.error(err.response.data.message || "Erro ao adicionar ao carrinho") 
   }finally{
     loadingAdicionar.value = false
-    loadingInformacoes.value = true
+    
   }
 
   
