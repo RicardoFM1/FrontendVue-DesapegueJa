@@ -162,19 +162,23 @@ isto?
     </v-card>
         </v-dialog>
         <v-navigation-drawer v-model="drawer" :width="345">
-          <div class="divLabelSlider">
-            <p>Preço</p>
-            <p>
-              R$ <span>{{ range[0] }}-</span><span>{{ range[1] }}</span>
-            </p>
-          </div>
-          <v-range-slider
-            class="sliderFiltro"
-            v-model="range"
-            step="1"
-            max="10000"
-            min="0"
-          ></v-range-slider>
+
+      <v-col>
+  <h5>minimo:</h5>
+  <v-number-input
+    :model-value="minimo"
+    @update:model-value="minimo = $event"
+  ></v-number-input>
+</v-col>
+
+<v-col>
+  <h5>maximo:</h5>
+  <v-number-input
+    :model-value="maximo"
+    @update:model-value="maximo = $event"
+  ></v-number-input>
+</v-col>
+
 
           <v-divider></v-divider>
 
@@ -453,19 +457,22 @@ isto?
         </v-app-bar>
 
         <v-navigation-drawer v-model="drawer" :width="345">
-          <div class="divLabelSlider">
-            <p>Preço</p>
-            <p>
-              R$ <span>{{ range[0] }}-</span><span>{{ range[1] }}</span>
-            </p>
-          </div>
-          <v-range-slider
-            class="sliderFiltro"
-            v-model="range"
-            step="1"
-            max="10000"
-            min="0"
-          ></v-range-slider>
+
+          <v-col>
+  <h5>minimo:</h5>
+  <v-number-input
+    :model-value="minimo"
+    @update:model-value="minimo = $event"
+  ></v-number-input>
+</v-col>
+
+<v-col>
+  <h5>maximo:</h5>
+  <v-number-input
+    :model-value="maximo"
+    @update:model-value="maximo = $event"
+  ></v-number-input>
+</v-col>
 
           <v-divider></v-divider>
 
@@ -1035,10 +1042,32 @@ const categoriasList = [];
 const search = ref("");
 
 const itensFiltrados = computed(() =>
-  itens.value.filter((item) =>
-    item.nome.toLowerCase().includes(search.value.toLowerCase())
-  )
-);
+  itens.value
+    .filter((item) =>
+      item.nome.toLowerCase().includes(search.value.toLowerCase())
+    )
+    .filter((item) => {
+      const preco = item.preco / 100
+
+      const minimoMatch =
+        minimo.value === null || minimo.value === 0 || preco >= minimo.value
+
+      const maximoMatch =
+        maximo.value === null || preco <= maximo.value
+
+      return minimoMatch && maximoMatch
+    })
+)
+
+
+const minimo = ref(0)
+const maximo = ref(null) 
+const searchMinMax = ref('')
+
+
+
+
+
 
 const getIniciais = (nome) => {
   if (!nome) return "?";
