@@ -234,7 +234,7 @@ async function getProdutos() {
       ]);
 
       if (res.status == 200) {
-      itens.value = res.data.produtos     
+      produtos.value = res.data.produtos     
   total.value = res.total
         erroGetProduto.value = false;
       } else {
@@ -262,10 +262,7 @@ async function getProdutos() {
       ]);
 
       if (res.status == 200) {
-        const meta = res.data[0];
-
-    
-   itens.value = res.data.produtos     
+        produtos.value = res.data.produtos     
   total.value = res.total
         erroGetProduto.value = false;
       } else {
