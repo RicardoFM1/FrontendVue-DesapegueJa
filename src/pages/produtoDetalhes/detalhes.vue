@@ -123,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
@@ -181,6 +181,7 @@ async function getVendedor() {
   }
   loadingInformacoes.value = false
 }
+const total = ref(0)
 
 async function getProdutos() {
   carregandoProdutos.value = true;
@@ -198,7 +199,8 @@ async function getProdutos() {
     const res = await Promise.race([connection.get(url), timeout]);
 
     if (res.status === 200) {
-      itens.value = res.data;
+      itens.value = res.data.produtos     
+  total.value = res.total
       const id = parseInt(route.params.id);
       produto.value = res.data.find((p) => p.id === id) || {};
     } else {

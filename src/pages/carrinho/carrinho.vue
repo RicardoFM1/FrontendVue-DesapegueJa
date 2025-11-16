@@ -156,7 +156,7 @@
 
 <script setup>
 import { connection } from "@/connection/axiosConnection";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
@@ -216,6 +216,8 @@ async function getCarrinho() {
   }
 }
 
+const total = ref(0)
+
 async function getProdutos() {
   carregandoProdutos.value = true;
   erroGetProduto.value = false;
@@ -232,7 +234,8 @@ async function getProdutos() {
       ]);
 
       if (res.status == 200) {
-        produtos.value = res.data;
+      itens.value = res.data.produtos     
+  total.value = res.total
         erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
@@ -259,7 +262,11 @@ async function getProdutos() {
       ]);
 
       if (res.status == 200) {
-        produtos.value = res.data;
+        const meta = res.data[0];
+
+    
+   itens.value = res.data.produtos     
+  total.value = res.total
         erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
