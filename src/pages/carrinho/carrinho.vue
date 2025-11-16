@@ -92,10 +92,10 @@
             <v-tooltip top>
               <template #activator="{ props }">
                 <div v-bind="props" class="font-weight-bold ellipses">
-                  {{ item?.nome }}
+                  {{ item?.nome || "Produto indisponível" }}
                 </div>
               </template>
-              <span>{{ item?.nome }}</span>
+              <span>{{ item?.nome || "Produto indisponível" }}</span>
             </v-tooltip>
 
             <v-tooltip top>
@@ -104,17 +104,19 @@
                   v-bind="props"
                   class="text-green font-weight-bold ellipses"
                 >
-                  R$ {{ item?.preco * item?.quantidade / 100 }}
+                  R$ {{ item?.preco * item?.quantidade / 100 || "Preço indisponível" }}
                 </div>
               </template>
-              <span>R$ {{ item?.preco * item?.quantidade / 100 }}</span>
+              <span>R$ {{ item?.preco * item?.quantidade / 100 || "Preço indisponível"}}</span>
             </v-tooltip>
           </div>
 
           <div class="item-actions">
             <v-select
   v-model="item.quantidade"
-  :items="Array.from({ length: item.estoque }, (_, i) => i + 1)"
+  :items="Array.from({ 
+  length: Math.max(item.estoque, item.quantidade) 
+}, (_, i) => i + 1)"
   @update:modelValue="atualizarQuantidade(item)"
   density="compact"
   hide-details
@@ -204,7 +206,7 @@ async function getRetrieve() {
 
 async function getCarrinho() {
   try {
-    const res = await connection.get(`/desapega/carrinho/${retrieve.value.id}`);
+    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
 
     if (res.status == 200 || res.status == 201) {
       carrinho.value = res.data;
@@ -308,7 +310,7 @@ async function setarCarrinhoUser() {
 
       carrinhoUser.value = [...carrinhoUsernew].reverse();
 
-      totalItems.value = carrinhoUsernew.length;
+      totalItems.value = carrinhoUsernew.length ;
 
       
     }
