@@ -237,7 +237,7 @@ isto?
               width="330"
               min-height="300"
               class="cardItem"
-              v-for="(item, index) in itensFiltrados.reverse()"
+              v-for="(item, index) in itensFiltrados"
               :key="item + '-' + index"
             >
               <v-img
@@ -395,6 +395,7 @@ isto?
           </div>
           <v-pagination
   v-model="page"
+  :length="10"
   color="teal"
   rounded="circle"
 ></v-pagination>
@@ -536,7 +537,7 @@ isto?
               width="330"
               min-height="300"
               class="cardItem"
-              v-for="(item, index) in itensFiltrados.reverse()"
+              v-for="(item, index) in itensFiltrados"
               :key="item + '-' + index"
             >
               <v-img
