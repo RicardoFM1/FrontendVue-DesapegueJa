@@ -982,10 +982,7 @@ function getProdutoImage(imagem) {
 watch(erroGetProduto, (v) => console.log('erroGetProduto mudou para ->', v));
 
 function recarregarProdutos() {
-  erroGetProduto.value = false; 
-
-    getProdutos();
-
+ getProdutos();
 }
 
 
