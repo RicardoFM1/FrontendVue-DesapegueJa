@@ -248,7 +248,7 @@ isto?
             width="330"
             min-height="300"
             class="cardItem"
-            v-for="(item, index) in itensFiltrados"
+            v-for="(item, index) in [...itensFiltrados].reverse()"
               :key="item + '-' + index"
             >
               <v-img
@@ -538,7 +538,7 @@ isto?
               width="330"
               min-height="300"
               class="cardItem"
-              v-for="(item, index) in itensFiltrados"
+              v-for="(item, index) in [...itensFiltrados].reverse()"
               :key="item + '-' + index"
             >
               <v-img
@@ -909,7 +909,7 @@ async function getProdutos() {
       ]);
 
       if (res.status == 200) {
-        itens.value = res.data;
+        itens.value = res.data
         erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
