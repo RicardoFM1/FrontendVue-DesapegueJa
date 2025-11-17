@@ -912,7 +912,7 @@ async function getProdutos() {
 
       if (res.status == 200) {
         itens.value = res.data.produtos     
-  total.value = res.total
+  total.value = res.data.total
         erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
@@ -940,7 +940,7 @@ async function getProdutos() {
 
       if (res.status == 200) {
         itens.value = res.data.produtos     
-      total.value = res.total
+      total.value = res.data.total
         erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");

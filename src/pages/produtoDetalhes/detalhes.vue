@@ -200,9 +200,9 @@ async function getProdutos() {
 
     if (res.status === 200) {
       itens.value = res.data.produtos     
-  total.value = res.total
+  total.value = res.data.total
       const id = parseInt(route.params.id);
-      produto.value = res.data.find((p) => p.id === id) || {};
+      produto.value = res.data.produtos.find((p) => p.id === id) || {};
     } else {
       erroGetProduto.value = true;
     }
