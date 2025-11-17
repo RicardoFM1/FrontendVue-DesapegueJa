@@ -46,6 +46,15 @@
 >
   Fazer login
 </v-btn>
+<v-btn
+  color="#DB4437"
+  block
+  class="mb-4"
+  @click="loginGoogle"
+>
+  <v-icon start>mdi-google</v-icon>
+  Entrar com Google
+</v-btn>
 
                 <v-btn
          
@@ -104,6 +113,9 @@ console.error("Erro no login:", err)
   } finally {
     loading.value = false;
   }
+};
+const loginGoogle = () => {
+  window.location.href = "https://localhost:5000/desapega/social/google";
 };
 
 const disabled = computed(() =>
