@@ -21,8 +21,7 @@ app.use(createPinia())
 app.use(router)
 
 
-app.use(Vue3Toastify, {
-  limit: 1,     
+app.use(Vue3Toastify, {     
   autoClose: 2000,
   position: "top-right"
 })

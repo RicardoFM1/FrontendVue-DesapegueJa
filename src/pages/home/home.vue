@@ -16,15 +16,26 @@ isto?
           >
             Anunciar
           </v-btn>
+          
 
-          <v-btn
+            <v-btn
             class="ml-4 mr-4"
             variant="flat"
             prepend-icon="mdi-cart"
             color="#3fa34f"
             @click="toCarrinho"
             :disabled="carregandoProdutos"
-          >
+            >
+            <template v-slot:append>
+
+              <v-badge 
+              location=""
+              color="primary"
+              :content="carrinho.length"
+              >
+            </v-badge>
+            </template>
+            
             Carrinho
           </v-btn>
 
@@ -740,7 +751,7 @@ isto?
 
 <script setup>
 import router from "@/router";
-import { ref, computed, onMounted, watch, onUnmounted, reactive } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted, reactive, nextTick } from "vue";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
@@ -854,6 +865,22 @@ async function getRetrieve() {
   }
 }
 
+const carrinho = ref([])
+
+async function getCarrinho() {
+  try {
+    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
+
+    if (res.status == 200 || res.status == 201) {
+      carrinho.value = res.data;
+    } else {
+      toast.error("Estamos com dificuldade de listar seu carrinho...");
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao listar seu carrinho");
+  }
+}
+
 onMounted(async () => {
   try {
     await getProdutos();
@@ -865,6 +892,7 @@ onMounted(async () => {
       await getCategorias();
       await getVendedor();
     }, 1000);
+    await getCarrinho();
   } catch (erro) {
     erroGetProduto.value = true;
   }
@@ -1001,6 +1029,8 @@ async function addToCart(item) {
     return;
   }
 
+  
+
   const body = {
     usuario_id: retrieve.value?.id,
     produto_id: item.id,
@@ -1008,8 +1038,9 @@ async function addToCart(item) {
   };
 
   try {
-    await toast.promise(
-      connection.post("/desapega/carrinho", body, {
+
+      await toast.promise(
+        connection.post("/desapega/carrinho", body, {
         headers: {
           Authorization: `Bearer ${token.value}`,
         },
@@ -1020,6 +1051,8 @@ async function addToCart(item) {
         error: "Erro ao adicionar ao carrinho ou o produto já está no carrinho",
       }
     );
+ 
+    await getCarrinho();
   } catch (err) {
     console.error("Erro adicionar ao carrinho:", err);
   }
