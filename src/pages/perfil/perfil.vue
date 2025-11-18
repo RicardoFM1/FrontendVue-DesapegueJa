@@ -130,6 +130,8 @@
          <v-text-field 
         label="CEP"
         v-model="endereco.Cep"
+        append-inner-icon="mdi-delete"
+        @click:append-inner="endereco.Cep = ''"
         placeholder="00000-00"
         @input="onInputCep"
         >
@@ -138,6 +140,7 @@
         <v-select
         label="Estado"
         v-model="endereco.Estado"
+        :readonly="readOnlyComCEP"
         :items="[
            { title: '', value: '' },
             { title: 'Acre', value: 'AC' },
@@ -176,12 +179,14 @@
         <v-text-field 
         label="Cidade"
         v-model="endereco.Cidade"
+        :readonly="readOnlyComCEP"
         >
 
         </v-text-field>
         <v-text-field 
         label="Bairro"
         v-model="endereco.Bairro"
+        :readonly="readOnlyComCEP"
         >
 
         </v-text-field>
@@ -191,6 +196,7 @@
           label="Rua"
           class="ml-3 mr-3"   
           v-model="endereco.Rua"
+        :readonly="readOnlyComCEP"
           >
           
         </v-text-field>
@@ -307,7 +313,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { toast } from "vue3-toastify";
 import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
@@ -352,6 +358,13 @@ const loading = ref(false);
 const loadingEndereco = ref(false);
 const imagemPerfil = ref(null);
 const inputArquivo = ref(null);
+const readOnlyComCEP = computed(() => {
+  const numeros = endereco.value.Cep?.replace(/\D/g, "") || "";
+  return numeros.length === 8;
+})
+
+
+
 
 const rulesEmail = [
   (v) =>
@@ -391,12 +404,24 @@ const formatCep = (value) => {
   return parte1;
 };
 
+function debounce(func, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+}
+
 const buscarEnderecoViaCep = async () => {
-  const cepNumeros = endereco.value.Cep.replace(/\D/g, ""); 
-  if (cepNumeros.length !== 8) return; 
+  const cepNumeros = endereco.value.Cep.replace(/\D/g, "");
+
+  if (cepNumeros.length === 0) return;
+
+  if (cepNumeros.length !== 8) return;
 
   try {
     const res = await connection.get(`https://viacep.com.br/ws/${cepNumeros}/json/`);
+
     if (res.data.erro) {
       toast.error("CEP não encontrado");
       return;
@@ -406,20 +431,21 @@ const buscarEnderecoViaCep = async () => {
     endereco.value.Bairro = res.data.bairro || "";
     endereco.value.Cidade = res.data.localidade || "";
     endereco.value.Estado = res.data.uf || "";
+
   } catch (err) {
     toast.error("Erro ao buscar endereço via CEP");
   }
 };
 
+const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
+
+watch(
+  () => endereco.value.Cep,
+  buscarEnderecoViaCepDebounced
+);
+
 const onInputCep = (event) => {
-
   endereco.value.Cep = formatCep(event.target.value);
-
-  
-  const cepNumeros = endereco.value.Cep.replace(/\D/g, "");
-  if (cepNumeros.length === 8) {
-    buscarEnderecoViaCep();
-  }
 };
 
 const formatCPF = (value) => {
