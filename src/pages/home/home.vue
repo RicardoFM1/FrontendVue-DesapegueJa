@@ -396,7 +396,7 @@ isto?
                     density="comfortable"
                     class="btnAdicionar"
                     @click="addToCart(item)"
-                    :disabled="carregandoInformacoes || estoqueZerado"
+                    :disabled="carregandoInformacoes || item.estoque <= 0"
                   >
                     Adicionar ao carrinho
                   </v-btn>
@@ -925,13 +925,7 @@ console.log(token.value, "token");
 
 const itens = ref([]);
 const carregandoProdutos = ref(false);
-const estoqueZerado = computed(() => {
-  if(itens.value.estoque === 0 || itens.value.estoque === null){
-    return true 
-  }else{
-    return false;
-  }
-})
+
 
 async function getProdutos() {
   carregandoProdutos.value = true;
