@@ -137,8 +137,12 @@
   class="cart-summary"
   v-if="!erroGetProduto && carrinhoUser.length > 0 && !carregandoCarrinho"
 >
-  <p><strong>Total de itens:</strong> {{ totalItems }}</p>
-  <p><strong>Subtotal:</strong> R$ {{ subtotal / 100 }}</p>
+<p><strong>Subtotal:</strong> R$ {{ subtotal / 100 }}</p>
+<p v-if="metodoEntrega === 'entrega'" class="text-orange">
+  Frete de R$15 adicionado automaticamente
+</p>
+<p><strong>Total:</strong> R$ {{ totalComFrete / 100 }}</p>
+
 
 
   <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
@@ -148,18 +152,30 @@
       <v-radio label="Retirar na loja" value="retirada"></v-radio>
       <v-radio label="Entrega" value="entrega"></v-radio>
     </v-radio-group>
-
+<v-expand-transition>
+  <v-sheet
+    v-if="metodoEntrega === 'retirada'"
+    class="pa-3 mt-3 text-center bg-blue-lighten-5"
+    rounded="lg"
+  >
+    <v-icon color="blue" size="30">mdi-map-marker</v-icon>
+    <p class="mt-2 text-body-1">
+      Local de retirada: Senac Santa Cruz do Sul, RS, Brasil
+    </p>
+  </v-sheet>
+</v-expand-transition>
     <v-expand-transition>
       <div v-if="metodoEntrega === 'retirada'" class="mt-3">
         <v-sheet elevation="4" rounded="lg">
           <iframe
-            width="100%"
-            height="200"
-            style="border:0; border-radius: 8px;"
-            loading="lazy"
-            allowfullscreen
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.305191864881!2d-46.662325!3d-23.558097!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59c81507ad4b%3A0x9f7f0a9e5a84f36f!2sPaulista!5e0!3m2!1spt-BR!2sbr!4v1700000000000"
-          ></iframe>
+  width="100%"
+  height="200"
+  style="border:0; border-radius: 8px;"
+  loading="lazy"
+  allowfullscreen
+  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3460.730298843466!2d-52.42833618488093!3d-29.71143298200895!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x952d75df7c5e2d65%3A0xa0b99f9f03b9d8de!2sSenac%20Santa%20Cruz%20do%20Sul!5e0!3m2!1spt-BR!2sbr!4v1700000000000"
+></iframe>
+
         </v-sheet>
       </div>
     </v-expand-transition>
@@ -264,6 +280,13 @@ const itemASerRemovido = ref()
 const loadingRemover = ref(false)
 const metodoEntrega = ref("retirada");
 const formasPagamento = ref([]);
+const frete = computed(() => {
+  return metodoEntrega.value === "entrega" ? 1500 : 0; 
+});
+
+const totalComFrete = computed(() => {
+  return subtotal.value + frete.value;
+});
 
 
 async function getRetrieve() {
