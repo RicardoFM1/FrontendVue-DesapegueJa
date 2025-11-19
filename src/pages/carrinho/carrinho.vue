@@ -133,18 +133,94 @@
     </v-sheet>
 
     <v-sheet
-      height="200"
-      class="cart-summary"
-      v-if="!erroGetProduto && carrinhoUser.length > 0 && !carregandoCarrinho"
-    >
-      <p><strong>Total de itens:</strong> {{ totalItems }}</p>
-      <p><strong>Subtotal:</strong> R$ {{ subtotal / 100 }}</p>
+  height="200"
+  class="cart-summary"
+  v-if="!erroGetProduto && carrinhoUser.length > 0 && !carregandoCarrinho"
+>
+  <p><strong>Total de itens:</strong> {{ totalItems }}</p>
+  <p><strong>Subtotal:</strong> R$ {{ subtotal / 100 }}</p>
 
-      <div class="cart-buttons">
-        <button class="btn-voltar" @click="voltar">← Voltar às compras</button>
-        <button class="btn-comprar" @click="comprar">Finalizar compra</button>
+
+  <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
+    <h3 class="text-h6 mb-3 font-weight-bold">Método de Entrega</h3>
+
+    <v-radio-group v-model="metodoEntrega">
+      <v-radio label="Retirar na loja" value="retirada"></v-radio>
+      <v-radio label="Entrega" value="entrega"></v-radio>
+    </v-radio-group>
+
+    <v-expand-transition>
+      <div v-if="metodoEntrega === 'retirada'" class="mt-3">
+        <v-sheet elevation="4" rounded="lg">
+          <iframe
+            width="100%"
+            height="200"
+            style="border:0; border-radius: 8px;"
+            loading="lazy"
+            allowfullscreen
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.305191864881!2d-46.662325!3d-23.558097!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59c81507ad4b%3A0x9f7f0a9e5a84f36f!2sPaulista!5e0!3m2!1spt-BR!2sbr!4v1700000000000"
+          ></iframe>
+        </v-sheet>
       </div>
+    </v-expand-transition>
+  </v-sheet>
+
+
+ <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
+  <h3 class="text-h6 mb-3 font-weight-bold">Forma de Pagamento</h3>
+
+  
+  <v-radio-group
+    v-if="formasPagamento.length"
+    v-model="metodoPagamento"
+  >
+  <v-radio
+  v-for="forma in formasPagamento"
+  :key="forma.id"
+  :label="forma.forma"
+  :value="forma.forma"
+/>
+
+  </v-radio-group>
+
+
+  <div v-else>
+    <p>Não há formas de pagamento disponíveis no momento.</p>
+  </div>
+
+
+ <v-expand-transition>
+  <v-sheet
+    v-if="metodoPagamento?.toLowerCase() === 'pix'"
+    class="pa-3 mt-3 text-center bg-green-lighten-5"
+    rounded="lg"
+  >
+    <v-icon color="green" size="30">mdi-qrcode</v-icon>
+    <p class="mt-2 text-body-1">Pagamento instantâneo pelo Pix</p>
+  </v-sheet>
+</v-expand-transition>
+
+
+
+  <v-expand-transition>
+    <v-sheet
+      v-if="metodoPagamento && metodoPagamento.toLowerCase() === 'cartao'"
+      class="pa-3 mt-3 text-center bg-blue-lighten-5"
+      rounded="lg"
+    >
+      <v-icon color="blue" size="30">mdi-credit-card</v-icon>
+      <p class="mt-2 text-body-1">Pagamento com cartão no próximo passo</p>
     </v-sheet>
+  </v-expand-transition>
+</v-sheet>
+
+
+
+  <div class="cart-buttons">
+    <button class="btn-voltar" @click="voltar">← Voltar às compras</button>
+    <button class="btn-comprar" @click="comprar">Finalizar compra</button>
+  </div>
+</v-sheet>
 
     <v-sheet
       v-if="!erroGetProduto && !carregandoCarrinho && carrinhoUser.length <= 0"
@@ -163,6 +239,7 @@ import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
+import Pagamento from "../pagamento/pagamento.vue";
 
 
 const router = useRouter();
@@ -185,6 +262,9 @@ const subtotal = computed(() => {
 const modalConfirmacaoOpen = ref(false)
 const itemASerRemovido = ref()
 const loadingRemover = ref(false)
+const metodoEntrega = ref("retirada");
+const formasPagamento = ref([]);
+
 
 async function getRetrieve() {
   try {
@@ -329,7 +409,8 @@ onMounted(async () => {
     await getRetrieve();
     await getCarrinho();
     await getProdutos();
-    await setarCarrinhoUser();
+    await setarCarrinhoUser()
+    await carregarFormasPagamento();
   }
 });
 
@@ -423,11 +504,180 @@ try{
 function voltar() {
   router.push("/");
 }
+function generateUUID() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
 
-function comprar() {
-  alert("Compra finalizada com sucesso! 🛒");
-  router.push("/");
+  return "xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
+
+const metodoPagamento = ref(''); 
+
+
+async function carregarFormasPagamento() {
+  try {
+    const res = await connection.get("/desapega/formasPagamento", {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 10000
+    });
+
+    if (res?.data && Array.isArray(res.data)) {
+    formasPagamento.value = res.data.filter(f => f.status === "ativo" && f.forma);
+
+if (formasPagamento.value.length > 0) {
+  metodoPagamento.value = formasPagamento.value[0].forma;
+}
+
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao buscar formas de pagamento");
+  }
+}
+
+
+
+
+async function comprar() {
+  if (!carrinhoUser.value.length) {
+    toast.error("Seu carrinho está vazio");
+    return;
+  }
+
+  try {
+ 
+    const resStatusOrdem = await connection.get("/desapega/statusOrdem", {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 10000 
+    });
+
+    if (!resStatusOrdem?.data || !Array.isArray(resStatusOrdem.data)) {
+      toast.error("Não foi possível buscar status de ordem");
+      return;
+    }
+
+    const statusOrdemPendente = resStatusOrdem.data.find(
+      s => s.descricao?.toLowerCase() === "pendente" && s.status === "ativo"
+    );
+
+    if (!statusOrdemPendente) {
+      toast.error("Status de ordem 'pendente' não encontrado");
+      return;
+    }
+
+
+    const ordemBody = {
+      usuario_id: retrieve.value.id,
+      status_ordem_id: statusOrdemPendente.id,
+      valor_total: subtotal.value
+    };
+
+    const resOrdem = await connection.post("/desapega/ordemCompra", ordemBody, {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 10000
+    });
+
+    if (!resOrdem?.data?.id) {
+      toast.error("Erro ao criar ordem de compra");
+      return;
+    }
+
+    const ordemId = resOrdem.data.id;
+
+
+    await Promise.all(
+      carrinhoUser.value.map(item => {
+        const itemBody = {
+          ordem_id: ordemId,
+          produto_id: item.id,
+          quantidade: item.quantidade,
+          preco_unitario: item.preco
+        };
+        return connection.post("/desapega/ordemProduto", itemBody, {
+          headers: { Authorization: `Bearer ${token.value}` },
+          timeout: 10000
+        });
+      })
+    );
+
+  
+    const resFormaPagamento = await connection.get("/desapega/formasPagamento", {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 10000
+    });
+
+    if (!resFormaPagamento?.data || !Array.isArray(resFormaPagamento.data)) {
+      toast.error("Não foi possível buscar formas de pagamento");
+      return;
+    }
+
+  const formaPagamentoSelecionada = resFormaPagamento.data.find(
+  f => (f.forma || '').toLowerCase() === (metodoPagamento.value || '').toLowerCase()
+);
+
+
+
+    if (!formaPagamentoSelecionada) {
+      toast.error("Forma de pagamento inválida");
+      return;
+    }
+const resStatusPagamento = await connection.get("/desapega/statusPagamento", {
+  headers: { Authorization: `Bearer ${token.value}` },
+  timeout: 10000
+});
+
+if (!resStatusPagamento?.data || !Array.isArray(resStatusPagamento.data)) {
+  toast.error("Não foi possível buscar status de pagamento");
+  return;
+}
+
+const statusPagamentoPendente = resStatusPagamento.data.find(
+  s => s.descricao?.toLowerCase() === "pendente" && s.status === "ativo"
+);
+
+if (!statusPagamentoPendente) {
+  toast.error("Status de pagamento 'pendente' não encontrado");
+  return;
+}
+
+ 
+   const pagamentoBody = {
+  ordem_id: ordemId,
+  usuario_id: retrieve?.value.id,
+  forma_pagamento_id: formaPagamentoSelecionada.id,
+  status_pagamento_id: statusPagamentoPendente.id,
+  valor: subtotal.value,
+   observacao: ""
+};
+
+
+    const resPagamento = await connection.post("/desapega/pagamentos", pagamentoBody, {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 10000
+    });
+
+    if (!resPagamento?.data?.id) {
+      toast.error("Erro ao criar registro de pagamento");
+      return;
+    }
+
+
+    const uuid = generateUUID();
+    router.push(`/pagamento/${uuid}`);
+
+  } catch (err) {
+    console.error(err);
+    toast.error(err.response?.data?.message || "Erro ao processar compra");
+  }
+}
+
+
+
+
 </script>
 
 <style scoped>

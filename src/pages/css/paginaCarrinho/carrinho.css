@@ -13,6 +13,7 @@ html, body{
   gap: 30px;
   flex-wrap: wrap;
   overflow: hidden;
+  min-height: 100vh;
 }
 
 .cart-items {
@@ -101,13 +102,13 @@ html, body{
 
 
 .cart-summary {
-  margin-top: 40px;
   background: #f7f7f7;
   border-radius: 16px;
   padding: 25px;
   border: 1px solid #e0e0e0;
   flex: 0.8;
-  min-width: 280px;
+  overflow: auto;
+  min-height: 100vh;
 }
 
 .cart-summary p {

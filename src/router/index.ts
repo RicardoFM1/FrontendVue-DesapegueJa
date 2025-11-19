@@ -6,6 +6,7 @@ import Carrinho from '@/pages/carrinho/carrinho.vue'
 import Anunciar from '@/pages/anunciar/anunciar.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import Detalhes from '@/pages/produtoDetalhes/detalhes.vue'
+import Pagamento from '@/pages/pagamento/pagamento.vue'
 
 
 const routes = [
@@ -15,7 +16,8 @@ const routes = [
   {path: "/perfil", name: 'Perfil', component: Perfil},
   {path: "/carrinho", name: 'Carrinho', component: Carrinho},
   {path: "/produto/:id", name: 'Detalhes', component: Detalhes},
-  {path: "/anunciar", name: 'Anunciar', component: Anunciar}
+  {path: "/anunciar", name: 'Anunciar', component: Anunciar},
+  {path: "/pagamento/:uuid", name: 'Pagamento', component: Pagamento}
 ]
 
 const router = createRouter({
