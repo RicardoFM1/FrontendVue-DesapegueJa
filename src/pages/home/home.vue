@@ -396,7 +396,7 @@ isto?
                     density="comfortable"
                     class="btnAdicionar"
                     @click="addToCart(item)"
-                    :disabled="carregandoInformacoes"
+                    :disabled="carregandoInformacoes || estoqueZerado"
                   >
                     Adicionar ao carrinho
                   </v-btn>
@@ -406,7 +406,7 @@ isto?
           </div>
           <v-pagination
   v-model="page"
-  :length="10"
+  :length="totalPages"
   color="teal"
   rounded="circle"
 ></v-pagination>
@@ -868,9 +868,11 @@ async function getRetrieve() {
 const carrinho = ref([])
 
 async function getCarrinho() {
+  if(token.value){
   try {
-    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
 
+    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
+    
     if (res.status == 200 || res.status == 201) {
       carrinho.value = res.data;
     } else {
@@ -879,6 +881,7 @@ async function getCarrinho() {
   } catch (err) {
     toast.error(err.response?.data?.message || "Erro ao listar seu carrinho");
   }
+}
 }
 
 onMounted(async () => {
@@ -922,7 +925,14 @@ console.log(token.value, "token");
 
 const itens = ref([]);
 const carregandoProdutos = ref(false);
-const total = ref(0)
+const estoqueZerado = computed(() => {
+  if(itens.value.estoque === 0 || itens.value.estoque === null){
+    return true 
+  }else{
+    return false;
+  }
+})
+
 async function getProdutos() {
   carregandoProdutos.value = true;
   erroGetProduto.value = false;
@@ -1069,7 +1079,9 @@ const search = ref("");
 const minimo = ref(0);
 const maximo = ref(null);
 const searchMinMax = ref("");
+const total = ref(0)
 const itensPorPagina = ref(10)
+const totalPages = computed(() => Math.ceil(total.value / itensPorPagina.value));
 const page = ref(1)
 watch(page, async() => {
   await getProdutos()
@@ -1122,6 +1134,10 @@ const avatarUsuario = computed(() => {
 
   return { tipo: "iniciais", texto: getIniciais(nome) };
 });
+
+
+
+
 
 function toPerfil() {
   if (tokenExiste.value == false) {

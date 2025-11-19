@@ -131,7 +131,7 @@
         label="CEP"
         v-model="endereco.Cep"
         append-inner-icon="mdi-delete"
-        @click:append-inner="endereco.Cep = ''"
+        @click:append-inner="endereco.Cep = '', endereco.Bairro = '', endereco.Cidade = '', endereco.Estado = '', endereco.Rua = ''"
         placeholder="00000-00"
         @input="onInputCep"
         >
