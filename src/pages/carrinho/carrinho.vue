@@ -596,7 +596,8 @@ async function comprar() {
     const ordemBody = {
       usuario_id: retrieve.value.id,
       status_ordem_id: statusOrdemPendente.id,
-      valor_total: subtotal.value
+      valor_total: subtotal.value,
+      metodo_entrega: metodoEntrega.value
     };
 
     const resOrdem = await connection.post("/desapega/ordemCompra", ordemBody, {
