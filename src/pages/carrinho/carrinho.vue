@@ -233,8 +233,8 @@
 
 
   <div class="cart-buttons">
-    <button class="btn-voltar" @click="voltar">← Voltar às compras</button>
-    <button class="btn-comprar" @click="comprar">Finalizar compra</button>
+   <v-btn class="btn-voltar" @click="voltar">← Voltar às compras</v-btn>
+    <v-btn class="btn-comprar" :loading="loadingComprar" @click="comprar">Finalizar compra</v-btn>
   </div>
 </v-sheet>
 
@@ -287,7 +287,7 @@ const frete = computed(() => {
 const totalComFrete = computed(() => {
   return subtotal.value + frete.value;
 });
-
+const loadingComprar = ref(false)
 
 async function getRetrieve() {
   try {
@@ -572,7 +572,7 @@ async function comprar() {
   }
 
   try {
- 
+    loadingComprar.value = true;
     const resStatusOrdem = await connection.get("/desapega/statusOrdem", {
       headers: { Authorization: `Bearer ${token.value}` },
       timeout: 10000 
@@ -696,6 +696,8 @@ if (!statusPagamentoPendente) {
   } catch (err) {
     console.error(err);
     toast.error(err.response?.data?.message || "Erro ao processar compra");
+  }finally{
+    loadingComprar.value = false
   }
 }
 
