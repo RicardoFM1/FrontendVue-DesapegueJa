@@ -146,7 +146,7 @@ const pixCopiaCodigo = ref(null);
 const boletoUrl = ref(null);
 
 // Sua chave Pix que será usada para gerar o QR Code
-const chavePix = "sua-chave-pix-aqui"; // Substitua com sua chave Pix
+const chavePix = "51984018587"; // Substitua com sua chave Pix
 
 const frete = computed(() => (metodoEntrega.value.toLowerCase() === "entrega" ? 1500 : 0));
 const totalComFrete = computed(() => subtotal.value + frete.value);
@@ -231,7 +231,7 @@ async function getPagamento() {
         chave: chavePix, // Chave Pix do usuário
         valor: (ordemCompra.value.valor_total / 100).toFixed(2), // Valor total da compra
       };
-      const qrCodeUrl = await QRCode.toDataURL(`pix://${pixData.chave}?valor=${pixData.valor}`);
+      const qrCodeUrl = await QRCode.toDataURL(`00020101021226660014br.gov.bcb.pix0114${pixData.chave}52040000530398654041${pixData.valor}5802BR5913NomeComerciante6009SAO PAULO61080540900062070503***6304<checksum>`);
       pixQrCode.value = qrCodeUrl;
       pixCopiaCodigo.value = pixData.chave;
     }
