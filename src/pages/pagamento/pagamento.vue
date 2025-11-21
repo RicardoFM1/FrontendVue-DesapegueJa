@@ -137,15 +137,17 @@ const pixQrCode = ref(null);
 const pixCopiaCodigo = ref(null);
 const boletoUrl = ref(null);
 
-// Sua chave Pix que será usada para gerar o QR Code
-const chavePix = "51984018587"; // Substitua com sua chave Pix
+// --- CONFIGURAÇÃO DO PIX (EDITAR AQUI) ---
+const chavePixRecebedor = "51984018587"; // Ex: 55 + DDD + Celular (Apenas números)
+const nomeRecebedor = "RICARDO FERNANDES DE MOURA"; // Nome sem acentos
+const cidadeRecebedor = "RIO GRANDE DO SUL"; // Cidade sem acentos
 
 const frete = computed(() => (metodoEntrega.value.toLowerCase() === "entrega" ? 1500 : 0));
 const totalComFrete = computed(() => subtotal.value + frete.value);
 
 const metodoPagamentoNormalizado = computed(() => {
   if (!metodoPagamento.value) return null;
-  const mp = metodoPagamento.value.toString().trim().toLowerCase(); 
+  const mp = metodoPagamento.value.toString().trim().toLowerCase();
   if (["pix", "cartao", "boleto"].includes(mp)) return mp;
   return "outro";
 });
@@ -162,6 +164,47 @@ function getProdutoImage(imagem) {
   if (imagem.startsWith("iVBORw0KGgo")) return `data:image/png;base64,${imagem}`;
   return `data:image/png;base64,${imagem}`;
 }
+
+// --- FUNÇÕES AUXILIARES (NÃO REMOVA) ---
+
+// 1. Formata os campos do Pix (ID + Tamanho + Valor)
+function formatarCampo(id, valor) {
+    const strValor = String(valor || '');
+    const comprimento = String(strValor.length).padStart(2, '0');
+    return `${id}${comprimento}${strValor}`;
+}
+
+// 2. Calcula o CRC16 (Obrigatório para o Pix ser válido)
+function crc16(data) {
+    let crc = 0xFFFF;
+    const polynomial = 0x1021;
+
+    for (let i = 0; i < data.length; i++) {
+        let byte = data.charCodeAt(i);
+        crc ^= (byte << 8);
+        for (let j = 0; j < 8; j++) {
+            if ((crc & 0x8000) > 0) {
+                crc = (crc << 1) ^ polynomial;
+            } else {
+                crc <<= 1;
+            }
+        }
+    }
+    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+}
+
+// 3. Limpa acentos e caracteres especiais
+function limparTexto(str, maxLen) {
+  if (!str) return "";
+  let limpo = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+  limpo = limpo.replace(/[^A-Z0-9 ]/g, "");
+  if (maxLen && limpo.length > maxLen) {
+    limpo = limpo.substring(0, maxLen);
+  }
+  return limpo.trim();
+}
+
+// --- REQUISIÇÕES ---
 
 async function getEndereco() {
   try {
@@ -187,12 +230,12 @@ async function getOrdemCompra() {
 }
 
 async function getPagamento() {
+  console.log("--- INICIANDO GET PAGAMENTO ---");
   try {
     const resPagamentos = await connection.get(
       `/desapega/pagamentos/usuario/${retrieve?.value.id}`,
       { headers: { Authorization: `Bearer ${token.value}` } }
     );
-
     const pagamento = resPagamentos.data;
 
     if (!pagamento || !pagamento.ordem_id) {
@@ -206,19 +249,62 @@ async function getPagamento() {
     });
 
     const formas = Array.isArray(resFormas.data) ? resFormas.data : resFormas.data.formas || [];
-    const forma = formas.find(f => f.id === pagamento.forma_pagamento_id);
+    
+    // Compara convertendo ambos para String para evitar erros de tipo
+    const forma = formas.find(f => String(f.id) === String(pagamento.forma_pagamento_id));
 
     if (forma && forma.forma) {
       formaPagamento.value = forma.forma;
-      metodoPagamento.value = forma.forma.toLowerCase();
+      metodoPagamento.value = forma.forma.toString().trim().toLowerCase();
     } else {
       formaPagamento.value = "Desconhecida";
       metodoPagamento.value = "outro";
     }
 
-    // Se for Pix, gera QR Code
+    // --- LÓGICA DE GERAÇÃO DO PIX ---
     if (metodoPagamento.value === "pix") {
-      await gerarQRCodePix();
+        if (!ordemCompra.value) {
+            console.error("Ordem de compra não carregada ainda.");
+            return;
+        }
+
+        // Prepara os dados
+        const valor = (ordemCompra.value.valor_total / 100).toFixed(2);
+        let txid = `PEDIDO${ordemCompra.value.id}`; 
+        txid = txid.replace(/[^a-zA-Z0-9]/g, ''); // Apenas letras e números no TXID
+
+        const chaveLimpa = chavePixRecebedor.trim(); 
+        const nomeLimpo = limparTexto(nomeRecebedor, 25);
+        const cidadeLimpa = limparTexto(cidadeRecebedor, 15);
+
+        // Monta o Payload
+        const campo26Content = 
+            formatarCampo("00", "br.gov.bcb.pix") +
+            formatarCampo("01", chaveLimpa); // Sua chave Pix
+            
+        const campo26 = formatarCampo("26", campo26Content);
+
+        let codigoPixSemCRC = 
+            formatarCampo("00", "01") +
+            formatarCampo("01", "12") + // QR Code Estático
+            campo26 +
+            formatarCampo("52", "0000") + // MCC
+            formatarCampo("53", "986") +  // BRL
+            formatarCampo("54", valor) +  // Valor
+            formatarCampo("58", "BR") +
+            formatarCampo("59", nomeLimpo) + // Nome
+            formatarCampo("60", cidadeLimpa) + // Cidade
+            formatarCampo("62", formatarCampo("05", txid)) + // TXID
+            "6304"; // ID do CRC
+
+        // Calcula o CRC
+        const crc16Hex = crc16(codigoPixSemCRC);
+        const codigoPixCompleto = `${codigoPixSemCRC}${crc16Hex}`;
+
+        console.log("Payload Pix Válido:", codigoPixCompleto);
+        
+        pixCopiaCodigo.value = codigoPixCompleto;
+        pixQrCode.value = await QRCode.toDataURL(codigoPixCompleto);
     }
 
     if (metodoPagamento.value === "boleto") {
@@ -226,44 +312,9 @@ async function getPagamento() {
     }
 
   } catch (err) {
-    console.error("Erro ao buscar pagamento/formas", err);
+    console.error("ERRO AO PROCESSAR PAGAMENTO:", err);
     metodoPagamento.value = "outro";
     formaPagamento.value = null;
-  }
-}
-
-async function gerarQRCodePix() {
-  // Função para calcular o checksum do código Pix
-  function calcularChecksum(codigo) {
-    let soma = 0;
-    let peso = 1;
-
-    for (let i = 0; i < codigo.length; i++) {
-      soma += parseInt(codigo.charAt(i)) * peso;
-      peso = peso === 1 ? 3 : 1;  // Alternar peso entre 1 e 3
-    }
-
-    const mod11 = soma % 11;
-    const digito = mod11 === 1 || mod11 === 0 ? 0 : 11 - mod11;
-    return digito.toString();
-  }
-
-  const valor = (ordemCompra.value.valor_total / 100).toFixed(2);  // Valor da transação
-  let codigoPix = `00020101021226660014br.gov.bcb.pix0114${chavePix}52040000530398654041${valor}5802BR5913Nome do Comerciante6009São Paulo61080540900062070503`;
-  
-  const checksum = calcularChecksum(codigoPix);
-  const codigoPixCompleto = `${codigoPix}${checksum}`;
-
-  console.log("Código Pix gerado:", codigoPixCompleto); // Para depuração
-
-  try {
-    // Gerar o QR Code com o código Pix completo
-    const qrCodeUrl = await QRCode.toDataURL(codigoPixCompleto);
-    console.log("QR Code gerado:", qrCodeUrl); // Verifique a URL gerada
-    pixQrCode.value = qrCodeUrl;  // Salvar o QR Code no estado
-    pixCopiaCodigo.value = chavePix;  // Chave Pix para copiar
-  } catch (error) {
-    console.error("Erro ao gerar QR Code:", error);
   }
 }
 
@@ -277,7 +328,6 @@ async function cancelarPagamento() {
   if (!ordemCompra.value) return;
   try {
     loadingCancelamento.value = true;
-
     await connection.delete(`/desapega/pagamentos/${ordemCompra.value.id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     });
