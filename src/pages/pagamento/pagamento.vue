@@ -265,6 +265,7 @@ const metodoEntrega = ref("combinar");
 const pixQrCode = ref();
 const boletoUrl = ref();
 const pixCopiaCodigo = ref();
+const statusPagamentoId = ref(null);
 const dialogCancelar = ref(false);
 
 const frete = computed(() =>
@@ -324,6 +325,8 @@ async function getOrdemCompra() {
 
 async function getPagamento() {
   console.log("--- INICIANDO GET PAGAMENTO ---");
+  carregandoPagamento.value = true;
+
   try {
     const resPagamentos = await connection.get(
       `/desapega/pagamentos/usuario/${retrieve?.value.id}`,
@@ -331,52 +334,51 @@ async function getPagamento() {
     );
     const pagamento = resPagamentos.data;
 
-    if (!pagamento || !pagamento.ordem_id) {
-      metodoPagamento.value = null;
-      formaPagamento.value = null;
+    statusPagamentoId.value = pagamento.status_pagamento_id;
+    metodoPagamento.value = pagamento.forma_pagamento_id === 1 ? 'pix' : 'boleto'; 
+
+    
+    if (pagamento.status_pagamento_id === 2) { 
+      carregandoPagamento.value = false;
+   
+      router.push({ name: 'PagamentoSucesso' }); 
       return;
     }
 
-    const resFormas = await connection.get("/desapega/formasPagamento", {
-      headers: { Authorization: `Bearer ${token.value}` },
-    });
-
-    const formas = Array.isArray(resFormas.data)
-      ? resFormas.data
-      : resFormas.data.formas || [];
-    const forma = formas.find(
-      (f) => String(f.id) === String(pagamento.forma_pagamento_id)
-    );
-
-    if (forma && forma.forma) {
-      formaPagamento.value = forma.forma;
-      metodoPagamento.value = forma.forma.toString().trim().toLowerCase();
-    } else {
-      metodoPagamento.value = "outro";
-    }
 
     if (metodoPagamento.value === "pix") {
       const codigoPixCompleto = pagamento.pix_copia_codigo;
+      const qrCodeBase64 = pagamento.pix_qr_code; 
 
       if (codigoPixCompleto) {
         pixCopiaCodigo.value = codigoPixCompleto;
-        pixQrCode.value = await QRCode.toDataURL(codigoPixCompleto);
-
-        if (pagamento.created_at) {
-          iniciarContagemRegressiva(pagamento.created_at);
+        
+       
+        if (qrCodeBase64 && qrCodeBase64.startsWith('data:image')) {
+            pixQrCode.value = qrCodeBase64; 
+        } else {
+     
+            pixQrCode.value = await getQrCodeFromPayload(codigoPixCompleto); 
         }
-      } else {
-        console.error("ERRO: O Backend não retornou o código Pix.");
+
+        if (pagamento.expiracao) {
+          iniciarContagemRegressiva(new Date(pagamento.expiracao));
+        }
+        
+    
+        iniciarPollingStatus();
       }
     }
 
     if (metodoPagamento.value === "boleto") {
-      boletoUrl.value = pagamento.boleto_url;
+        boletoUrl.value = pagamento.boleto_url; 
+        
     }
+    
   } catch (err) {
-    console.error("ERRO AO PROCESSAR PAGAMENTO:", err);
-    metodoPagamento.value = "outro";
-    formaPagamento.value = null;
+    console.error("Erro ao buscar pagamento:", err);
+  } finally {
+    carregandoPagamento.value = false;
   }
 }
 
@@ -525,9 +527,67 @@ onMounted(async () => {
     loadingPagamento.value = false;
   }
 });
+let pollingInterval = null; 
+const POLLING_DELAY_MS = 5000; 
 
+function iniciarPollingStatus() {
+    
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+    }
+
+   
+    pollingInterval = setInterval(async () => {
+       
+        await checarStatusPagamento();
+    }, POLLING_DELAY_MS);
+    
+
+}
+
+async function checarStatusPagamento() {
+    console.log("Polling: Verificando status do pagamento...");
+    
+    try {
+        const resPagamentos = await connection.get(
+            `/desapega/pagamentos/usuario/${retrieve?.value.id}`,
+            { headers: { Authorization: `Bearer ${token.value}` } }
+        );
+        const pagamento = resPagamentos.data;
+
+      
+        if (pagamento.status_pagamento_id === 2) {
+            clearInterval(pollingInterval); 
+            pollingInterval = null;
+            router.push({ name: 'PagamentoSucesso' });
+            return;
+        }
+
+       
+        if (pagamento.status_pagamento_id === 4) {
+             clearInterval(pollingInterval); 
+             pollingInterval = null;
+            
+             console.log("Pagamento expirado ou cancelado.");
+             return;
+        }
+        
+       
+
+    } catch (error) {
+       
+        console.error("Erro durante o polling. Parando:", error);
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+}
 onUnmounted(() => {
   if (intervaloTimer) clearInterval(intervaloTimer);
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+    console.log("Polling de status limpo.");
+  }
 });
 </script>
 
