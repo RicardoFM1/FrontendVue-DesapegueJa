@@ -1,7 +1,6 @@
 <template>
   <v-container class="pagamento-container" fluid>
     <v-sheet class="pa-6 mx-auto" max-width="800" elevation="3" rounded="lg">
-
       <h2 class="text-h4 font-weight-bold mb-6 text-center">Confirmação de Pagamento</h2>
 
       <!-- Resumo do Pedido -->
@@ -63,15 +62,14 @@
       <!-- Forma de Pagamento -->
       <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
         <h3 class="text-h6 font-weight-bold mb-3">Forma de Pagamento</h3>
-
         <p>{{ metodoPagamento?.toUpperCase() || "Não selecionado" }}</p>
 
         <v-sheet v-if="isPix" class="pa-3 mt-3 text-center bg-green-lighten-5 rounded-lg">
           <v-icon color="green" size="30">mdi-qrcode</v-icon>
           <p class="mt-2 text-body-1">Pagamento instantâneo pelo Pix</p>
 
-         <v-img v-if="pixQrCode" :src="pixQrCode" max-width="250" class="mx-auto my-2" />
-         <p v-else>QR Code não disponível ou erro no carregamento da imagem.</p>
+          <v-img v-if="pixQrCode" :src="pixQrCode" max-width="250" class="mx-auto my-2" />
+          <p v-else>QR Code não disponível ou erro no carregamento da imagem.</p>
 
           <v-btn v-if="pixCopiaCodigo" small outlined color="green" @click="copiarPix">
             Copiar código Pix
@@ -101,21 +99,15 @@
       <!-- Cancelamento do pagamento -->
       <v-row class="mt-4" justify="center" align="center" dense>
         <v-col cols="12" md="6">
-          <v-btn
-            color="red"
-            block
-            large
-            @click="cancelarPagamento"
-            :loading="loadingCancelamento"
-          >
+          <v-btn color="red" block large @click="cancelarPagamento" :loading="loadingCancelamento">
             Cancelar Pagamento
           </v-btn>
         </v-col>
       </v-row>
-
     </v-sheet>
   </v-container>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
@@ -194,7 +186,6 @@ async function getOrdemCompra() {
   }
 }
 
-// Pega pagamento da ordem e gera QR Code/Link se Pix ou Boleto
 async function getPagamento() {
   try {
     const resPagamentos = await connection.get(
@@ -225,18 +216,11 @@ async function getPagamento() {
       metodoPagamento.value = "outro";
     }
 
-    // Se for Pix, gera QR Code e copia e cola
+    // Se for Pix, gera QR Code
     if (metodoPagamento.value === "pix") {
-      const pixData = {
-        chave: chavePix, // Chave Pix do usuário
-        valor: (ordemCompra.value.valor_total / 100).toFixed(2), // Valor total da compra
-      };
-      const qrCodeUrl = await QRCode.toDataURL(`00020101021226660014br.gov.bcb.pix0114${pixData.chave}52040000530398654041${pixData.valor}5802BR5913NomeComerciante6009SAO PAULO61080540900062070503***6304<checksum>`);
-      pixQrCode.value = qrCodeUrl;
-      pixCopiaCodigo.value = pixData.chave;
+      await gerarQRCodePix();
     }
 
-    // Se for Boleto, pega o link
     if (metodoPagamento.value === "boleto") {
       boletoUrl.value = pagamento.boleto_url;
     }
@@ -248,19 +232,52 @@ async function getPagamento() {
   }
 }
 
+async function gerarQRCodePix() {
+  // Função para calcular o checksum do código Pix
+  function calcularChecksum(codigo) {
+    let soma = 0;
+    let peso = 1;
+
+    for (let i = 0; i < codigo.length; i++) {
+      soma += parseInt(codigo.charAt(i)) * peso;
+      peso = peso === 1 ? 3 : 1;  // Alternar peso entre 1 e 3
+    }
+
+    const mod11 = soma % 11;
+    const digito = mod11 === 1 || mod11 === 0 ? 0 : 11 - mod11;
+    return digito.toString();
+  }
+
+  const valor = (ordemCompra.value.valor_total / 100).toFixed(2);  // Valor da transação
+  let codigoPix = `00020101021226660014br.gov.bcb.pix0114${chavePix}52040000530398654041${valor}5802BR5913Nome do Comerciante6009São Paulo61080540900062070503`;
+  
+  const checksum = calcularChecksum(codigoPix);
+  const codigoPixCompleto = `${codigoPix}${checksum}`;
+
+  console.log("Código Pix gerado:", codigoPixCompleto); // Para depuração
+
+  try {
+    // Gerar o QR Code com o código Pix completo
+    const qrCodeUrl = await QRCode.toDataURL(codigoPixCompleto);
+    console.log("QR Code gerado:", qrCodeUrl); // Verifique a URL gerada
+    pixQrCode.value = qrCodeUrl;  // Salvar o QR Code no estado
+    pixCopiaCodigo.value = chavePix;  // Chave Pix para copiar
+  } catch (error) {
+    console.error("Erro ao gerar QR Code:", error);
+  }
+}
+
 function copiarPix() {
   if (!pixCopiaCodigo.value) return;
   navigator.clipboard.writeText(pixCopiaCodigo.value);
   toast.success("Código Pix copiado!");
 }
 
-// Cancelar pagamento
 async function cancelarPagamento() {
   if (!ordemCompra.value) return;
   try {
     loadingCancelamento.value = true;
 
-    // DELETE pagamento
     await connection.delete(`/desapega/pagamentos/${ordemCompra.value.id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     });
@@ -279,7 +296,6 @@ async function cancelarPagamento() {
   }
 }
 
-// Inicialização
 onMounted(async () => {
   if (!tokenExiste.value) return router.push("/");
 
@@ -313,6 +329,7 @@ onMounted(async () => {
   await getPagamento();
 });
 </script>
+
 
 <style scoped>
 @import "../css/paginaPagamento/pagamento.css";
