@@ -26,11 +26,9 @@
         color="white"
         variant="outlined"
         prepend-icon="mdi-refresh"
-        @click="recarregarProdutos"
-        :disabled="carregandoProdutos"
-      >
+        @click="carregarCarrinhoCompleto" :disabled="carregandoCarrinho" >
         Tentar novamente
-      </v-btn>
+    </v-btn>
     </v-sheet>
   </v-sheet>
   <v-dialog
@@ -149,7 +147,7 @@
     </v-sheet>
 
     <v-sheet
-      height="200"
+     
       class="cart-summary"
       v-if="!erroGetProduto && carrinhoUser.length > 0 && !carregandoCarrinho"
     >
@@ -162,10 +160,10 @@
       <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
         <h3 class="text-h6 mb-3 font-weight-bold">Método de Entrega</h3>
 
-        <v-radio-group v-model="metodoEntrega">
-          <v-radio label="Combinar com o vendedor" value="combinar"></v-radio>
-          <v-radio label="Entrega" value="entrega" />
-        </v-radio-group>
+       <v-radio-group v-model="metodoEntrega" :disabled="existePagamento || loadingComprar"> 
+        <v-radio label="Combinar com o vendedor" value="combinar"></v-radio>
+        <v-radio label="Entrega" value="entrega" />
+    </v-radio-group>
 
         <v-expand-transition>
           <v-sheet
@@ -185,14 +183,13 @@
       <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
         <h3 class="text-h6 mb-3 font-weight-bold">Forma de Pagamento</h3>
 
-        <v-radio-group v-if="formasPagamento.length" v-model="metodoPagamento">
-          <v-radio
+       <v-radio-group v-if="formasPagamento.length" v-model="metodoPagamento" :disabled="existePagamento || loadingComprar"> <v-radio
             v-for="forma in formasPagamento"
             :key="forma.id"
             :label="forma.forma"
             :value="forma.forma"
-          />
-        </v-radio-group>
+        />
+    </v-radio-group>
 
         <div v-else>
           <p>Não há formas de pagamento disponíveis no momento.</p>
@@ -225,31 +222,45 @@
           </v-sheet>
         </v-expand-transition>
       </v-sheet>
+<v-expand-transition>
+        <v-alert
+          v-if="existePagamento"
+          type="info"
+          icon="mdi-information"
+          class="my-4 text-center"
+          color="blue-darken-1"
+          variant="tonal"
+        >
+          <p class="font-weight-bold">Pagamento em Andamento</p>
+          <p>
+            Você já tem um pedido e pagamento pendente. Clique em 
+            "Verificar Pagamento" para continuar onde parou.
+          </p>
+        </v-alert>
+    </v-expand-transition>
+     <div class="cart-buttons"> 
+        <v-btn class="btn-voltar" @click="voltar">
+          ← Voltar às compras
+        </v-btn>
 
-      <div class="cart-buttons">
-  <v-btn class="btn-voltar" @click="voltar">
-    ← Voltar às compras
-  </v-btn>
+        <v-btn
+          v-if="existePagamento"
+          color="green"
+          class="btn-verificar"
+          prepend-icon="mdi-barcode-scan"
+          @click="irParaPagamento"
+        >
+          Verificar Pagamento
+        </v-btn>
 
- 
- <v-btn
-  v-if="existePagamento"
-  color="green"
-  class="btn-verificar"
-  prepend-icon="mdi-barcode-scan"
-  @click="irParaPagamento"
->
-  Verificar Pagamento
-</v-btn>
-
-
-  <v-btn
-    class="btn-comprar"
-    :loading="loadingComprar"
-    @click="comprar"
-  >
-    Finalizar compra
-  </v-btn>
+        <v-btn
+          class="btn-comprar"
+          :loading="loadingComprar"
+          @click="comprar"
+          :disabled="existePagamento || loadingComprar"
+        >
+          Finalizar compra
+        </v-btn>
 </div>
 
     </v-sheet>
@@ -462,9 +473,7 @@ function generateUUID() {
     return v.toString(16);
   });
 }
-async function recarregarProdutos(){
-  await getProdutos();
-}
+
 
 async function getRetrieve() {
   try {
@@ -658,7 +667,7 @@ async function comprar() {
       return;
     }
 
-    // 3) Criar ordem
+   
     const ordemBody = {
       usuario_id: retrieve.value.id,
       status_ordem_id: statusOrdemPendente.id,
@@ -783,6 +792,9 @@ function formatCep(value = "") {
   const parte2 = numeros.slice(5, 8);
   return parte2 ? `${parte1}-${parte2}` : parte1;
 }
+const onInputCep = (event) => {
+  endereco.value.Cep = formatCep(event.target.value);
+};
 function debounce(fn, ms = 500) {
   let t;
   return (...args) => {
@@ -835,6 +847,44 @@ onMounted(async () => {
 });
 
 
+async function carregarCarrinhoCompleto() {
+    // 1. Inicia o loading principal
+    carregandoCarrinho.value = true;
+    erroGetProduto.value = false;
+
+    try {
+        if (!retrieve.value) {
+            await getRetrieve();
+            if (!retrieve.value) throw new Error("Usuário não logado/encontrado.");
+        }
+
+        // 2. Executa todas as chamadas necessárias em paralelo
+        await Promise.all([
+            getCarrinho(),
+            getProdutos(), // Esta função não precisa mais gerenciar seu próprio loading
+            carregarFormasPagamento(),
+            getEndereco(),
+            getPagamentos(), // Para buscar o pagamentoUUID
+        ]);
+
+        // 3. Monta a lista de produtos no carrinho
+        setarCarrinhoUser();
+
+        // 4. Verifica se já existe um pagamento/ordem em andamento
+        const pagamento = await buscarPagamentoUsuario();
+        if (pagamento?.id) {
+            existePagamento.value = true;
+            pagamentoUUID.value = pagamento.pagamento_uuid || pagamento.uuid || "";
+        }
+    } catch (err) {
+        console.error("carregarCarrinhoCompleto erro:", err);
+        erroGetProduto.value = true;
+        toast.error(err.response?.data?.message || "Erro ao carregar dados do carrinho/produtos");
+    } finally {
+        // 5. Finaliza o loading principal, garantindo que o `v-if` seja atualizado.
+        carregandoCarrinho.value = false;
+    }
+}
 watch(metodoEntrega, (novo, antigo) => {
   if (novo === "entrega" && enderecoIncompleto(enderecoUsuario.value)) {
     metodoEntrega.value = antigo;

@@ -29,11 +29,20 @@
   padding-top: 40px;
 }
 
-
 .botao-cancelar {
   transition: 0.25s;
 }
 
 .botao-cancelar:hover {
   transform: scale(1.04);
+}
+.items-list-enhanced > .v-sheet {
+    display: flex;
+    align-items: center;
+}
+
+
+.flex-grow-1 {
+    flex-grow: 1;
+    min-width: 0; 
 }
