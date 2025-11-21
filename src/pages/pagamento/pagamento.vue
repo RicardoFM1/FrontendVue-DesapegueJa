@@ -71,7 +71,7 @@
           <p class="mt-2 text-body-1">Pagamento instantâneo pelo Pix</p>
 
          <v-img v-if="pixQrCode" :src="pixQrCode" max-width="250" class="mx-auto my-2" />
-<p v-else>QR Code não disponível ou erro no carregamento da imagem.</p>
+         <p v-else>QR Code não disponível ou erro no carregamento da imagem.</p>
 
           <v-btn v-if="pixCopiaCodigo" small outlined color="green" @click="copiarPix">
             Copiar código Pix
@@ -144,8 +144,9 @@ const metodoEntrega = ref("combinar");
 const pixQrCode = ref(null);
 const pixCopiaCodigo = ref(null);
 const boletoUrl = ref(null);
-pixQrCode.value = "https://www.example.com/qr_code.png"; 
-console.log(pixQrCode.value);
+
+// Sua chave Pix que será usada para gerar o QR Code
+const chavePix = "sua-chave-pix-aqui"; // Substitua com sua chave Pix
 
 const frete = computed(() => (metodoEntrega.value.toLowerCase() === "entrega" ? 1500 : 0));
 const totalComFrete = computed(() => subtotal.value + frete.value);
@@ -202,7 +203,6 @@ async function getPagamento() {
     );
 
     const pagamento = resPagamentos.data;
-    console.log(pagamento); // Verifique o conteúdo da resposta
 
     if (!pagamento || !pagamento.ordem_id) {
       metodoPagamento.value = null;
@@ -227,13 +227,13 @@ async function getPagamento() {
 
     // Se for Pix, gera QR Code e copia e cola
     if (metodoPagamento.value === "pix") {
-      if (!pagamento.pix_qr_code && pagamento.pix_copia_codigo) {
-        pixCopiaCodigo.value = pagamento.pix_copia_codigo;
-        pixQrCode.value = await QRCode.toDataURL(pagamento.pix_copia_codigo);
-      } else {
-        pixCopiaCodigo.value = pagamento.pix_copia_codigo;
-        pixQrCode.value = pagamento.pix_qr_code;
-      }
+      const pixData = {
+        chave: chavePix, // Chave Pix do usuário
+        valor: (ordemCompra.value.valor_total / 100).toFixed(2), // Valor total da compra
+      };
+      const qrCodeUrl = await QRCode.toDataURL(`pix://${pixData.chave}?valor=${pixData.valor}`);
+      pixQrCode.value = qrCodeUrl;
+      pixCopiaCodigo.value = pixData.chave;
     }
 
     // Se for Boleto, pega o link
