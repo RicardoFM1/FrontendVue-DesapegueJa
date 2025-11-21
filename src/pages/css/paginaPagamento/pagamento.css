@@ -1,0 +1,39 @@
+.pagamento-container {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+.pagamento-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.cancelar-animado {
+  transition: transform 0.15s ease-in-out, opacity 0.2s;
+}
+
+.cancelar-animado:hover {
+  transform: scale(1.06);
+  opacity: 0.9;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+.pagamento-container {
+  padding-top: 40px;
+}
+
+
+.botao-cancelar {
+  transition: 0.25s;
+}
+
+.botao-cancelar:hover {
+  transform: scale(1.04);
+}

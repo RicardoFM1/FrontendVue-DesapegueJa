@@ -1,3 +1,4 @@
+
 <template>
   <v-sheet
     v-if="carregandoCarrinho"
@@ -226,11 +227,31 @@
       </v-sheet>
 
       <div class="cart-buttons">
-        <v-btn class="btn-voltar" @click="voltar">← Voltar às compras</v-btn>
-        <v-btn class="btn-comprar" :loading="loadingComprar" @click="comprar"
-          >Finalizar compra</v-btn
-        >
-      </div>
+  <v-btn class="btn-voltar" @click="voltar">
+    ← Voltar às compras
+  </v-btn>
+
+ 
+ <v-btn
+  v-if="existePagamento"
+  color="green"
+  class="btn-verificar"
+  prepend-icon="mdi-barcode-scan"
+  @click="irParaPagamento"
+>
+  Verificar Pagamento
+</v-btn>
+
+
+  <v-btn
+    class="btn-comprar"
+    :loading="loadingComprar"
+    @click="comprar"
+  >
+    Finalizar compra
+  </v-btn>
+</div>
+
     </v-sheet>
 
     <v-sheet
@@ -375,530 +396,37 @@
 
 <script setup>
 import { connection } from "@/connection/axiosConnection";
-import { ref, onMounted, computed, watch, reactive } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
-import Pagamento from "../pagamento/pagamento.vue";
 
 const router = useRouter();
 
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
-const retrieve = ref();
+
+const retrieve = ref(null);
 const carrinho = ref([]);
 const produtos = ref([]);
+const carrinhoUser = ref([]);
+const totalItems = ref(0);
+
 const erroGetProduto = ref(false);
 const carregandoProdutos = ref(true);
-const carrinhoUser = ref([]);
 const carregandoCarrinho = ref(true);
-const totalItems = ref();
-const subtotal = computed(() => {
-  return carrinhoUser.value.reduce((acc, item) => {
-    return acc + item.preco * item.quantidade;
-  }, 0);
-});
+
 const modalConfirmacaoOpen = ref(false);
-const itemASerRemovido = ref();
+const itemASerRemovido = ref(null);
 const loadingRemover = ref(false);
+
 const metodoEntrega = ref("combinar");
 const formasPagamento = ref([]);
-const frete = computed(() => {
-  return metodoEntrega.value === "entrega" ? 1500 : 0;
-});
-
-const totalComFrete = computed(() => {
-  return subtotal.value + frete.value;
-});
-const loadingComprar = ref(false);
-const loadingEndereco = ref(false);
-const readOnlyComCEP = computed(() => {
-  const numeros = enderecoForm.value.cep?.replace(/\D/g, "") || "";
-  return numeros.length === 8;
-})
-
-async function getRetrieve() {
-  try {
-    const res = await connection.get("/desapega/usuarios/retrieve", {
-      headers: { Authorization: `Bearer ${token.value}` },
-    });
-
-    if (res && res.status === 200 && res.data) {
-      retrieve.value = res.data;
-    } else {
-      toast.error("Erro ao buscar o usuário");
-      console.error("Resposta inesperada:", res);
-    }
-  } catch (error) {
-    console.error("Erro na requisição:", error);
-    toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
-  }
-}
-
-async function getCarrinho() {
-  try {
-    const res = await connection.get(
-      `/desapega/carrinho/${retrieve?.value.id}`
-    );
-
-    if (res.status == 200 || res.status == 201) {
-      carrinho.value = res.data;
-    } else {
-      toast.error("Estamos com dificuldade de listar seus produtos...");
-    }
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Erro ao listar seus produtos");
-  }
-}
-
-const total = ref(0);
-
-async function getProdutos() {
-  carregandoProdutos.value = true;
-  erroGetProduto.value = false;
-
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
-  );
-
-  if (retrieve.admin == true) {
-    try {
-      const res = await Promise.race([
-        connection.get("/desapega/produtos"),
-        timeout,
-      ]);
-
-      if (res.status == 200) {
-        produtos.value = res.data.produtos;
-        total.value = res.data.total;
-        erroGetProduto.value = false;
-      } else {
-        toast.error("Erro ao buscar o produto");
-        erroGetProduto.value = true;
-      }
-    } catch (error) {
-      const mensagem =
-        error.message === "Tempo limite excedido"
-          ? "Tempo limite excedido ao buscar produtos"
-          : error.response?.data?.message || "Erro ao buscar o produto";
-      console.log(mensagem);
-      toast.error(mensagem);
-      erroGetProduto.value = true;
-    } finally {
-      setTimeout(() => {
-        carregandoProdutos.value = false;
-      }, 500);
-    }
-  } else {
-    try {
-      const res = await Promise.race([
-        connection.get("/desapega/produtos?status=ativo"),
-        timeout,
-      ]);
-
-      if (res.status == 200) {
-        produtos.value = res.data.produtos;
-        total.value = res.data.total;
-        erroGetProduto.value = false;
-      } else {
-        toast.error("Erro ao buscar o produto");
-        erroGetProduto.value = true;
-      }
-    } catch (error) {
-      const mensagem =
-        error.message === "Tempo limite excedido"
-          ? "Tempo limite excedido ao buscar produtos"
-          : error.response?.data?.message || "Erro ao buscar o produto";
-      console.log(mensagem);
-      toast.error(mensagem);
-      erroGetProduto.value = true;
-    } finally {
-      setTimeout(() => {
-        carregandoProdutos.value = false;
-      }, 500);
-    }
-  }
-}
-
-async function setarCarrinhoUser() {
-  carregandoCarrinho.value = true;
-
-  try {
-    if (carrinho.value && produtos.value) {
-      const carrinhoUsernew = [];
-
-      for (let i = 0; i < carrinho.value.length; i++) {
-        const itemCarrinho = carrinho.value[i];
-        const produto = produtos.value.find(
-          (p) => p.id === itemCarrinho.produto_id
-        );
-
-        if (produto) {
-          carrinhoUsernew.push({
-            ...produto,
-            quantidade: itemCarrinho.quantidade,
-          });
-        }
-      }
-
-      carrinhoUser.value = [...carrinhoUsernew].reverse();
-
-      totalItems.value = carrinhoUsernew.length;
-    }
-  } catch (err) {
-    toast.error("Erro ao carregar carrinho, tente novamente!");
-  } finally {
-    carregandoCarrinho.value = false;
-  }
-}
-async function getEndereco() {
-  try {
-    const res = await connection.get(
-      `/desapega/enderecos/${retrieve?.value.id}`,
-      {
-        headers: { Authorization: `Bearer ${token.value}` },
-      }
-    );
-    if (res.status === 200 || res.status === 201) {
-      console.log(res.data);
-      enderecoUsuario.value = res.data;
-      enderecoForm.value.bairro = res.data.bairro;
-      enderecoForm.value.cep = res.data.cep;
-      enderecoForm.value.cidade = res.data.cidade;
-      enderecoForm.value.estado = res.data.estado;
-      enderecoForm.value.rua = res.data.rua;
-      enderecoForm.value.complemento = res.data.complemento;
-      enderecoForm.value.numero = res.data.numero;
-    }
-  } catch (err) {
-    enderecoUsuario.value = null;
-  }
-}
-
-onMounted(async () => {
-  if (!tokenExiste.value) {
-    router.push("/");
-  }
-  if (tokenExiste.value) {
-    await getRetrieve();
-    await getCarrinho();
-    await getProdutos();
-    await setarCarrinhoUser();
-    await carregarFormasPagamento();
-    await getEndereco();
-  }
-});
-watch(metodoEntrega, (novo) => {
-  console.log("Método mudou:", novo);
-
-  if (novo !== "entrega") return;
-
-  console.log("Chegou na etapa entrega");
-
-  console.log("Endereço atual:", enderecoUsuario.value);
-
-  const faltando = enderecoIncompleto(enderecoUsuario.value);
-  console.log("Endereço incompleto?", faltando);
-
-  if (faltando) {
-    console.log("Abrindo modal...");
-    modalEndereco.value = true;
-  }
-});
-
-setTimeout(() => {
-  console.log("modalEndereco?", modalEndereco.value);
-}, 2000);
-
-watch(metodoEntrega, (novo) => {
-  console.log("NOVA ENTREGA:", novo);
-});
-
-watch(retrieve, (r) => {
-  console.log(r.id, "retrieve id");
-});
-watch(carrinho, (c) => {
-  console.log(c, "carrinho");
-});
-watch(produtos, (p) => {
-  console.log(p, "produtos");
-});
-watch(carrinhoUser, (ca) => {
-  console.log(ca, "Carrinho user");
-});
-
-function recarregarProdutos() {
-  getProdutos();
-}
-function getProdutoImage(imagem) {
-  if (!imagem || imagem === "Sem imagem" || imagem === "null") {
-    return "/png-triste-erro.png";
-  }
-
-  if (imagem.startsWith("data:image")) {
-    return imagem;
-  }
-
-  if (imagem.startsWith("/9j/")) return `data:image/jpeg;base64,${imagem}`;
-  if (imagem.startsWith("iVBORw0KGgo"))
-    return `data:image/png;base64,${imagem}`;
-  if (imagem.startsWith("R0lGODlh") || imagem.startsWith("R0lGODdh"))
-    return `data:image/gif;base64,${imagem}`; // GIF
-  if (imagem.startsWith("UklGR")) return `data:image/webp;base64,${imagem}`;
-
-  return `data:image/png;base64,${imagem}`;
-}
-
-async function atualizarQuantidade(item) {
-  item.quantidade = Number(item.quantidade);
-  carrinhoUser.value = [...carrinhoUser.value];
-  try {
-    const body = {
-      quantidade: item.quantidade,
-    };
-    const res = await connection.patch(
-      `/desapega/carrinho/${retrieve?.value.id}/${item.id}`,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
-      }
-    );
-    if (res.status === 200 || res.status === 201) {
-      toast.success("Quantidade atualizada com sucesso!", { autoClose: 2000 });
-    } else {
-      toast.error("Erro ao tentar atualizar essa quantidade", {
-        autoClose: 2000,
-      });
-    }
-  } catch (err) {
-    toast.error(
-      err.response?.data?.message ||
-        "Erro ao tentar atualizar essa quantidade do produto"
-    );
-  }
-}
-
-function clickRemover(item) {
-  itemASerRemovido.value = item;
-  modalConfirmacaoOpen.value = !modalConfirmacaoOpen.value;
-}
-
-async function removerItem() {
-  loadingRemover.value = true;
-  console.log(itemASerRemovido);
-  try {
-    const res = await connection.delete(
-      `/desapega/carrinho/${retrieve?.value.id}/${itemASerRemovido.value.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
-      }
-    );
-    if (res.status === 200 || res.status === 201) {
-      toast.success("Item removido do carrinho!", { autoClose: 2000 });
-      setTimeout(() => {
-        router.go(0);
-      }, 2000);
-    }
-  } catch (err) {
-    toast.error(
-      err.response?.data?.message || "Erro ao remover item do carrinho!"
-    );
-  } finally {
-    loadingRemover.value = false;
-  }
-}
-
-function voltar() {
-  router.push("/");
-}
-function generateUUID() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return "xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 const metodoPagamento = ref("");
 
-async function carregarFormasPagamento() {
-  try {
-    const res = await connection.get("/desapega/formasPagamento", {
-      headers: { Authorization: `Bearer ${token.value}` },
-      timeout: 10000,
-    });
-
-    if (res?.data && Array.isArray(res.data)) {
-      formasPagamento.value = res.data.filter(
-        (f) => f.status === "ativo" && f.forma
-      );
-
-      if (formasPagamento.value.length > 0) {
-        metodoPagamento.value = formasPagamento.value[0].forma;
-      }
-    }
-  } catch (err) {
-    toast.error(
-      err.response?.data?.message || "Erro ao buscar formas de pagamento"
-    );
-  }
-}
-
-async function comprar() {
-  if (!carrinhoUser.value.length) {
-    toast.error("Seu carrinho está vazio");
-    return;
-  }
-
-  try {
-    loadingComprar.value = true;
-    const resStatusOrdem = await connection.get("/desapega/statusOrdem", {
-      headers: { Authorization: `Bearer ${token.value}` },
-      timeout: 10000,
-    });
-
-    if (!resStatusOrdem?.data || !Array.isArray(resStatusOrdem.data)) {
-      toast.error("Não foi possível buscar status de ordem");
-      return;
-    }
-
-    const statusOrdemPendente = resStatusOrdem.data.find(
-      (s) => s.descricao?.toLowerCase() === "pendente" && s.status === "ativo"
-    );
-
-    if (!statusOrdemPendente) {
-      toast.error("Status de ordem 'pendente' não encontrado");
-      return;
-    }
-
-    const ordemBody = {
-      usuario_id: retrieve.value.id,
-      status_ordem_id: statusOrdemPendente.id,
-      valor_total: subtotal.value,
-      metodo_entrega: metodoEntrega.value,
-    };
-
-    const resOrdem = await connection.post("/desapega/ordemCompra", ordemBody, {
-      headers: { Authorization: `Bearer ${token.value}` },
-      timeout: 10000,
-    });
-
-    if (!resOrdem?.data?.id) {
-      toast.error("Erro ao criar ordem de compra");
-      return;
-    }
-
-    const ordemId = resOrdem.data.id;
-
-    await Promise.all(
-      carrinhoUser.value.map((item) => {
-        const itemBody = {
-          ordem_id: ordemId,
-          produto_id: item.id,
-          quantidade: item.quantidade,
-          preco_unitario: item.preco,
-        };
-        return connection.post("/desapega/ordemProduto", itemBody, {
-          headers: { Authorization: `Bearer ${token.value}` },
-          timeout: 10000,
-        });
-      })
-    );
-
-    const resFormaPagamento = await connection.get(
-      "/desapega/formasPagamento",
-      {
-        headers: { Authorization: `Bearer ${token.value}` },
-        timeout: 10000,
-      }
-    );
-
-    if (!resFormaPagamento?.data || !Array.isArray(resFormaPagamento.data)) {
-      toast.error("Não foi possível buscar formas de pagamento");
-      return;
-    }
-
-    const formaPagamentoSelecionada = resFormaPagamento.data.find(
-      (f) =>
-        (f.forma || "").toLowerCase() ===
-        (metodoPagamento.value || "").toLowerCase()
-    );
-
-    if (!formaPagamentoSelecionada) {
-      toast.error("Forma de pagamento inválida");
-      return;
-    }
-    const resStatusPagamento = await connection.get(
-      "/desapega/statusPagamento",
-      {
-        headers: { Authorization: `Bearer ${token.value}` },
-        timeout: 10000,
-      }
-    );
-
-    if (!resStatusPagamento?.data || !Array.isArray(resStatusPagamento.data)) {
-      toast.error("Não foi possível buscar status de pagamento");
-      return;
-    }
-
-    const statusPagamentoPendente = resStatusPagamento.data.find(
-      (s) => s.descricao?.toLowerCase() === "pendente" && s.status === "ativo"
-    );
-
-    if (!statusPagamentoPendente) {
-      toast.error("Status de pagamento 'pendente' não encontrado");
-      return;
-    }
-
-    const pagamentoBody = {
-      ordem_id: ordemId,
-      usuario_id: retrieve?.value.id,
-      forma_pagamento_id: formaPagamentoSelecionada.id,
-      status_pagamento_id: statusPagamentoPendente.id,
-      valor: subtotal.value,
-      observacao: "",
-    };
-
-    const resPagamento = await connection.post(
-      "/desapega/pagamentos",
-      pagamentoBody,
-      {
-        headers: { Authorization: `Bearer ${token.value}` },
-        timeout: 10000,
-      }
-    );
-
-    if (!resPagamento?.data?.id) {
-      toast.error("Erro ao criar registro de pagamento");
-      return;
-    }
-
-    const uuid = generateUUID();
-    router.push(`/pagamento/${uuid}`);
-  } catch (err) {
-    console.error(err);
-    toast.error(err.response?.data?.message || "Erro ao processar compra");
-  } finally {
-    loadingComprar.value = false;
-  }
-}
-function enderecoIncompleto(end) {
-  if (!end) return true;
-
-  const obrigatorios = ["cep", "estado", "cidade", "bairro", "rua", "numero"];
-
-  return obrigatorios.some((campo) => !end[campo] || end[campo].trim() === "");
-}
-const modalEndereco = ref(false);
+const loadingComprar = ref(false);
+const loadingEndereco = ref(false);
 
 const enderecoForm = ref({
   cep: "",
@@ -908,102 +436,423 @@ const enderecoForm = ref({
   rua: "",
   numero: "",
   complemento: "",
+  logradouro: "",
 });
 
+
 const enderecoUsuario = ref(null);
+const pagamentoUUID = ref("");
+const existePagamento = ref(false);
 
-const formatCep = (value) => {
-  
-  let numeros = value.replace(/\D/g, "").slice(0, 8);
+const frete = computed(() => (metodoEntrega.value === "entrega" ? 1500 : 0));
+const subtotal = computed(() =>
+  carrinhoUser.value.reduce((acc, item) => acc + item.preco * item.quantidade, 0)
+);
+const totalComFrete = computed(() => subtotal.value + frete.value);
+const readOnlyComCEP = computed(() => {
+  const numeros = (enderecoForm.value.cep || "").replace(/\D/g, "");
+  return numeros.length === 8;
+});
 
-  let parte1 = numeros.slice(0, 5);
-  let parte2 = numeros.slice(5, 8);
-
-  if (parte2) return `${parte1}-${parte2}`;
-  return parte1;
-};
-
-function debounce(func, delay) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => func(...args), delay);
-  };
+function generateUUID() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+async function recarregarProdutos(){
+  await getProdutos();
 }
 
-const buscarEnderecoViaCep = async () => {
-  const cepNumeros = enderecoForm.value.cep.replace(/\D/g, "");
+async function getRetrieve() {
+  try {
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (res?.status === 200 && res.data) retrieve.value = res.data;
+    else throw new Error("Resposta inesperada ao buscar usuário");
+  } catch (err) {
+    console.error("getRetrieve:", err);
+    toast.error(err.response?.data?.message || "Erro ao buscar o usuário");
+  }
+}
 
-  if (cepNumeros.length === 0) return;
+async function getCarrinho() {
+  try {
+    const res = await connection.get(`/desapega/carrinho/${retrieve.value.id}`);
+    if (res?.status === 200 || res?.status === 201) carrinho.value = res.data;
+    else throw new Error("Erro ao buscar carrinho");
+  } catch (err) {
+    console.error("getCarrinho:", err);
+    toast.error(err.response?.data?.message || "Erro ao listar seus produtos");
+  }
+}
 
-  if (cepNumeros.length !== 8) return;
+async function getProdutos() {
+  carregandoProdutos.value = true;
+  erroGetProduto.value = false;
+  try {
+    const url = retrieve.value?.admin ? "/desapega/produtos" : "/desapega/produtos?status=ativo";
+    const res = await connection.get(url);
+    if (res?.status === 200) produtos.value = res.data.produtos || [];
+    else throw new Error("Erro ao buscar produtos");
+  } catch (err) {
+    console.error("getProdutos:", err);
+    toast.error(err.response?.data?.message || "Erro ao buscar produtos");
+    erroGetProduto.value = true;
+  } finally {
+    setTimeout(() => (carregandoProdutos.value = false), 300);
+  }
+}
+
+function getProdutoImage(imagem) {
+  if (!imagem || imagem === "Sem imagem" || imagem === "null") {
+    return "/png-triste-erro.png";
+  }
+
+ 
+  if (imagem.startsWith("data:image")) {
+    return imagem;
+  }
+
+ 
+  if (imagem.startsWith("/9j/")) {
+    return `data:image/jpeg;base64,${imagem}`;
+  }
+
+ 
+  if (imagem.startsWith("iVBORw0KGgo")) {
+    return `data:image/png;base64,${imagem}`;
+  }
+
+
+  if (imagem.startsWith("R0lGODlh") || imagem.startsWith("R0lGODdh")) {
+    return `data:image/gif;base64,${imagem}`;
+  }
+
+
+  if (imagem.startsWith("UklGR")) {
+    return `data:image/webp;base64,${imagem}`;
+  }
+
+  
+  return `data:image/png;base64,${imagem}`;
+}
+
+function setarCarrinhoUser() {
+  carregandoCarrinho.value = true;
+  try {
+    const list = [];
+    for (const itemCarrinho of (carrinho.value || [])) {
+      const produto = (produtos.value || []).find((p) => p.id === itemCarrinho.produto_id);
+      if (produto) list.push({ ...produto, quantidade: itemCarrinho.quantidade });
+    }
+    carrinhoUser.value = list.reverse();
+    totalItems.value = list.length;
+  } catch (err) {
+    console.error("setarCarrinhoUser:", err);
+    toast.error("Erro ao carregar carrinho, tente novamente!");
+  } finally {
+    carregandoCarrinho.value = false;
+  }
+}
+
+async function carregarFormasPagamento() {
+  try {
+    const res = await connection.get("/desapega/formasPagamento", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (Array.isArray(res.data)) {
+      formasPagamento.value = res.data.filter((f) => f.status === "ativo" && f.forma);
+      if (formasPagamento.value.length) metodoPagamento.value = formasPagamento.value[0].forma;
+    }
+  } catch (err) {
+    console.error("carregarFormasPagamento:", err);
+    toast.error(err.response?.data?.message || "Erro ao buscar formas de pagamento");
+  }
+}
+
+async function getEndereco() {
+  try {
+    const res = await connection.get(`/desapega/enderecos/${retrieve.value.id}`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (res?.status === 200 || res?.status === 201) {
+      enderecoUsuario.value = res.data;
+      Object.assign(enderecoForm.value, {
+        bairro: res.data.bairro || "",
+        cep: res.data.cep || "",
+        cidade: res.data.cidade || "",
+        estado: res.data.estado || "",
+        rua: res.data.rua || "",
+        complemento: res.data.complemento || "",
+        numero: res.data.numero || "",
+      });
+    }
+  } catch (err) {
+    enderecoUsuario.value = null;
+  }
+}
+
+async function buscarPagamentoUsuario() {
+  try {
+    const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve.value.id}`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    return res?.data || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function buscarOrdemUsuario() {
+  try {
+    const res = await connection.get(`/desapega/ordemCompra/usuario/${retrieve.value.id}`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    return res?.data || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+
+
+
+
+async function comprar() {
+  if (!carrinhoUser.value.length) {
+    toast.error("Seu carrinho está vazio");
+    return;
+  }
+
+  if (!metodoPagamento.value) {
+    toast.error("Selecione uma forma de pagamento");
+    return;
+  }
+
+  loadingComprar.value = true;
 
   try {
-    const res = await connection.get(`https://viacep.com.br/ws/${cepNumeros}/json/`);
-
-    if (res.data.erro) {
-      toast.error("CEP não encontrado");
+  
+    const ordemExistente = await buscarOrdemUsuario();
+    if (ordemExistente?.id && ordemExistente.pagamento_uuid) {
+      router.push(`/pagamento/${ordemExistente.pagamento_uuid}`);
       return;
     }
 
+    
+    const statusOrdemRes = await connection.get("/desapega/statusOrdem", {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 15000
+    });
+
+    const statusOrdemPendente = statusOrdemRes.data.find(
+      (s) => s.descricao?.toLowerCase() === "pendente"
+    );
+
+    if (!statusOrdemPendente) {
+      toast.error("Status de ordem 'pendente' não encontrado");
+      return;
+    }
+
+    // 3) Criar ordem
+    const ordemBody = {
+      usuario_id: retrieve.value.id,
+      status_ordem_id: statusOrdemPendente.id,
+      metodo_entrega: metodoEntrega.value,
+      itens: carrinhoUser.value.map((i) => ({
+        produto_id: i.id,
+        quantidade: i.quantidade
+      })),
+    };
+
+    const ordemRes = await connection.post("/desapega/ordemCompra", ordemBody, {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 15000
+    });
+
+    const ordemId = ordemRes.data?.id;
+
+    if (!ordemId) {
+      toast.error("Erro ao criar ordem de compra");
+      return;
+    }
+
+    
+    const formaSelecionada = formasPagamento.value.find(
+      (f) => f.forma.toLowerCase() === metodoPagamento.value.toLowerCase()
+    );
+
+    if (!formaSelecionada) {
+      toast.error("Forma de pagamento inválida");
+      return;
+    }
+
+ 
+    const statusPagRes = await connection.get("/desapega/statusPagamento", {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 15000
+    });
+
+    const statusPagamentoPendente = statusPagRes.data.find(
+      (s) => s.descricao?.toLowerCase() === "pendente"
+    );
+
+    if (!statusPagamentoPendente) {
+      toast.error("Status de pagamento 'pendente' não encontrado");
+      return;
+    }
+
+ 
+    const pagamentoUUIDLocal = generateUUID();
+
+    const pagamentoBody = {
+      pagamento_uuid: pagamentoUUIDLocal,
+      ordem_id: ordemId,
+      usuario_id: retrieve.value.id,
+      forma_pagamento_id: formaSelecionada.id,
+      status_pagamento_id: statusPagamentoPendente.id,
+      valor: totalComFrete.value,
+      observacao: ""
+    };
+
+    await connection.post("/desapega/pagamentos", pagamentoBody, {
+      headers: { Authorization: `Bearer ${token.value}` },
+      timeout: 15000
+    });
+
+ 
+    router.push(`/pagamento/${pagamentoUUIDLocal}`);
+  } 
+  catch (err) {
+    console.error("comprar erro:", err);
+    toast.error("Erro ao finalizar compra");
+  } 
+  finally {
+    loadingComprar.value = false;
+  }
+}
+
+
+
+
+
+function clickRemover(item) {
+  itemASerRemovido.value = item;
+  modalConfirmacaoOpen.value = true;
+}
+
+async function removerItem() {
+  if (!itemASerRemovido.value) return;
+  loadingRemover.value = true;
+  try {
+    await connection.delete(`/desapega/carrinho/${retrieve.value.id}/${itemASerRemovido.value.id}`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    toast.success("Item removido do carrinho!", { autoClose: 2000 });
+    setTimeout(() => router.go(0), 1000);
+  } catch (err) {
+    console.error("removerItem:", err);
+    toast.error(err.response?.data?.message || "Erro ao remover item do carrinho!");
+  } finally {
+    loadingRemover.value = false;
+    modalConfirmacaoOpen.value = false;
+  }
+}
+
+function voltar() {
+  router.push("/");
+}
+
+
+
+function irParaPagamento() {
+  if (pagamentoUUID.value) {
+    router.push(`/pagamento/${pagamentoUUID.value}`);
+  } else {
+    toast.error("Pagamento não encontrado");
+  }
+}
+
+function formatCep(value = "") {
+  const numeros = value.replace(/\D/g, "").slice(0, 8);
+  const parte1 = numeros.slice(0, 5);
+  const parte2 = numeros.slice(5, 8);
+  return parte2 ? `${parte1}-${parte2}` : parte1;
+}
+function debounce(fn, ms = 500) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+}
+async function buscarEnderecoViaCep() {
+  const cepNumeros = (enderecoForm.value.cep || "").replace(/\D/g, "");
+  if (!cepNumeros || cepNumeros.length !== 8) return;
+  try {
+    const res = await connection.get(`https://viacep.com.br/ws/${cepNumeros}/json/`);
+    if (res.data.erro) return toast.error("CEP não encontrado");
     enderecoForm.value.rua = res.data.logradouro || "";
     enderecoForm.value.bairro = res.data.bairro || "";
     enderecoForm.value.cidade = res.data.localidade || "";
     enderecoForm.value.estado = res.data.uf || "";
-
   } catch (err) {
     toast.error("Erro ao buscar endereço via CEP");
   }
-};
-
+}
 const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
+watch(() => enderecoForm.value.cep, buscarEnderecoViaCepDebounced);
 
-watch(
-  () => enderecoForm.value.cep,
-  buscarEnderecoViaCepDebounced
-);
-
-const onInputCep = (event) => {
-  enderecoForm.value.cep = formatCep(event.target.value);
-};
-
-const salvarAlteracoesEndereco = async () => {
-  loadingEndereco.value = true
+async function getPagamentos(){
   try{
-    const body = {
-  cep: enderecoForm.value.cep,
-  estado: enderecoForm.value.estado,
-  cidade: enderecoForm.value.cidade,
-  bairro: enderecoForm.value.bairro,
-  rua: enderecoForm.value.rua,
-  numero: enderecoForm.value.numero,
-  logradouro: enderecoForm.value.Logradouro,
-  complemento: enderecoForm.value.complemento,
-  
+    const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve?.value.id}`)
+    if(res.status === 200){
+      pagamentoUUID.value = res.data.pagamento_uuid;
     }
-    const res = await connection.patch(`/desapega/enderecos/${retrieve.value.id}`, body,
-      {
-        headers: {
-          Authorization: `Bearer ${token.value}`
-        }
-      }
-    )
-    if (res.status === 200 || res.status === 204) {
-      
-      toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
-      setTimeout(() => {
-        router.go(0);
-      }, 2000);
-    } else {
-      toast.error(res.data?.message || "Erro ao salvar alterações");
-    }
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Erro ao atualizar perfil");
-  }finally{
-    loadingEndereco.value = false
+  }catch(err){
+    console.log(err);
   }
 }
+
+onMounted(async () => {
+  if (!tokenExiste.value) return router.push("/");
+  
+  await getRetrieve();
+  if (!retrieve.value) return;
+  await Promise.all([getCarrinho(), getProdutos(), carregarFormasPagamento(), getEndereco()]);
+  setarCarrinhoUser(); 
+  getPagamentos()
+  
+  const pagamento = await buscarPagamentoUsuario();
+  if (pagamento?.id) {
+    existePagamento.value = true;
+    pagamentoUUID.value = pagamento.pagamento_uuid || pagamento.uuid || pagamento.pagamentoUuid || "";
+  }
+});
+
+
+watch(metodoEntrega, (novo, antigo) => {
+  if (novo === "entrega" && enderecoIncompleto(enderecoUsuario.value)) {
+    metodoEntrega.value = antigo;
+    modalConfirmacaoOpen.value = false;
+ 
+    setTimeout(() => (enderecoForm.value && (modalConfirmacaoOpen.value = false)), 0);
+    
+  }
+});
+
+function enderecoIncompleto(end) {
+  if (!end) return true;
+  const obrigatorios = ["cep", "estado", "cidade", "bairro", "rua", "numero"];
+  return obrigatorios.some((campo) => !end[campo] || end[campo].toString().trim() === "");
+}
+
 </script>
+
 
 <style scoped>
 @import "../css/paginaCarrinho/carrinho.css";
