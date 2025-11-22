@@ -1033,8 +1033,6 @@ async function addToCart(item) {
     return;
   }
 
-  
-
   const body = {
     usuario_id: retrieve.value?.id,
     produto_id: item.id,
@@ -1081,24 +1079,50 @@ watch(page, async() => {
   await getProdutos()
   console.log(page.value)
 })
-const itensFiltrados = computed(() =>
-  itens.value
-    .filter((item) =>
-      item.nome.toLowerCase().includes(search.value.toLowerCase())
-    )
-    .filter((item) => {
-      const preco = item.preco / 100
+const usuarioLogadoId = computed(() => retrieve.value?.id);
+const itensFiltrados = computed(() => {
+   
+    let listaFiltrada = itens.value;
 
-      const minimoMatch =
-        minimo.value === null || minimo.value === 0 || preco >= minimo.value
+    
+    if (tokenExiste.value && usuarioLogadoId.value) {
+        listaFiltrada = listaFiltrada.filter(
+            (item) => item.usuario_id !== usuarioLogadoId.value
+        );
+    }
 
-      const maximoMatch =
-        maximo.value === null || preco <= maximo.value
+    
+    if (search.value) {
+        const termoPesquisa = search.value.toLowerCase();
+        listaFiltrada = listaFiltrada.filter(
+            (item) =>
+                item.nome.toLowerCase().includes(termoPesquisa) ||
+                item.descricao.toLowerCase().includes(termoPesquisa)
+        );
+    }
 
-      return minimoMatch && maximoMatch
-    })
-)
+    
+    const precoMinimoEmCentavos = minimo.value * 100;
+    const precoMaximoEmCentavos = maximo.value * 100;
 
+    listaFiltrada = listaFiltrada.filter((item) => {
+        const precoValido = item.preco != null && item.preco !== undefined;
+        let passaMinimo = true;
+        let passaMaximo = true;
+
+        if (minimo.value != null && minimo.value !== 0) {
+            passaMinimo = precoValido && item.preco >= precoMinimoEmCentavos;
+        }
+
+        if (maximo.value != null && maximo.value !== 0) {
+            passaMaximo = precoValido && item.preco <= precoMaximoEmCentavos;
+        }
+
+        return passaMinimo && passaMaximo;
+    });
+
+    return listaFiltrada;
+});
 
 const getIniciais = (nome) => {
   if (!nome) return "?";

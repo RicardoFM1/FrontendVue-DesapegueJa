@@ -96,8 +96,10 @@
               <p v-if="timerExpirado" class="text-caption text-red font-weight-bold">Pedido expirado.</p>
             </div>
 
-            <v-img v-if="pixQrCode && !timerExpirado" :src="pixQrCode" max-width="250" class="mx-auto my-2"/>
-            <p v-else-if="!timerExpirado">Carregando QR Code...</p>
+         <v-img v-if="pixQrCode && !timerExpirado" :src="pixQrCode" max-width="250" class="mx-auto my-2"/>
+<p v-else-if="!timerExpirado">Carregando QR Code...</p>
+
+
 
             <v-btn v-if="pixCopiaCodigo && !timerExpirado" small outlined color="green" @click="copiarPix">
               Copiar código Pix
@@ -158,6 +160,7 @@ import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { connection } from "@/connection/axiosConnection";
+import QRCode from "qrcode";
 
 const router = useRouter();
 const token = ref(localStorage.getItem("token") || "");
@@ -202,36 +205,57 @@ function getProdutoImage(imagem) {
 }
 
 
+
+async function gerarQrCodePix(codigoPix) {
+  try {
+    return await QRCode.toDataURL(codigoPix);
+  } catch (err) {
+    console.error("Erro ao gerar QR Code do Pix:", err);
+    return null;
+  }
+}
+
+
 async function getPagamento() {
   loadingPagamento.value = true;
   try {
-    // 1. Pagamento do usuário
+
     const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve?.value.id}`, {
       headers: { Authorization: `Bearer ${token.value}` }
     });
     const pagamento = res.data;
     statusPagamentoId.value = pagamento.status_pagamento_id;
 
-    // 2. Buscar formas de pagamento
+    
     const resFormas = await connection.get("/desapega/formasPagamento", {
       headers: { Authorization: `Bearer ${token.value}` }
     });
-    const formas = resFormas.data; // array de { id, forma, status }
+    const formas = resFormas.data;
     const formaSelecionada = formas.find(f => f.id === pagamento.forma_pagamento_id);
     metodoPagamento.value = formaSelecionada?.forma?.toLowerCase() || "outro";
 
-    // PIX
+  
     if (isPix.value) {
+      
+      pixQrCode.value = pagamento.pix_qr_code
+    ? `data:image/png;base64,${pagamento.pix_qr_code}`
+    : null;
+
+
+     
       pixCopiaCodigo.value = pagamento.pix_copia_codigo || null;
-      pixQrCode.value = pagamento.pix_qr_code || null;
+
+      
       if (pagamento.expiracao) iniciarContagemRegressiva(new Date(pagamento.expiracao));
+
+     
       iniciarPollingStatus();
     }
 
-    // Boleto
+    
     if (isBoleto.value) boletoUrl.value = pagamento.boleto_url || null;
 
-    // Status pago
+    
     if (pagamento.status_pagamento_id === 2) router.push({ name: 'PagamentoSucesso' });
 
   } catch (err) {
@@ -241,6 +265,7 @@ async function getPagamento() {
     loadingPagamento.value = false;
   }
 }
+
 
 
 // Timer Pix
