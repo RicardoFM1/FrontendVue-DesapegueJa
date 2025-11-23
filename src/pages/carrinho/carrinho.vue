@@ -444,6 +444,7 @@ const metodoPagamento = ref("");
 const loadingComprar = ref(false);
 const loadingEndereco = ref(false);
 
+
 const enderecoForm = ref({
   cep: "",
   estado: "",
@@ -458,6 +459,7 @@ const enderecoForm = ref({
 const enderecoUsuario = ref(null);
 const pagamentoUUID = ref("");
 const existePagamento = ref(false);
+const pagamentoUsuarioStatus = ref()
 
 const frete = computed(() => (metodoEntrega.value === "entrega" ? 1500 : 0));
 const subtotal = computed(() =>
@@ -856,6 +858,7 @@ async function getPagamentos() {
     );
     if (res.status === 200) {
       pagamentoUUID.value = res.data.pagamento_uuid;
+      pagamentoUsuarioStatus.value = res.data.status_pagamento_id
     }
   } catch (err) {
     console.log(err);
@@ -878,7 +881,9 @@ onMounted(async () => {
 
   const pagamento = await buscarPagamentoUsuario();
   if (pagamento?.id) {
-    existePagamento.value = true;
+    if(pagamentoUsuarioStatus.value == 1){
+      existePagamento.value = true;
+    }
     pagamentoUUID.value =
       pagamento.pagamento_uuid ||
       pagamento.uuid ||
@@ -888,7 +893,7 @@ onMounted(async () => {
 });
 
 async function carregarCarrinhoCompleto() {
-  // 1. Inicia o loading principal
+
   carregandoCarrinho.value = true;
   erroGetProduto.value = false;
 
@@ -910,7 +915,7 @@ async function carregarCarrinhoCompleto() {
  
     setarCarrinhoUser();
 
-    // 4. Verifica se já existe um pagamento/ordem em andamento
+   
     const pagamento = await buscarPagamentoUsuario();
     if (pagamento?.id) {
       existePagamento.value = true;
@@ -924,7 +929,7 @@ async function carregarCarrinhoCompleto() {
         "Erro ao carregar dados do carrinho/produtos"
     );
   } finally {
-    // 5. Finaliza o loading principal, garantindo que o `v-if` seja atualizado.
+ 
     carregandoCarrinho.value = false;
   }
 }

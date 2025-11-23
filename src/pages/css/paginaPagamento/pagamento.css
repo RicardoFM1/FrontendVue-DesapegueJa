@@ -46,3 +46,41 @@
     flex-grow: 1;
     min-width: 0; 
 }
+.pagamento-container {
+  min-height: 60vh;
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 300ms ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+
+.v-overlay__content > .v-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.items-list-enhanced .v-sheet {
+  background: #fff;
+}
+
+
+.v-alert .v-icon {
+  margin-right: 12px;
+}
+
+
+.v-progress-linear .v-progress-linear__bar {
+  border-radius: 6px;
+}

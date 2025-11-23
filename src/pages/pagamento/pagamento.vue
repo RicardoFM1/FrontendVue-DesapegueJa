@@ -1,18 +1,74 @@
 <template>
   <v-container class="pagamento-container" fluid>
-    <v-sheet class="pa-6 mx-auto" max-width="800" elevation="3" rounded="lg">
-      <h2 class="text-h4 font-weight-bold mb-6 text-center">
-        Confirmação de Pagamento
-      </h2>
+    <v-sheet class="pa-6 mx-auto" max-width="900" elevation="3" rounded="lg">
+      <h2 class="text-h4 font-weight-bold mb-6 text-center">Confirmação de Pagamento</h2>
 
-      <!-- Loading -->
-      <div v-if="loadingPagamento" class="text-center pa-10">
-        <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-        <p class="mt-4 text-subtitle-1">Carregando detalhes do pagamento...</p>
+      <!-- Loading (skeleton) -->
+      <div v-if="loadingPagamento" class="text-center pa-6">
+        <v-skeleton-loader type="image, heading, paragraph" class="mb-4" />
+        <v-progress-circular indeterminate size="56"></v-progress-circular>
+        <p class="mt-3 text-subtitle-1">Carregando detalhes do pagamento...</p>
       </div>
 
       <!-- Conteúdo -->
       <div v-else>
+        <!-- STATUS ALERT -->
+        <div class="mb-4">
+          <v-alert
+            v-if="statusPagamento === STATUS.pendente"
+            variant="tonal"
+            border="start"
+            color="info"
+            class="d-flex align-center"
+          >
+            <div class="mr-3">
+              <v-icon size="28">mdi-timer-sand</v-icon>
+            </div>
+            <div>
+              Aguardando confirmação do pagamento. Atualizando automaticamente...
+              <div class="mt-1 text-caption">Você também pode recarregar manualmente.</div>
+            </div>
+
+            <v-spacer></v-spacer>
+            <v-btn icon small @click="checarStatusPagamento" :disabled="loadingPolling" title="Atualizar agora">
+              <v-icon>mdi-refresh</v-icon>
+            </v-btn>
+          </v-alert>
+
+          <v-alert
+            v-else-if="statusPagamento === STATUS.pago"
+            variant="tonal"
+            border="start"
+            color="success"
+            class="d-flex align-center"
+          >
+            <v-icon class="mr-3" size="28">mdi-check-circle</v-icon>
+            Pagamento confirmado! Redirecionando...
+          </v-alert>
+
+          <v-alert
+            v-else-if="statusPagamento === STATUS.rejeitado || statusPagamento === STATUS.erro"
+            variant="tonal"
+            border="start"
+            color="error"
+            class="d-flex align-center"
+          >
+            <v-icon class="mr-3" size="28">mdi-alert-circle</v-icon>
+            Pagamento não autorizado. Verifique com seu banco ou tente outra forma de pagamento.
+          </v-alert>
+
+          <v-alert
+            v-else-if="timerExpirado"
+            variant="outlined"
+            border="start"
+            color="warning"
+            class="d-flex align-center"
+          >
+            <v-icon class="mr-3" size="28">mdi-clock-alert</v-icon>
+            O tempo para pagamento expirou. Você pode voltar ao carrinho ou gerar um novo pedido.
+          </v-alert>
+        </div>
+
         <!-- Itens do carrinho -->
         <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
           <div class="items-list-enhanced">
@@ -82,28 +138,94 @@
 
         <!-- Pagamento -->
         <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
-          <h3 class="text-h6 font-weight-bold mb-3">Forma de Pagamento</h3>
+          <h3
+            class="text-h6 font-weight-bold mb-3"
+            :class="{
+              'text-green-darken-2': isPix,
+              'text-blue-darken-2': isCartao,
+              'text-orange-darken-2': isBoleto
+            }"
+          >
+            Forma de Pagamento
+          </h3>
           <p>{{ metodoPagamento?.toUpperCase() || "Não selecionado" }}</p>
 
-          <!-- PIX -->
+         
           <v-sheet v-if="isPix" class="pa-3 mt-3 text-center bg-green-lighten-5 rounded-lg">
             <v-icon color="green" size="30">mdi-qrcode</v-icon>
             <p class="mt-2 text-body-1">Pagamento instantâneo pelo Pix</p>
 
+            
+            <v-progress-linear
+              v-if="!timerExpirado"
+              :model-value="percentualRestante"
+              height="6"
+              rounded
+              class="my-3"
+            />
+
             <div class="my-3">
               <p class="text-caption text-grey-darken-1 mb-0">Tempo restante para pagar:</p>
               <h2 :class="{ 'text-red': timerExpirado, 'text-green-darken-2': !timerExpirado }">{{ tempoRestante }}</h2>
-              <p v-if="timerExpirado" class="text-caption text-red font-weight-bold">Pedido expirado.</p>
             </div>
 
-         <v-img v-if="pixQrCode && !timerExpirado" :src="pixQrCode" max-width="250" class="mx-auto my-2"/>
-<p v-else-if="!timerExpirado">Carregando QR Code...</p>
+          
+          <transition name="fade" mode="out-in">
+
+  <div v-if="pixQrCode" key="qr-loaded" class="text-center mb-2">
+    <img :src="pixQrCode" alt="QR Code PIX" width="250" />
+    <p class="mt-2 text-caption">Aguardando confirmação do pagamento...</p>
+  </div>
+
+  
+  <div v-else-if="!timerExpirado" key="qr-loading" class="text-center mb-2">
+    <v-skeleton-loader type="image" width="250" />
+    <p class="mt-2 text-caption">Carregando QR Code...</p>
+  </div>
 
 
+  <div v-else key="qr-expired" class="text-center mb-2 text-error">
+    <v-icon size="48">mdi-alert-circle</v-icon>
+    <p class="mt-2 text-caption">Tempo expirado. Gere outro QR Code.</p>
+  </div>
+</transition>
 
-            <v-btn v-if="pixCopiaCodigo && !timerExpirado" small outlined color="green" @click="copiarPix">
-              Copiar código Pix
-            </v-btn>
+
+        
+            <div class="d-flex justify-center mt-2">
+              <v-btn
+                v-if="pixCopiaCodigo && !timerExpirado"
+                small
+                variant="outlined"
+                color="green"
+                @click="copiarPix"
+              >
+                <template v-if="!copiado">
+                  <v-icon left small>mdi-content-copy</v-icon> Copiar código Pix
+                </template>
+                <template v-else>
+                  <v-icon left small>mdi-check</v-icon> Copiado!
+                </template>
+              </v-btn>
+
+              <v-btn
+                v-if="!timerExpirado"
+                small
+                class="ml-2"
+                variant="tonal"
+                color="blue"
+                @click="checarStatusPagamento"
+                :loading="loadingPolling"
+              >
+                <v-icon left small>mdi-refresh</v-icon> Atualizar status
+              </v-btn>
+            </div>
+
+            <!-- Actions after expiration -->
+            <div v-if="timerExpirado" class="mt-4 d-flex justify-center gap-3">
+              <v-btn color="primary" @click="router.push('/carrinho')">Voltar ao carrinho</v-btn>
+              <v-btn color="secondary" variant="outlined" @click="router.push('/')">Continuar navegando</v-btn>
+            </div>
           </v-sheet>
 
           <!-- Cartão -->
@@ -126,8 +248,14 @@
           </v-sheet>
         </v-sheet>
 
-        <!-- Botão Cancelar -->
+        <!-- Ações: Sair / Cancelar -->
         <v-row class="mt-4" justify="center" align="center" dense>
+          <v-col cols="12" md="6">
+            <v-btn color="grey" block large @click="sairDoPagamento" :disabled="loadingCancelamento">
+              Sair do pagamento
+            </v-btn>
+          </v-col>
+
           <v-col cols="12" md="6">
             <v-btn color="red" block large @click="abrirModalCancelamento" :loading="loadingCancelamento">
               Cancelar Pagamento
@@ -138,9 +266,9 @@
     </v-sheet>
 
     <!-- Modal Cancelamento -->
-    <v-dialog v-model="dialogCancelar" max-width="400">
+    <v-dialog v-model="dialogCancelar" max-width="480">
       <v-card>
-        <v-card-title class="text-h5 red lighten-2 white--text">Confirmação de Cancelamento</v-card-title>
+        <v-card-title class="text-h6">Cancelar pagamento</v-card-title>
         <v-card-text class="py-4">
           Tem certeza que deseja cancelar este pagamento e pedido? O carrinho será esvaziado.
         </v-card-text>
@@ -151,8 +279,18 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+   
+    <v-overlay :model-value="loadingCancelamento" absolute>
+      <v-card class="pa-6" elevation="8">
+        <v-progress-circular indeterminate size="64"></v-progress-circular>
+        <div class="mt-3">Cancelando pagamento...</div>
+      </v-card>
+    </v-overlay>
   </v-container>
 </template>
+
+
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
@@ -161,6 +299,15 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { connection } from "@/connection/axiosConnection";
 import QRCode from "qrcode";
+
+
+const STATUS = {
+  pendente: 1,
+  pago: 2,
+  rejeitado: 3,
+  erro: 4,
+  expirado: 5
+};
 
 const router = useRouter();
 const token = ref(localStorage.getItem("token") || "");
@@ -178,11 +325,10 @@ const metodoEntrega = ref("combinar");
 const pixQrCode = ref(null);
 const boletoUrl = ref(null);
 const pixCopiaCodigo = ref(null);
-const statusPagamentoId = ref(null);
+const statusPagamento = ref(STATUS.pendente);
 const dialogCancelar = ref(false);
 
 const frete = computed(() => metodoEntrega.value.toLowerCase() === "entrega" ? 1500 : 0);
-
 const totalComFrete = computed(() => subtotal.value + frete.value);
 
 const metodoPagamentoNormalizado = computed(() => {
@@ -191,7 +337,6 @@ const metodoPagamentoNormalizado = computed(() => {
   if (["pix", "cartao", "boleto"].includes(mp)) return mp;
   return "outro";
 });
-
 const isPix = computed(() => metodoPagamentoNormalizado.value === "pix");
 const isCartao = computed(() => metodoPagamentoNormalizado.value === "cartao");
 const isBoleto = computed(() => metodoPagamentoNormalizado.value === "boleto");
@@ -205,7 +350,6 @@ function getProdutoImage(imagem) {
 }
 
 
-
 async function gerarQrCodePix(codigoPix) {
   try {
     return await QRCode.toDataURL(codigoPix);
@@ -216,17 +360,27 @@ async function gerarQrCodePix(codigoPix) {
 }
 
 
+const tempoRestante = ref("00:00");
+const percentualRestante = ref(100);
+const timerExpirado = ref(false);
+const copiado = ref(false);
+const loadingPolling = ref(false);
+
+
+let intervaloTimer = null;
+let pollingInterval = null;
+const POLLING_DELAY_MS = 5000;
+
+
 async function getPagamento() {
   loadingPagamento.value = true;
   try {
-
     const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve?.value.id}`, {
       headers: { Authorization: `Bearer ${token.value}` }
     });
     const pagamento = res.data;
-    statusPagamentoId.value = pagamento.status_pagamento_id;
+    statusPagamento.value = pagamento.status_pagamento_id;
 
-    
     const resFormas = await connection.get("/desapega/formasPagamento", {
       headers: { Authorization: `Bearer ${token.value}` }
     });
@@ -234,30 +388,32 @@ async function getPagamento() {
     const formaSelecionada = formas.find(f => f.id === pagamento.forma_pagamento_id);
     metodoPagamento.value = formaSelecionada?.forma?.toLowerCase() || "outro";
 
-  
     if (isPix.value) {
-      
-      pixQrCode.value = pagamento.pix_qr_code
-    ? `data:image/png;base64,${pagamento.pix_qr_code}`
-    : null;
+  
+      pixQrCode.value = pagamento.pix_qr_code ? `data:image/png;base64,${pagamento.pix_qr_code}` : null;
 
-
-     
+    
       pixCopiaCodigo.value = pagamento.pix_copia_codigo || null;
+      if (!pixQrCode.value && pixCopiaCodigo.value) {
+      
+        gerarQrCodePix(pixCopiaCodigo.value).then(dataUrl => {
+          if (dataUrl) pixQrCode.value = dataUrl;
+        });
+      }
 
       
       if (pagamento.expiracao) iniciarContagemRegressiva(new Date(pagamento.expiracao));
 
-     
       iniciarPollingStatus();
     }
 
-    
     if (isBoleto.value) boletoUrl.value = pagamento.boleto_url || null;
 
-    
-    if (pagamento.status_pagamento_id === 2) router.push({ name: 'PagamentoSucesso' });
-
+  
+    if (pagamento.status_pagamento_id === STATUS.pago) {
+      toast.success("Pagamento já aprovado! Redirecionando...");
+      setTimeout(() => router.push("/"), 800);
+    }
   } catch (err) {
     console.error("Erro ao buscar pagamento:", err);
     toast.error("Erro ao carregar dados do pagamento");
@@ -267,65 +423,108 @@ async function getPagamento() {
 }
 
 
-
-// Timer Pix
-const tempoRestante = ref("15:00");
-const timerExpirado = ref(false);
-let intervaloTimer = null;
 function iniciarContagemRegressiva(expiracaoISO) {
+  clearInterval(intervaloTimer);
+  timerExpirado.value = false;
+  percentualRestante.value = 100;
+
   const fim = new Date(expiracaoISO).getTime();
+  const totalDuracao = Math.max(1, fim - Date.now());
+
   intervaloTimer = setInterval(() => {
     const distancia = fim - Date.now();
     if (distancia <= 0) {
       clearInterval(intervaloTimer);
       tempoRestante.value = "00:00";
       timerExpirado.value = true;
-      if (isPix.value && !loadingCancelamento.value) cancelarPagamento();
+      percentualRestante.value = 0;
       return;
     }
     const minutos = Math.floor((distancia / 1000 / 60) % 60);
     const segundos = Math.floor((distancia / 1000) % 60);
-    tempoRestante.value = `${String(minutos).padStart(2,"0")}:${String(segundos).padStart(2,"0")}`;
+    tempoRestante.value = `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+
+   
+    percentualRestante.value = Math.max(0, Math.floor((distancia / totalDuracao) * 100));
   }, 1000);
 }
 
-// Polling de status
-let pollingInterval = null;
-const POLLING_DELAY_MS = 5000;
+
 function iniciarPollingStatus() {
   if (pollingInterval) clearInterval(pollingInterval);
   pollingInterval = setInterval(checarStatusPagamento, POLLING_DELAY_MS);
+  
+  checarStatusPagamento();
 }
 
+
+
 async function checarStatusPagamento() {
+  if (!retrieve?.value?.id) return;
+  loadingPolling.value = true;
   try {
-    const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve?.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
+    const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
     const pagamento = res.data;
-    if (pagamento.status_pagamento_id === 2) {
+
+    statusPagamento.value = pagamento.status_pagamento_id;
+
+    if (pagamento.status_pagamento_id === STATUS.pago) {
       clearInterval(pollingInterval);
-      router.push({ name: 'PagamentoSucesso' });
+      toast.success("Pagamento aprovado!");
+      setTimeout(() => router.push("/"), 900);
+     
     }
-    if (pagamento.status_pagamento_id === 4) clearInterval(pollingInterval);
+
+   
+    if ([STATUS.rejeitado, STATUS.erro].includes(pagamento.status_pagamento_id)) {
+  clearInterval(pollingInterval);
+
+  toast.error("Pagamento recusado ou erro no processamento.");
+
+ 
+  pixQrCode.value = null;
+  pixCopiaCodigo.value = null;
+  boletoUrl.value = null;
+
+  
+  timerExpirado.value = true;
+  tempoRestante.value = "00:00";
+  percentualRestante.value = 0;
+  await cancelarPagamento();
+ 
+  setTimeout(() => {
+    router.push("/carrinho");
+  }, 1200);
+
+  return;
+}
+
   } catch (err) {
     console.error("Erro polling pagamento:", err);
     clearInterval(pollingInterval);
+    toast.error("Erro ao consultar status do pagamento.");
+  } finally {
+    loadingPolling.value = false;
   }
 }
 
-// Cancelamento
-function abrirModalCancelamento() { dialogCancelar.value = true; }
+
+function abrirModalCancelamento() {
+  dialogCancelar.value = true;
+}
 async function cancelarPagamento() {
   if (!ordemCompra.value) return;
   try {
     loadingCancelamento.value = true;
     dialogCancelar.value = false;
-    await connection.delete(`/desapega/pagamentos/usuario/${retrieve?.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
+    await connection.delete(`/desapega/pagamentos/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
     toast.success("Pagamento cancelado com sucesso.");
+   
     metodoPagamento.value = "";
     pixQrCode.value = null;
     pixCopiaCodigo.value = null;
     boletoUrl.value = null;
-    setTimeout(() => router.push("/carrinho"), 1000);
+    setTimeout(() => router.push("/carrinho"), 800);
   } catch (err) {
     console.error(err);
     toast.error(err.response?.data?.message || "Erro ao cancelar pagamento.");
@@ -334,22 +533,36 @@ async function cancelarPagamento() {
   }
 }
 
-// Copiar Pix
-function copiarPix() {
-  if (!pixCopiaCodigo.value) return toast.error("Código Pix não encontrado.");
-  navigator.clipboard.writeText(pixCopiaCodigo.value);
-  toast.success("Código Pix copiado!");
+
+function sairDoPagamento() {
+  router.push("/"); 
 }
 
-// ------------------- Montagem inicial -------------------
+
+async function copiarPix() {
+  if (!pixCopiaCodigo.value) return toast.error("Código Pix não encontrado.");
+  try {
+    await navigator.clipboard.writeText(pixCopiaCodigo.value);
+    copiado.value = true;
+    toast.success("Código Pix copiado!");
+    setTimeout(() => (copiado.value = false), 1500);
+  } catch (err) {
+    console.error("Erro ao copiar Pix:", err);
+    toast.error("Erro ao copiar código Pix.");
+  }
+}
+
+
 onMounted(async () => {
   if (!tokenExiste.value) return router.push("/");
 
   loadingPagamento.value = true;
   try {
+  
     const resUser = await connection.get("/desapega/usuarios/retrieve", { headers: { Authorization: `Bearer ${token.value}` } });
     retrieve.value = resUser.data;
 
+  
     const resCarrinho = await connection.get(`/desapega/carrinho/${retrieve.value.id}`);
     const carrinhoBackend = resCarrinho.data;
 
@@ -365,7 +578,7 @@ onMounted(async () => {
 
     subtotal.value = carrinhoUser.value.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
 
-    // Endereço e ordem
+ 
     const resEndereco = await connection.get(`/desapega/enderecos/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
     enderecoUsuario.value = resEndereco.data;
 
@@ -373,15 +586,17 @@ onMounted(async () => {
     ordemCompra.value = resOrdem.data;
     metodoEntrega.value = ordemCompra.value.metodo_entrega || "combinar";
 
+   
     await getPagamento();
   } catch (err) {
     toast.error(err.response?.data?.message || "Erro ao carregar dados do pagamento");
+    console.error(err);
   } finally {
     loadingPagamento.value = false;
   }
 });
 
-// Cleanup
+
 onUnmounted(() => {
   if (intervaloTimer) clearInterval(intervaloTimer);
   if (pollingInterval) clearInterval(pollingInterval);
@@ -391,3 +606,4 @@ onUnmounted(() => {
 <style scoped>
 @import "../css/paginaPagamento/pagamento.css";
 </style>
+
