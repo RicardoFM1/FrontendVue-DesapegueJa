@@ -472,15 +472,6 @@ const readOnlyComCEP = computed(() => {
   return numeros.length === 8;
 });
 
-function generateUUID() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID)
-    return crypto.randomUUID();
-  return "xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
 async function getRetrieve() {
   try {
@@ -731,10 +722,7 @@ async function comprar() {
       return;
     }
 
-    const pagamentoUUIDLocal = generateUUID();
-
     const pagamentoBody = {
-      pagamento_uuid: pagamentoUUIDLocal,
       ordem_id: ordemId,
       usuario_id: retrieve.value.id,
       forma_pagamento_id: formaSelecionada.id,
@@ -743,12 +731,29 @@ async function comprar() {
       observacao: "",
     };
 
-    await connection.post("/desapega/pagamentos", pagamentoBody, {
-      headers: { Authorization: `Bearer ${token?.value}` },
-      timeout: 15000,
-    });
+    
+    const pagamentoRes = await connection.post(
+      "/desapega/pagamentos",
+      pagamentoBody,
+      {
+        headers: { Authorization: `Bearer ${token?.value}` },
+        timeout: 15000,
+      }
+    );
 
-    router.push(`/pagamento/${pagamentoUUIDLocal}`);
+    const novoPagamentoUUID = pagamentoRes.data?.pagamento_uuid; 
+
+    if (!novoPagamentoUUID) {
+        toast.error("Erro: Pagamento criado mas UUID não retornado.");
+        return;
+    }
+    
+    
+    pagamentoUUID.value = novoPagamentoUUID; 
+    
+    
+    router.push(`/pagamento/${novoPagamentoUUID}`); 
+  
   } catch (err) {
     console.error("comprar erro:", err);
 
@@ -893,16 +898,16 @@ async function carregarCarrinhoCompleto() {
       if (!retrieve.value) throw new Error("Usuário não logado/encontrado.");
     }
 
-    // 2. Executa todas as chamadas necessárias em paralelo
+
     await Promise.all([
       getCarrinho(),
-      getProdutos(), // Esta função não precisa mais gerenciar seu próprio loading
+      getProdutos(), 
       carregarFormasPagamento(),
       getEndereco(),
-      getPagamentos(), // Para buscar o pagamentoUUID
+      getPagamentos(),
     ]);
 
-    // 3. Monta a lista de produtos no carrinho
+ 
     setarCarrinhoUser();
 
     // 4. Verifica se já existe um pagamento/ordem em andamento
