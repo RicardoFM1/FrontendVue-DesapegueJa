@@ -774,6 +774,29 @@ async function comprar() {
   }
 }
 
+async function atualizarQuantidade(item) {
+
+  item.quantidade = Number(item.quantidade);
+  carrinhoUser.value = [...carrinhoUser.value];
+  try{
+    const body = {
+      quantidade: item.quantidade
+    }
+    const res = await connection.patch(`/desapega/carrinho/${retrieve?.value.id}/${item.id}`, body, 
+      {headers: {
+        Authorization: `Bearer ${token.value}`
+      }}
+    )
+    if(res.status === 200 || res.status === 201){
+      toast.success("Quantidade atualizada com sucesso!", {autoClose: 2000})
+    }else{
+      toast.error("Erro ao tentar atualizar essa quantidade", {autoClose: 2000})
+    }
+  }catch(err){
+    toast.error(err.response?.data?.message || "Erro ao tentar atualizar essa quantidade do produto")
+  }
+}
+
 function clickRemover(item) {
   itemASerRemovido.value = item;
   modalConfirmacaoOpen.value = true;
