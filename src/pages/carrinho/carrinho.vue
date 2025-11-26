@@ -167,7 +167,21 @@
           <v-radio label="Combinar com o vendedor" value="combinar"></v-radio>
           <v-radio label="Entrega" value="entrega" />
         </v-radio-group>
+        <v-expand-transition>
+  <v-alert
+    v-if="metodoEntrega === 'entrega' && enderecoIncompleto(enderecoUsuario)"
+    type="error"
+    icon="mdi-map-marker-alert"
+    class="my-3"
+    variant="tonal"
+  >
+    <p class="font-weight-bold">Endereço Incompleto!</p>
+    <p>Complete seu endereço para que possamos fazer a entrega.</p>
+  </v-alert>
+</v-expand-transition>
 
+<v-expand-transition>
+  </v-expand-transition>
         <v-expand-transition>
           <v-sheet
             v-if="metodoEntrega === 'combinar'"
@@ -278,7 +292,7 @@
       <button class="btn-voltar" @click="voltar">Voltar às compras</button>
     </v-sheet>
 
-    <v-dialog v-model="modalEndereco" max-width="600px" max-height="900px">
+    <v-dialog v-if="modalEndereco" v-model="modalEndereco" max-width="600px" max-height="900px">
       <v-card class="pa-6">
         <v-card-title class="text-h5 pa-5 text-center">
           Endereço do usuário
@@ -443,6 +457,7 @@ const metodoPagamento = ref("");
 
 const loadingComprar = ref(false);
 const loadingEndereco = ref(false);
+const modalEndereco = ref(false);
 
 
 const enderecoForm = ref({
@@ -640,11 +655,55 @@ async function buscarOrdemUsuario() {
   }
 }
 
+const salvarAlteracoesEndereco = async () => {
+  loadingEndereco.value = true;
+  try {
+    const body = {
+      cep: endereco.value.Cep,
+      estado: endereco.value.Estado,
+      cidade: endereco.value.Cidade,
+      bairro: endereco.value.Bairro,
+      rua: endereco.value.Rua,
+      numero: endereco.value.Numero,
+      logradouro: endereco.value.Logradouro,
+      complemento: endereco.value.Complemento,
+      status: endereco.value.Status,
+    };
+    const res = await connection.patch(
+      `/desapega/enderecos/${retrieve.value.id}`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
+    if (res.status === 200 || res.status === 204) {
+      toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
+      setTimeout(() => {
+        router.go(0);
+      }, 2000);
+    } else {
+      toast.error(res.data?.message || "Erro ao salvar alterações");
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao atualizar perfil");
+  } finally {
+    loadingEndereco.value = false;
+  }
+};
+
 async function comprar() {
   if (!carrinhoUser.value.length) {
     toast.error("Seu carrinho está vazio");
     return;
   }
+
+  if (metodoEntrega.value === "entrega" && enderecoIncompleto(enderecoUsuario.value)) {
+       modalEndereco.value = true;
+        toast.warning("Para 'Entrega', complete seu endereço!", { autoClose: 3000 });
+        return; 
+    }
 
   if (!metodoPagamento.value) {
     toast.error("Selecione uma forma de pagamento");
@@ -957,15 +1016,14 @@ async function carregarCarrinhoCompleto() {
   }
 }
 watch(metodoEntrega, (novo, antigo) => {
-  if (novo === "entrega" && enderecoIncompleto(enderecoUsuario.value)) {
-    metodoEntrega.value = antigo;
-    modalConfirmacaoOpen.value = false;
-
-    setTimeout(
-      () => enderecoForm.value && (modalConfirmacaoOpen.value = false),
-      0
-    );
-  }
+  if (novo === "entrega" && enderecoIncompleto(enderecoForm.value)) {
+  
+modalEndereco.value = true;
+    
+    toast.warning("Complete seu endereço para usar a opção 'Entrega'.", {
+      autoClose: 3000,
+    });
+  }
 });
 
 function enderecoIncompleto(end) {
