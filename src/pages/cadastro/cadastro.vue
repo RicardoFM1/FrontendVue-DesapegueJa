@@ -105,14 +105,37 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-text-field
-            label="Telefone"
-            v-model="usuario.Telefone"
-            prepend-inner-icon="mdi-cellphone"
-            placeholder="(DD) 0000-0000 ou 00000-0000"
-            :rules="rulesTelefone"
-            @input="formatTelefone"
-          ></v-text-field>
+         <div style="display: flex; gap: 10px; width: 100%;">
+ <v-select
+  :items="ddiOptions"
+  v-model="usuario.ddi"
+  item-title="text"
+  item-value="value"
+  variant="outlined"
+  density="comfortable"
+  hide-details="auto"
+  base-color="#293559"
+  style="max-width: 140px;"
+  label="DDI"
+  rounded="lg"
+  :rules="rulesDDI"
+  required
+/>
+
+
+  <v-text-field
+    label="Telefone"
+    v-model="usuario.Telefone"
+    prepend-inner-icon="mdi-cellphone"
+    :rules="rulesTelefone"
+    base-color="#293559"
+    density="comfortable"
+    variant="outlined"
+    rounded="lg"
+  />
+</div>
+
+
           <v-btn
             :disabled="disabled"
             :loading="loading"
@@ -141,6 +164,15 @@ import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
 import { useMask } from "../../utility/masks/mask";
 
+const ddiOptions = [
+  { text: "+1 EUA", value: "1" },
+  { text: "+34 Espanha", value: "34" },
+  { text: "+44 Reino Unido", value: "44" },
+  { text: "+49 Alemanha", value: "49" },
+  { text: "+52 México", value: "52" },
+  { text: "+55 Brasil", value: "55" },
+  { text: "+351 Portugal", value: "351" },
+];
 
 const router = useRouter();
 onMounted(() => {
@@ -158,8 +190,10 @@ const usuario = ref({
   confirmSenha: "",
   dataNascimento: "",
   CPF: "",
+  ddi: "55",
   Telefone: "",
 });
+
 const loading = ref(false);
 const show = ref(true);
 const show2 = ref(true);
@@ -171,43 +205,7 @@ const inputTelefone = ref(null);
 useMask(inputData, { mask: "00/00/0000" });
 useMask(inputCPF, { mask: "000.000.000-00" });
 
-const formatTelefone = (e) => {
-  let numeros = e.target.value.replace(/\D/g, "");
 
- 
-  if (numeros.length > 13) numeros = numeros.slice(0, 13);
-
-  let ddd, prefixo, resto;
-
-  
-  if (numeros.length >= 2) {
-    ddd = numeros.slice(0, 2);
-    prefixo = numeros.slice(2, 4);
-    resto = numeros.slice(4);
-  } else {
-    ddd = numeros;
-    prefixo = "";
-    resto = "";
-  }
-
-  let firstPart, lastPart;
-
-  if (resto.length > 4) {
-    firstPart = resto.slice(0, resto.length - 4);
-    lastPart = resto.slice(resto.length - 4);
-  } else {
-    firstPart = resto;
-    lastPart = "";
-  }
-
-  let formatted = "";
-  if (ddd) formatted += `(${ddd})`;
-  if (prefixo) formatted += ` ${prefixo}`;
-  if (firstPart) formatted += ` ${firstPart}`;
-  if (lastPart) formatted += `-${lastPart}`;
-
-  usuario.value.Telefone = formatted;
-};
 
 
 
@@ -237,7 +235,8 @@ const onSubmit = async () => {
   loading.value = false;
   return;
 }
-const telefoneFormatado = usuario.value.Telefone.replace(/\D/g, "");
+const telefoneFormatado = usuario.value.ddi + usuario.value.Telefone.replace(/\D/g, "");
+
 
   console.log(cpfFormatado, "FormatCPF");
   console.log(telefoneFormatado, "formatTelefone")
@@ -296,14 +295,14 @@ const rulesDataNascimento = [
     "Data inválida",
 ];
 
+const rulesDDI = [
+  (value) => !!value || "Obrigatório selecionar um DDI",
+];
 const rulesTelefone = [
   (value) => !!value || "Obrigatório preencher",
-  (value) => {
-   
-    const regex = /^\(\d{2,3}\)\s\d{2}\s\d{4,5}-\d{4}$/;
-    return regex.test(value) || "Telefone inválido. Use o formato (DDD) DD 0000-0000 ou 00000-0000";
-  }
+  (value) => value.length >= 8 || "Telefone muito curto",
 ];
+
 
 const disabled = computed(
   () =>
@@ -311,6 +310,7 @@ const disabled = computed(
     !usuario.value.senha ||
     usuario.value.confirmSenha !== usuario.value.senha ||
     !usuario.value.CPF ||
+     !usuario.value.ddi ||
     !usuario.value.Telefone ||
     !usuario.value.dataNascimento
 );

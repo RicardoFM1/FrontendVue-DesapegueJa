@@ -152,10 +152,6 @@ const token = ref(localStorage.getItem("token"))
 useMask(inputData, { mask: "00/00/0000" }); 
 useMask(inputCPF, { mask: "000.000.000-00" });
 
-const filtrarTelefone = (valor) => {
-  usuario.value.telefone = valor;
-};
-
 
 const isNumber = (evt) => {
   const charCode = evt.which ? evt.which : evt.keyCode;
