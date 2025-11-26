@@ -75,19 +75,62 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router"; 
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify/dist/index";
 
 const router = useRouter();
+const route = useRoute(); 
 const usuario = ref({ email: "", senha: "" });
 const loading = ref(false);
 const show = ref(true);
 
-onMounted(() => {
-  if (localStorage.getItem("token")) {
-    router.push("/");
-  }
+
+
+onMounted(async() => {
+    const googleToken = route.query.token;
+    const googleNome = route.query.nome;
+    const needsCompletion = route.query.needs_completion === 'true'; 
+
+    
+   if (googleToken) {
+      
+        localStorage.setItem('token', googleToken);
+       
+        
+        console.log("URL ANTES de replace:", window.location.href);
+        
+       
+
+        console.log("URL DEPOIS de replace:", window.location.href); 
+        
+       
+        const msgBoasVindas = googleNome ? `Bem-vindo(a), ${googleNome}!` : "Login realizado com sucesso!";
+        toast.success(msgBoasVindas, { autoClose: 2000 });
+        
+       
+         router.replace({ path: route.path, query: {} });
+
+        if (needsCompletion) {
+            router.push("/completar-cadastro"); 
+        } else {
+            router.push("/");
+        }
+        return; 
+    } 
+
+   
+    if (localStorage.getItem("token")) {
+        
+        router.push("/");
+        return;
+    }
+    
+    
+    console.log("-----------------------------------------");
+    console.log("Iniciando onMounted no Login.vue");
+    console.log("Token recebido da URL: NÃO (Página de login normal)");
+    console.log("-----------------------------------------");
 });
 
 const delay = (ms) => new Promise(r => setTimeout(r, ms));
@@ -107,15 +150,17 @@ const onSubmit = async (e) => {
     }
   } catch (err) {
     const msg = err?.response?.data?.message ?? "Credenciais erradas!";
-toast.error(msg, { autoClose: 2000 });
-console.error("Erro no login:", err)
+    toast.error(msg, { autoClose: 2000 });
+    console.error("Erro no login:", err)
     localStorage.removeItem("token");
   } finally {
     loading.value = false;
   }
 };
+
 const loginGoogle = () => {
-  window.location.href = "https://localhost:5000/desapega/social/google";
+ 
+ window.location.href = "https://localhost:7000/desapega/usuarios/login-google";
 };
 
 const disabled = computed(() =>
