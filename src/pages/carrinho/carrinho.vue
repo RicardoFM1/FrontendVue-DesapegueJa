@@ -301,14 +301,14 @@
         <v-form @submit.prevent="salvarAlteracoesEndereco">
           <v-text-field
             label="CEP"
-            v-model="enderecoForm.cep"
+            v-model="enderecoForm.Cep"
             append-inner-icon="mdi-delete"
             @click:append-inner="
-              (enderecoForm.cep = ''),
-                (enderecoForm.bairro = ''),
-                (enderecoForm.cidade = ''),
-                (enderecoForm.estado = ''),
-                (enderecoForm.rua = '')
+              (enderecoForm.Cep = ''),
+                (enderecoForm.Bairro = ''),
+                (enderecoForm.Cidade = ''),
+                (enderecoForm.Estado = ''),
+                (enderecoForm.Rua = '')
             "
             placeholder="00000-00"
             @input="onInputCep"
@@ -316,7 +316,7 @@
           </v-text-field>
           <v-select
             label="Estado"
-            v-model="enderecoForm.estado"
+            v-model="enderecoForm.Estado"
             :readonly="readOnlyComCEP"
             :items="[
               { title: '', value: '' },
@@ -354,13 +354,13 @@
           </v-select>
           <v-text-field
             label="Cidade"
-            v-model="enderecoForm.cidade"
+            v-model="enderecoForm.Cidade"
             :readonly="readOnlyComCEP"
           >
           </v-text-field>
           <v-text-field
             label="Bairro"
-            v-model="enderecoForm.bairro"
+            v-model="enderecoForm.Bairro"
             :readonly="readOnlyComCEP"
           >
           </v-text-field>
@@ -368,7 +368,7 @@
             <v-text-field
               label="Rua"
               class="ml-3 mr-3"
-              v-model="enderecoForm.rua"
+              v-model="enderecoForm.Rua"
               :readonly="readOnlyComCEP"
             >
             </v-text-field>
@@ -377,13 +377,13 @@
               label="Número"
               class="mr-3"
               max-width="50%"
-              v-model="enderecoForm.numero"
+              v-model="enderecoForm.Numero"
             >
             </v-text-field>
           </v-row>
           <v-select
             label="Tipo de logradouro"
-            v-model="enderecoForm.logradouro"
+            v-model="enderecoForm.Logradouro"
             :items="[
               { title: '', value: '' },
               { title: 'Rua', value: 'rua' },
@@ -396,7 +396,7 @@
             item-value="value"
           >
           </v-select>
-          <v-text-field label="Complemento" v-model="enderecoForm.complemento">
+          <v-text-field label="Complemento" v-model="enderecoForm.Complemento">
           </v-text-field>
 
           <v-row class="mt-6" justify="center" align="center">
@@ -461,14 +461,15 @@ const modalEndereco = ref(false);
 
 
 const enderecoForm = ref({
-  cep: "",
-  estado: "",
-  cidade: "",
-  bairro: "",
-  rua: "",
-  numero: "",
-  complemento: "",
-  logradouro: "",
+  Cep: "",
+  Estado: "",
+  Cidade: "",
+  Bairro: "",
+  Rua: "",
+  Numero: "",
+  Logradouro: "",
+  Complemento: "",
+  Status: "",
 });
 
 const enderecoUsuario = ref(null);
@@ -485,7 +486,7 @@ const subtotal = computed(() =>
 );
 const totalComFrete = computed(() => subtotal.value + frete.value);
 const readOnlyComCEP = computed(() => {
-  const numeros = (enderecoForm.value.cep || "").replace(/\D/g, "");
+  const numeros = (enderecoForm.value.Cep || "").replace(/\D/g, "");
   return numeros.length === 8;
 });
 
@@ -655,19 +656,20 @@ async function buscarOrdemUsuario() {
   }
 }
 
+
 const salvarAlteracoesEndereco = async () => {
   loadingEndereco.value = true;
   try {
     const body = {
-      cep: endereco.value.Cep,
-      estado: endereco.value.Estado,
-      cidade: endereco.value.Cidade,
-      bairro: endereco.value.Bairro,
-      rua: endereco.value.Rua,
-      numero: endereco.value.Numero,
-      logradouro: endereco.value.Logradouro,
-      complemento: endereco.value.Complemento,
-      status: endereco.value.Status,
+      cep: enderecoForm.value.Cep,
+      estado: enderecoForm.value.Estado,
+      cidade: enderecoForm.value.Cidade,
+      bairro: enderecoForm.value.Bairro,
+      rua: enderecoForm.value.Rua,
+      numero: enderecoForm.value.Numero,
+      logradouro: enderecoForm.value.Logradouro,
+      complemento: enderecoForm.value.Complemento,
+      status: enderecoForm.value.Status,
     };
     const res = await connection.patch(
       `/desapega/enderecos/${retrieve.value.id}`,
@@ -905,7 +907,7 @@ function formatCep(value = "") {
   return parte2 ? `${parte1}-${parte2}` : parte1;
 }
 const onInputCep = (event) => {
-  endereco.value.Cep = formatCep(event.target.value);
+  enderecoForm.value.Cep = formatCep(event.target.value);
 };
 function debounce(fn, ms = 500) {
   let t;
@@ -922,16 +924,16 @@ async function buscarEnderecoViaCep() {
       `https://viacep.com.br/ws/${cepNumeros}/json/`
     );
     if (res.data.erro) return toast.error("CEP não encontrado");
-    enderecoForm.value.rua = res.data.logradouro || "";
-    enderecoForm.value.bairro = res.data.bairro || "";
-    enderecoForm.value.cidade = res.data.localidade || "";
-    enderecoForm.value.estado = res.data.uf || "";
+    enderecoForm.value.Rua = res.data.logradouro || "";
+    enderecoForm.value.Bairro = res.data.bairro || "";
+    enderecoForm.value.Cidade = res.data.localidade || "";
+    enderecoForm.value.Estado = res.data.uf || "";
   } catch (err) {
     toast.error("Erro ao buscar endereço via CEP");
   }
 }
 const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
-watch(() => enderecoForm.value.cep, buscarEnderecoViaCepDebounced);
+watch(() => enderecoForm.value.Cep, buscarEnderecoViaCepDebounced);
 
 async function getPagamentos() {
   try {
