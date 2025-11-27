@@ -1,10 +1,11 @@
 <template>
   <v-container class="detalhes-container">
     <v-btn
-      class="btn-voltar-fixo"
+      class="btn-voltar-fixo text-h5"
       color="blue"
       prepend-icon="mdi-arrow-left"
       @click="voltar"
+      width="100"
       variant="text"
     >
       Voltar
@@ -64,19 +65,11 @@
         </div>
 
      
-
-        <div class="informacoes-extra">
-          <p><strong>FRETE GRÁTIS ACIMA DE R$ 19</strong></p>
-          <p>Receba grátis amanhã</p>
-          <p>Retire grátis a partir de amanhã em uma agência</p>
-          <p>Devolução grátis: Você tem 30 dias após o recebimento</p>
-        </div>
-
-        <div class="detalhes-produto">
-          <p><strong>Descrição:</strong> {{ produto.descricao }}</p>
-          <p><strong>Categoria:</strong> {{ categoriaNome }}</p>
-          <p><strong>Anunciado em:</strong> {{ produto.data_post }}</p>
-          <p><strong>Vendedor:</strong> {{ vendedorNome }}</p>
+        <div class="detalhes-produto text-h5">
+          <p class="mt-4"><strong>Descrição:</strong> {{ produto.descricao }}</p>
+          <p class="mt-4"><strong>Categoria:</strong> {{ categoriaNome }}</p>
+          <p class="mt-4"><strong>Anunciado em:</strong> {{ produto.data_post }}</p>
+          <p class="mt-4"><strong>Vendedor:</strong> {{ vendedorNome }}</p>
         </div>
 
         <v-btn class="btn-carrinho" :disabled="loadingInformacoes" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
