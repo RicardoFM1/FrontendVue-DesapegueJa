@@ -917,7 +917,7 @@ function debounce(fn, ms = 500) {
   };
 }
 async function buscarEnderecoViaCep() {
-  const cepNumeros = (enderecoForm.value.cep || "").replace(/\D/g, "");
+  const cepNumeros = (enderecoForm.value.Cep || "").replace(/\D/g, "");
   if (!cepNumeros || cepNumeros.length !== 8) return;
   try {
     const res = await connection.get(
