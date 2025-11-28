@@ -255,11 +255,13 @@ const itens = ref([]);
 const produto = ref({});
 const erroGetProduto = ref(false);
 const carregandoProdutos = ref(false);
+const carregando = ref(false);
 const categoriaNome = ref();
 const vendedorNome = ref();
 const usuarioNaoLogado = ref(false)
 const loadingAdicionar = ref(false)
 const loadingInformacoes = ref(true)
+const menu = ref(false)
 
 async function getRetrieve() {
   try {
@@ -394,7 +396,13 @@ function recarregarProdutos() {
 function voltar() {
   router.back();
 }
-
+function toCarrinho() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/carrinho");
+}
 
 
 function getProdutoImage(imagem) {
@@ -414,12 +422,60 @@ const precoFormatado = computed(() => {
   });
 });
 
+const carrinho = ref([])
+
+async function getCarrinho() {
+  if(token.value){
+  try {
+
+    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
+    
+    if (res.status == 200 || res.status == 201) {
+      carrinho.value = res.data;
+    } else {
+      toast.error("Estamos com dificuldade de listar seu carrinho...");
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao listar seu carrinho");
+  }
+}
+}
+
+
+
 onMounted(async () => {
   if (tokenExiste.value) await getRetrieve();
-  await Promise.all([getProdutos(), getCategorias(), getVendedor() ]);
-  
-});
+  await Promise.all([getProdutos(), getCategorias(), getVendedor(), getCarrinho() ]);
 
+});
+const getIniciais = (nome) => {
+  if (!nome) return "?";
+  const partes = nome.trim().split(" ");
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (
+    partes[0].charAt(0) + partes[partes.length - 1].charAt(0)
+  ).toUpperCase();
+};
+
+const avatarUsuario = computed(() => {
+  const nome = usuario.value?.nome || "Usuário";
+  const foto = usuario.value?.foto_Perfil;
+
+  if (foto && foto !== "null" && foto !== "Sem imagem" && foto.trim() !== "") {
+    if (foto.startsWith("data:image")) {
+      return { tipo: "imagem", src: foto };
+    }
+
+    if (foto.startsWith("/9j/"))
+      return { tipo: "imagem", src: `data:image/jpeg;base64,${foto}` };
+    if (foto.startsWith("iVBORw0KGgo"))
+      return { tipo: "imagem", src: `data:image/png;base64,${foto}` };
+
+    return { tipo: "iniciais", texto: getIniciais(nome) };
+  }
+
+  return { tipo: "iniciais", texto: getIniciais(nome) };
+});
 
 async function adicionarAoCarrinho(){
   loadingAdicionar.value = true
