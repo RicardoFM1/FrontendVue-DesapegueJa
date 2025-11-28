@@ -1,20 +1,133 @@
 <template>
-  <v-container class="detalhes-container">
-    <v-btn
+  <v-layout>
+
+    <v-container class="detalhes-container">
+      <v-app-bar>
+       
+        <v-spacer></v-spacer>
+         <v-btn
+    variant="flat"
+    prepend-icon="mdi-home"
+    color="#1976D2"
+    @click="toHome"
+    :disabled="carregando"
+  >
+    Home
+  </v-btn>
+        <v-badge
+  :content="carrinho.length"
+  color="primary"
+  class="ml-4 mr-4"
+>
+  <v-btn
+    variant="flat"
+    prepend-icon="mdi-cart"
+    color="#3fa34f"
+    @click="toCarrinho"
+    :disabled="carregando"
+  >
+    Carrinho
+  </v-btn>
+</v-badge>
+
+          <v-menu v-model="menu" offset-y location="bottom end">
+            <template #activator="{ props }">
+              <v-tooltip top>
+                <template #activator="{ props: tooltip }">
+                  <v-btn
+                    v-bind="{ ...props, ...tooltip }"
+                    :disabled="carregando"
+                    variant="text"
+                  >
+                    <v-icon>mdi-dots-vertical</v-icon>
+                  </v-btn>
+                </template>
+                <span>Mais opções</span>
+              </v-tooltip>
+            </template>
+
+            <v-card class="pa-4" width="300">
+              <v-row justify="center">
+                <v-avatar
+                  size="70"
+                  class="d-flex align-center justify-center"
+                  :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+                >
+                  <template v-if="avatarUsuario.tipo === 'imagem'">
+                    <v-img :src="avatarUsuario.src" cover />
+                  </template>
+
+                  <template v-else>
+                    <span class="text-white text-h6 font-weight-bold">
+                      {{ avatarUsuario.texto }}
+                    </span>
+                  </template>
+                </v-avatar>
+              </v-row>
+              <v-row justify="center">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <div v-bind="props" class="pa-1 nomeUsuario ellipses">
+                      {{ usuario?.nome }}
+                    </div>
+                  </template>
+                  <span>{{ usuario?.nome }}</span>
+                </v-tooltip>
+              </v-row>
+
+              <v-row justify="center">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <div v-bind="props" class="pa-1 emailUsuario ellipses">
+                      {{ usuario?.email }}
+                    </div>
+                  </template>
+                  <span>{{ usuario?.email }}</span>
+                </v-tooltip>
+              </v-row>
+
+              <v-divider class="my-3"></v-divider>
+
+              <v-btn
+                block
+                color="#eaece7"
+                variant="flat"
+                class="mb-4"
+                prepend-icon="mdi-account"
+                @click="toPerfil"
+                :disabled="carregando"
+              >
+                PERFIL
+              </v-btn>
+              <v-btn
+                block
+                color="#cc0000"
+                variant="flat"
+                class="mb-4"
+                prepend-icon="mdi-logout"
+                @click="buttonSairClicado = !buttonSairClicado"
+                :disabled="carregando"
+                >
+                SAIR
+              </v-btn>
+            </v-card>
+          </v-menu>
+        </v-app-bar>
+      <v-btn
       class="btn-voltar-fixo text-h5"
       color="blue"
       prepend-icon="mdi-arrow-left"
       @click="voltar"
       width="100"
       variant="text"
-    >
+      >
       Voltar
     </v-btn>
-
+    
     <div v-if="carregandoProdutos" class="d-flex justify-center align-center my-8" style="height: 300px">
       <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
     </div>
-
+    
     <div v-else-if="erroGetProduto" style="width: 100%; display: flex; justify-content: center;">
       <v-sheet
         width="400"
@@ -64,7 +177,7 @@
           
         </div>
 
-     
+        
         <div class="detalhes-produto text-h5">
           <p class="mt-4"><strong>Descrição:</strong> {{ produto.descricao }}</p>
           <p class="mt-4"><strong>Categoria:</strong> {{ categoriaNome }}</p>
@@ -79,6 +192,7 @@
       </div>
     </div>
   </v-container>
+</v-layout>
    <v-dialog
             max-width="500"
             v-model="usuarioNaoLogado"
@@ -101,14 +215,14 @@
                   @click="toLogin"
                   :disabled="carregandoProdutos"
                 >
-                </v-btn>
+              </v-btn>
                 <v-btn
                   text="Ok"
                   base-color="blue"
                   v-model="usuarioNaoLogado"
                   @click="usuarioNaoLogado = false"
                   :disabled="carregandoProdutos"
-                >
+                  >
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -152,12 +266,43 @@ async function getRetrieve() {
     const res = await connection.get("/desapega/usuarios/retrieve", {
       headers: { Authorization: `Bearer ${token.value}` },
     });
-    if (res.status === 200) {
+
+    if (res && res.status === 200 && res.data) {
       retrieve.value = res.data;
       usuario.value = res.data;
+      console.log("FOTO PERFIL REAL:", res.data.foto_Perfil);
+      console.log("Tamanho da string:", res.data.foto_Perfil?.length);
+      console.log("RETORNO API:", res.data);
+
+      if (
+        retrieve.foto_Perfil &&
+        retrieve.foto_Perfil !== "null" &&
+        retrieve.foto_Perfil !== ""
+      ) {
+        if (retrieve.foto_Perfil.startsWith("data:image")) {
+          retrieve.foto_Perfil = retrieve.foto_Perfil;
+        } else if (retrieve.foto_Perfil.startsWith("/9j/")) {
+          retrieve.foto_Perfil = `data:image/jpeg;base64,${retrieve.foto_Perfil}`;
+        } else if (retrieve.foto_Perfil.startsWith("iVBORw0KGgo")) {
+          retrieve.foto_Perfil = `data:image/png;base64,${retrieve.foto_Perfil}`;
+        } else if (
+          retrieve.foto_Perfil.startsWith("R0lGODlh") ||
+          retrieve.foto_Perfil.startsWith("R0lGODdh")
+        ) {
+          retrieve.foto_Perfil = `data:image/gif;base64,${retrieve.foto_Perfil}`;
+        } else {
+          retrieve.foto_Perfil = `data:image/png;base64,${retrieve.foto_Perfil}`;
+        }
+      } else {
+        retrieve.foto_Perfil = null;
+      }
+    } else {
+      toast.error("Erro ao buscar o usuário");
+      console.error("Resposta inesperada:", res);
     }
   } catch (error) {
-    toast.error("Erro ao buscar o usuário");
+    console.error("Erro na requisição:", error);
+    toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
   }
 }
 
