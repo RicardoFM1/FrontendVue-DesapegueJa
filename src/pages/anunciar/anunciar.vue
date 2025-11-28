@@ -1,5 +1,125 @@
     <template>
+      
   <v-container class="wrapper pa-4" fluid>
+    <v-app-bar>
+          <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
+          <v-toolbar-title>Filtros</v-toolbar-title>
+
+          <v-btn
+            prepend-icon="mdi-check"
+            variant="flat"
+            color="#5865f2"
+            @click="toAnunciar"
+            :disabled="carregandoProdutos"
+          >
+            Anunciar
+          </v-btn>
+          
+
+            <v-btn
+            class="ml-4 mr-4"
+            variant="flat"
+            prepend-icon="mdi-cart"
+            color="#3fa34f"
+            @click="toCarrinho"
+            :disabled="carregandoProdutos"
+            >
+            <template v-slot:append>
+
+              <v-badge 
+              location=""
+              color="primary"
+              :content="carrinho.length"
+              >
+            </v-badge>
+            </template>
+            
+            Carrinho
+          </v-btn>
+
+          <v-menu v-model="menu" offset-y location="bottom end">
+            <template #activator="{ props }">
+              <v-tooltip top>
+                <template #activator="{ props: tooltip }">
+                  <v-btn
+                    v-bind="{ ...props, ...tooltip }"
+                    :disabled="carregandoProdutos"
+                    variant="text"
+                  >
+                    <v-icon>mdi-dots-vertical</v-icon>
+                  </v-btn>
+                </template>
+                <span>Mais opções</span>
+              </v-tooltip>
+            </template>
+
+            <v-card class="pa-4" width="300">
+              <v-row justify="center">
+                <v-avatar
+                  size="70"
+                  class="d-flex align-center justify-center"
+                  :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+                >
+                  <template v-if="avatarUsuario.tipo === 'imagem'">
+                    <v-img :src="avatarUsuario.src" cover />
+                  </template>
+
+                  <template v-else>
+                    <span class="text-white text-h6 font-weight-bold">
+                      {{ avatarUsuario.texto }}
+                    </span>
+                  </template>
+                </v-avatar>
+              </v-row>
+              <v-row justify="center">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <div v-bind="props" class="pa-1 nomeUsuario ellipses">
+                      {{ usuario?.nome }}
+                    </div>
+                  </template>
+                  <span>{{ usuario?.nome }}</span>
+                </v-tooltip>
+              </v-row>
+
+              <v-row justify="center">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <div v-bind="props" class="pa-1 emailUsuario ellipses">
+                      {{ usuario?.email }}
+                    </div>
+                  </template>
+                  <span>{{ usuario?.email }}</span>
+                </v-tooltip>
+              </v-row>
+
+              <v-divider class="my-3"></v-divider>
+
+              <v-btn
+                block
+                color="#eaece7"
+                variant="flat"
+                class="mb-4"
+                prepend-icon="mdi-account"
+                @click="toPerfil"
+                :disabled="carregandoProdutos"
+              >
+                PERFIL
+              </v-btn>
+              <v-btn
+                block
+                color="#cc0000"
+                variant="flat"
+                class="mb-4"
+                prepend-icon="mdi-logout"
+                @click="buttonSairClicado = !buttonSairClicado"
+                :disabled="carregandoProdutos"
+              >
+                SAIR
+              </v-btn>
+            </v-card>
+          </v-menu>
+        </v-app-bar>
     <v-row justify="space-between" align="center" class="mb-4">
       <div>
         <div class="panel-label">Painel</div>
