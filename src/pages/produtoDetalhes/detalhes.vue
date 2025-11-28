@@ -114,7 +114,7 @@
           </v-menu>
         </v-app-bar>
       <v-btn
-      class="btn-voltar-fixo text-h5"
+      class="btn-voltar-fixo text-h5 mt-10"
       color="blue"
       prepend-icon="mdi-arrow-left"
       @click="voltar"
@@ -193,6 +193,47 @@
     </div>
   </v-container>
 </v-layout>
+<v-dialog
+          max-width="500"
+          v-model="buttonSairClicado"
+          v-if="buttonSairClicado"
+        >
+          <v-card class="pa-4" elevation="8" rounded="xl">
+            <v-card-title class="text-center font-weight-bold text-h4">
+              <v-icon color="error" size="32" class="mr-2"
+                >mdi-alert-circle-outline</v-icon
+              >
+              Confirmar saída
+            </v-card-title>
+
+            <v-card-text class="text-center text-h5 text-medium-emphasis">
+              Tem certeza de que deseja sair da sua conta?
+            </v-card-text>
+
+            <v-card-actions class="justify-center mt-2">
+              <v-btn
+                color="grey"
+                variant="outlined"
+                rounded="xl"
+                @click="buttonSairClicado = false"
+                width="120"
+              >
+                Cancelar
+              </v-btn>
+
+              <v-btn
+                color="error"
+                variant="flat"
+                rounded="xl"
+                width="120"
+                :loading="loadingLogout"
+                @click="FazerLogout"
+              >
+                Sair
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
    <v-dialog
             max-width="500"
             v-model="usuarioNaoLogado"
@@ -262,6 +303,8 @@ const usuarioNaoLogado = ref(false)
 const loadingAdicionar = ref(false)
 const loadingInformacoes = ref(true)
 const menu = ref(false)
+const buttonSairClicado = ref(false);
+const loadingLogout = ref(false);
 
 async function getRetrieve() {
   try {
@@ -307,9 +350,6 @@ async function getRetrieve() {
     toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
   }
 }
-
-
-
 
 async function getVendedor() {
   loadingInformacoes.value = true
@@ -392,6 +432,14 @@ watch([produto, vendedor], ([p, v]) => {
 function recarregarProdutos() {
   getProdutos();
 }
+function FazerLogout() {
+  loadingLogout.value = true;
+  setTimeout(() => {
+    localStorage.removeItem("token");
+    router.push("/login");
+    loadingLogout.value = false;
+  }, 2000);
+}
 
 function voltar() {
   router.back();
@@ -403,7 +451,16 @@ function toCarrinho() {
   }
   router.push("/carrinho");
 }
-
+function toHome() {
+  router.push("/")
+}
+function toPerfil() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/perfil");
+}
 
 function getProdutoImage(imagem) {
   if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
