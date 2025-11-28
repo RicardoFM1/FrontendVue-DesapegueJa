@@ -4,7 +4,17 @@
   <v-container class="wrapper pa-4" fluid>
 
       <v-app-bar>
+       
         <v-spacer></v-spacer>
+         <v-btn
+    variant="flat"
+    prepend-icon="mdi-home"
+    color="#1976D2"
+    @click="toHome"
+    :disabled="carregando"
+  >
+    Home
+  </v-btn>
         <v-badge
   :content="carrinho.length"
   color="primary"
@@ -688,6 +698,9 @@ function toCarrinho() {
     return;
   }
   router.push("/carrinho");
+}
+function toHome() {
+  router.push("/")
 }
 </script>
 <style>
