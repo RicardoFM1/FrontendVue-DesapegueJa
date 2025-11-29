@@ -1,4 +1,16 @@
 <template>
+  <v-breadcrumbs
+class="text-black mt-12"
+:items="[
+{ text: 'Home', disabled: false, href: '/' },
+{ text: 'Detalhes', disabled: true },
+
+]"
+>
+<template #title="{ item }">
+<span>{{ item.text }}</span>
+</template>
+</v-breadcrumbs>
   <v-layout>
 
     <v-container class="detalhes-container">
@@ -183,9 +195,10 @@
           <p class="mt-4"><strong>Categoria:</strong> {{ categoriaNome }}</p>
           <p class="mt-4"><strong>Anunciado em:</strong> {{ produto.data_post }}</p>
           <p class="mt-4"><strong>Vendedor:</strong> {{ vendedorNome }}</p>
+          <p class="mt-4"><strong>Estoque:</strong> {{ produto.estoque }}</p>
         </div>
 
-        <v-btn class="btn-carrinho" :disabled="loadingInformacoes" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
+        <v-btn class="btn-carrinho" :disabled="loadingInformacoes || produto.estoque <= 0" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
           <v-icon left>mdi-cart</v-icon>
           ADICIONAR AO CARRINHO
         </v-btn>

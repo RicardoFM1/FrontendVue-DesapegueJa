@@ -1,8 +1,20 @@
 <template>
+  <v-breadcrumbs
+ class="text-black mt-15"
+:items="[
+  { text: 'Home', disabled: false, href: '/' },
+  { text: 'Perfil', disabled: true }
+  
+]"
+>
+<template #title="{ item }">
+  <span>{{ item.text }}</span>
+</template>
+</v-breadcrumbs>
   <v-layout>
 
  
-  <v-container style="display: flex" class="pa-6 mt-10" v-if="tokenExiste">
+  <v-container style="display: flex" class="pa-6" v-if="tokenExiste">
     <v-app-bar>
        
         <v-spacer></v-spacer>
