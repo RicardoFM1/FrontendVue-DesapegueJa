@@ -304,6 +304,167 @@
         >
         </v-btn>
       </v-row>
+      <div class="divItens">
+            <v-card
+              width="330"
+              min-height="300"
+              class="cardItem"
+              v-for="(item, index) in produtos"
+              :key="item + '-' + index"
+            >
+              <v-img
+                :src="getProdutoImage(item.imagem)"
+                width="330"
+                position="center"
+                height="330"
+                cover
+                class="imgItem"
+              >
+                <template #error>
+                  <img src="/png-triste-erro.png" alt="Imagem não disponível" />
+                </template>
+              </v-img>
+
+              <v-card-title class="ellipses mb-2 rounded font-weight-bold">
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p v-bind="props">
+                      {{ item.nome }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    {{ item.nome }}
+                  </span>
+                </v-tooltip>
+              </v-card-title>
+              <v-card-subtitle
+                style="width: 50%"
+                class="mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p
+                      v-bind="props"
+                      class="text-subtitle-1 ellipses bg-green text-white rounded px-2 py-1 d-inline-block"
+                    >
+                      R$ {{ item.preco / 100 }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    R$ {{ item.preco / 100 }}
+                  </span>
+                </v-tooltip>
+              </v-card-subtitle>
+              <v-card-subtitle
+                class="ellipses text-subtitle-1 mb-2 rounded font-weight-bold"
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p style="width: 50%" class="ellipses" v-bind="props">
+                      Em estoque: {{ item.estoque }}
+                    </p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Estoque : {{ item.estoque }}
+                  </span>
+                </v-tooltip>
+              </v-card-subtitle>
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                :color="
+                  categorias.find((c) => c.id == item.categoria_id)?.cor ||
+                  '#808080'
+                "
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p
+                      class="ellipses"
+                      v-bind="props"
+                      v-if="categorias.length > 0"
+                    >
+                      <v-icon left small class="mr-2">mdi-tag</v-icon>
+                      {{
+                        categorias.find((c) => c.id == item.categoria_id)
+                          ?.nome || "Sem categoria"
+                      }}
+                    </p>
+                    <p v-else>Carregando categoria...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Categoria :
+                    {{
+                      categorias.find((c) => c.id == item.categoria_id)?.nome ||
+                      "Sem categoria"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
+
+              <v-chip
+                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
+                size="small"
+                text-color="white"
+                pill
+                outlined
+              >
+                <v-tooltip top>
+                  <template #activator="{ props }">
+                    <p
+                      class="ellipses"
+                      v-bind="props"
+                      v-if="vendedor.length > 0"
+                    >
+                      <v-icon left small class="mr-2">mdi-account</v-icon>
+                      {{
+                        vendedor.find((v) => v.id == item.usuario_id)?.nome ||
+                        "Sem vendedor "
+                      }}
+                    </p>
+                    <p v-else>Carregando vendedor...</p>
+                  </template>
+                  <span style="max-width: 150px; display: block">
+                    Vendedor :
+                    {{
+                      vendedor.find((v) => v.id == item.usuario_id)?.nome ||
+                      "Sem vendedor"
+                    }}
+                  </span>
+                </v-tooltip>
+              </v-chip>
+
+              <div class="divBtnAdicionar">
+                <v-card-actions class="divBtnsAcoes">
+                  <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    @click="toDetalhes(item.id)"
+                    density="comfortable"
+                    :disabled="carregandoInformacoes"
+                  >
+                    Detalhes
+                  </v-btn>
+
+                  <v-btn
+                    variant="flat"
+                    color="#3fa34f"
+                    prepend-icon="mdi-cart"
+                    density="comfortable"
+                    class="btnAdicionar"
+                    @click="addToCart(item)"
+                    :disabled="carregandoInformacoes || item.estoque <= 0"
+                  >
+                    Adicionar ao carrinho
+                  </v-btn>
+                </v-card-actions>
+              </div>
+            </v-card>
+          </div>
       <v-dialog
         max-width="500"
         v-model="confirmacaoSair"
@@ -408,7 +569,9 @@ const readOnlyComCEP = computed(() => {
   const numeros = endereco.value.Cep?.replace(/\D/g, "") || "";
   return numeros.length === 8;
 });
-
+const carregandoProdutos = ref(false)
+const erroGetProduto = ref(false)
+const produtos = ref([])
 const rulesEmail = [
   (v) =>
     !v ||
@@ -755,4 +918,102 @@ const salvarAlteracoesEndereco = async () => {
     loadingEndereco.value = false;
   }
 };
+async function getProdutos() {
+  carregandoProdutos.value = true;
+  erroGetProduto.value = false;
+
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
+  );
+
+  if (retrieve.admin == true) {
+    try {
+      const res = await Promise.race([
+        connection.get(`/desapega/produtos/${retrieve?.value.id}`),
+        timeout,
+      ]);
+
+      if (res.status == 200) {
+        produtos.value = res.data.produtos     
+  
+        erroGetProduto.value = false;
+      } else {
+        toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
+    }
+  } else {
+    try {
+      const res = await Promise.race([
+        connection.get(`/desapega/produtos/${retrieve?.value.id}`),
+        timeout,
+      ]);
+
+      if (res.status == 200) {
+        produtos.value = res.data.produtos     
+      
+        erroGetProduto.value = false;
+      } else {
+        toast.error("Erro ao buscar o produto");
+        erroGetProduto.value = true;
+      }
+    } catch (error) {
+      const mensagem =
+        error.message === "Tempo limite excedido"
+          ? "Tempo limite excedido ao buscar produtos"
+          : error.response?.data?.message || "Erro ao buscar o produto";
+      console.log(mensagem);
+      toast.error(mensagem);
+      erroGetProduto.value = true;
+    } finally {
+      setTimeout(() => {
+        carregandoProdutos.value = false;
+      }, 500);
+    }
+  }
+}
+
+
+function getProdutoImage(imagem) {
+  if (!imagem || imagem === "Sem imagem" || imagem === "null") {
+    return "/png-triste-erro.png";
+  }
+
+  if (imagem.startsWith("data:image")) {
+    return imagem;
+  }
+
+  if (imagem.startsWith("/9j/")) return `data:image/jpeg;base64,${imagem}`;
+  if (imagem.startsWith("iVBORw0KGgo"))
+    return `data:image/png;base64,${imagem}`;
+  if (imagem.startsWith("R0lGODlh") || imagem.startsWith("R0lGODdh"))
+    return `data:image/gif;base64,${imagem}`; // GIF
+  if (imagem.startsWith("UklGR")) return `data:image/webp;base64,${imagem}`;
+
+  return `data:image/png;base64,${imagem}`;
+}
+
+watch(erroGetProduto, (v) => console.log("erroGetProduto mudou para ->", v));
+
+function recarregarProdutos() {
+  getProdutos();
+}
+
+watch(itens, (novoItem) => {
+  novoItem.forEach((item) => {
+    console.log(item, "Produtos");
+  });
+});
 </script>
