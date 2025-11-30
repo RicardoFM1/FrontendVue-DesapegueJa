@@ -1,4 +1,16 @@
 <template>
+  <v-breadcrumbs
+class="text-black mt-12"
+:items="[
+{ text: 'Home', disabled: false, href: '/' },
+{ text: 'Detalhes', disabled: true },
+
+]"
+>
+<template #title="{ item }">
+<span>{{ item.text }}</span>
+</template>
+</v-breadcrumbs>
   <v-layout>
 
     <v-container class="detalhes-container">
@@ -114,7 +126,7 @@
           </v-menu>
         </v-app-bar>
       <v-btn
-      class="btn-voltar-fixo text-h5"
+      class="btn-voltar-fixo text-h5 mt-10"
       color="blue"
       prepend-icon="mdi-arrow-left"
       @click="voltar"
@@ -183,9 +195,10 @@
           <p class="mt-4"><strong>Categoria:</strong> {{ categoriaNome }}</p>
           <p class="mt-4"><strong>Anunciado em:</strong> {{ produto.data_post }}</p>
           <p class="mt-4"><strong>Vendedor:</strong> {{ vendedorNome }}</p>
+          <p class="mt-4"><strong>Estoque:</strong> {{ produto.estoque }}</p>
         </div>
 
-        <v-btn class="btn-carrinho" :disabled="loadingInformacoes" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
+        <v-btn class="btn-carrinho" :disabled="loadingInformacoes || produto.estoque <= 0" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
           <v-icon left>mdi-cart</v-icon>
           ADICIONAR AO CARRINHO
         </v-btn>
@@ -193,6 +206,47 @@
     </div>
   </v-container>
 </v-layout>
+<v-dialog
+          max-width="500"
+          v-model="buttonSairClicado"
+          v-if="buttonSairClicado"
+        >
+          <v-card class="pa-4" elevation="8" rounded="xl">
+            <v-card-title class="text-center font-weight-bold text-h4">
+              <v-icon color="error" size="32" class="mr-2"
+                >mdi-alert-circle-outline</v-icon
+              >
+              Confirmar saída
+            </v-card-title>
+
+            <v-card-text class="text-center text-h5 text-medium-emphasis">
+              Tem certeza de que deseja sair da sua conta?
+            </v-card-text>
+
+            <v-card-actions class="justify-center mt-2">
+              <v-btn
+                color="grey"
+                variant="outlined"
+                rounded="xl"
+                @click="buttonSairClicado = false"
+                width="120"
+              >
+                Cancelar
+              </v-btn>
+
+              <v-btn
+                color="error"
+                variant="flat"
+                rounded="xl"
+                width="120"
+                :loading="loadingLogout"
+                @click="FazerLogout"
+              >
+                Sair
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
    <v-dialog
             max-width="500"
             v-model="usuarioNaoLogado"
@@ -255,11 +309,15 @@ const itens = ref([]);
 const produto = ref({});
 const erroGetProduto = ref(false);
 const carregandoProdutos = ref(false);
+const carregando = ref(false);
 const categoriaNome = ref();
 const vendedorNome = ref();
 const usuarioNaoLogado = ref(false)
 const loadingAdicionar = ref(false)
 const loadingInformacoes = ref(true)
+const menu = ref(false)
+const buttonSairClicado = ref(false);
+const loadingLogout = ref(false);
 
 async function getRetrieve() {
   try {
@@ -305,9 +363,6 @@ async function getRetrieve() {
     toast.error(error.response?.data?.message || "Erro ao buscar o usuário");
   }
 }
-
-
-
 
 async function getVendedor() {
   loadingInformacoes.value = true
@@ -390,12 +445,35 @@ watch([produto, vendedor], ([p, v]) => {
 function recarregarProdutos() {
   getProdutos();
 }
+function FazerLogout() {
+  loadingLogout.value = true;
+  setTimeout(() => {
+    localStorage.removeItem("token");
+    router.push("/login");
+    loadingLogout.value = false;
+  }, 2000);
+}
 
 function voltar() {
   router.back();
 }
-
-
+function toCarrinho() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/carrinho");
+}
+function toHome() {
+  router.push("/")
+}
+function toPerfil() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/perfil");
+}
 
 function getProdutoImage(imagem) {
   if (imagem && imagem !== "Sem imagem" && imagem.length > 0) {
@@ -414,12 +492,60 @@ const precoFormatado = computed(() => {
   });
 });
 
+const carrinho = ref([])
+
+async function getCarrinho() {
+  if(token.value){
+  try {
+
+    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
+    
+    if (res.status == 200 || res.status == 201) {
+      carrinho.value = res.data;
+    } else {
+      toast.error("Estamos com dificuldade de listar seu carrinho...");
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Erro ao listar seu carrinho");
+  }
+}
+}
+
+
+
 onMounted(async () => {
   if (tokenExiste.value) await getRetrieve();
-  await Promise.all([getProdutos(), getCategorias(), getVendedor() ]);
-  
-});
+  await Promise.all([getProdutos(), getCategorias(), getVendedor(), getCarrinho() ]);
 
+});
+const getIniciais = (nome) => {
+  if (!nome) return "?";
+  const partes = nome.trim().split(" ");
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (
+    partes[0].charAt(0) + partes[partes.length - 1].charAt(0)
+  ).toUpperCase();
+};
+
+const avatarUsuario = computed(() => {
+  const nome = usuario.value?.nome || "Usuário";
+  const foto = usuario.value?.foto_Perfil;
+
+  if (foto && foto !== "null" && foto !== "Sem imagem" && foto.trim() !== "") {
+    if (foto.startsWith("data:image")) {
+      return { tipo: "imagem", src: foto };
+    }
+
+    if (foto.startsWith("/9j/"))
+      return { tipo: "imagem", src: `data:image/jpeg;base64,${foto}` };
+    if (foto.startsWith("iVBORw0KGgo"))
+      return { tipo: "imagem", src: `data:image/png;base64,${foto}` };
+
+    return { tipo: "iniciais", texto: getIniciais(nome) };
+  }
+
+  return { tipo: "iniciais", texto: getIniciais(nome) };
+});
 
 async function adicionarAoCarrinho(){
   loadingAdicionar.value = true
