@@ -113,7 +113,6 @@
   item-value="value"
   variant="outlined"
   density="comfortable"
-  hide-details="auto"
   base-color="#293559"
   style="max-width: 140px;"
   label="DDI"

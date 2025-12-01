@@ -247,13 +247,13 @@
   item-value="value"
   variant="outlined"
   density="comfortable"
-  hide-details="auto"
+
   base-color="#293559"
-  style="max-width: 140px;"
+  style="max-width: 140px; padding: 0;"
   label="DDI"
   rounded="lg"
   :rules="rulesDDI"
-  required
+  
 />
 
 
@@ -647,25 +647,24 @@
                 <v-card-actions class="divBtnsAcoes">
                   <v-btn
                     variant="flat"
-                    color="#2196F3"
+                    color="#FFD700"
                     class="btnDetalhes"
                     @click="toDetalhes(item.id)"
                     density="comfortable"
                     :disabled="carregandoInformacoes"
                   >
-                    Detalhes
+                    Editar
                   </v-btn>
 
                   <v-btn
                     variant="flat"
-                    color="#3fa34f"
-                    prepend-icon="mdi-cart"
+                    color="red"
                     density="comfortable"
                     class="btnAdicionar"
                     @click="addToCart(item)"
                     :disabled="carregandoInformacoes || item.estoque <= 0"
                   >
-                    Adicionar ao carrinho
+                    Desativar
                   </v-btn>
                 </v-card-actions>
               </div>

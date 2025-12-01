@@ -46,7 +46,6 @@ src="desapegueja-logo.svg"
 v-model="usuario.ddi"
 item-title="text"
 item-value="value"
-hide-details
 style="max-width: 130px; flex-shrink: 0"
 base-color="#293559"
 density="compact"
