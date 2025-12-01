@@ -546,7 +546,7 @@ function FazerLogout() {
 }
 
 function Voltar(){
-  router.push("/")
+  router.back()
 }
 
 function apenasPositivo(e) {

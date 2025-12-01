@@ -14,10 +14,29 @@
   <v-layout>
 
  
-  <v-container style="display: flex" class="pa-6" v-if="tokenExiste">
+  <v-container class="pa-6" v-if="tokenExiste">
     <v-app-bar>
        
         <v-spacer></v-spacer>
+         
+      <v-btn
+      v-if="!loadingInit"
+      text="Excluir conta"
+      color="red"
+      variant="flat"
+      @click="confirmacaoSair = !confirmacaoSair"
+      >
+    </v-btn>
+  <v-btn
+            prepend-icon="mdi-check"
+            variant="flat"
+            color="#5865f2"
+            class="ml-4 mr-4"
+            @click="toAnunciar"
+            :disabled="carregandoProdutos"
+          >
+            Anunciar
+          </v-btn>
          <v-btn
     variant="flat"
     prepend-icon="mdi-home"
@@ -126,12 +145,15 @@
             </v-card>
           </v-menu>
         </v-app-bar>
-    <v-container class="containerAllPerfil">
-      <div v-if="loadingInit" class="text-center pa-10">
-        <v-progress-circular indeterminate color="primary" size="64" />
-        <p class="mt-3">Carregando informações...</p>
-      </div>
-      <v-card v-else class="mx-auto pa-6" max-width="600">
+        
+        <div v-if="loadingInit" class="text-center pa-10">
+          <v-progress-circular indeterminate color="primary" size="64" />
+            <p class="mt-3">Carregando informações...</p>
+          </div>
+          
+          <v-row v-else class="mt-10">
+        <v-col cols="12" md="6">
+      <v-card class="mx-auto pa-6" max-width="600">
         <v-card-title class="text-h5 text-center"
           >Perfil do Usuário</v-card-title
         >
@@ -276,8 +298,11 @@
           </v-row>
         </v-form>
       </v-card>
-    </v-container>
-    <v-container class="pa-6" v-if="tokenExiste">
+    </v-col>
+    
+  
+  <v-col cols="12" md="6" v-if="tokenExiste">
+    
       <div v-if="loadingInit" class="text-center pa-10">
         <v-progress-circular indeterminate color="primary" size="64" />
         <p class="mt-3">Carregando informações...</p>
@@ -289,24 +314,24 @@
         <v-divider class="my-4"></v-divider>
         <v-form @submit.prevent="salvarAlteracoesEndereco">
           <v-text-field
-            label="CEP"
+          label="CEP"
             v-model="endereco.Cep"
             append-inner-icon="mdi-delete"
             @click:append-inner="
               (endereco.Cep = ''),
-                (endereco.Bairro = ''),
+              (endereco.Bairro = ''),
                 (endereco.Cidade = ''),
                 (endereco.Estado = ''),
                 (endereco.Rua = '')
-            "
+                "
             placeholder="00000-00"
             @input="onInputCep"
           >
-          </v-text-field>
-          <v-select
-            label="Estado"
-            v-model="endereco.Estado"
-            :readonly="readOnlyComCEP"
+        </v-text-field>
+        <v-select
+        label="Estado"
+        v-model="endereco.Estado"
+        :readonly="readOnlyComCEP"
             :items="[
               { title: '', value: '' },
               { title: 'Acre', value: 'AC' },
@@ -336,7 +361,7 @@
               { title: 'São Paulo', value: 'SP' },
               { title: 'Sergipe', value: 'SE' },
               { title: 'Tocantins', value: 'TO' },
-            ]"
+              ]"
             :item-title="title"
             :item-value="value"
           >
@@ -345,25 +370,25 @@
             label="Cidade"
             v-model="endereco.Cidade"
             :readonly="readOnlyComCEP"
-          >
+            >
           </v-text-field>
           <v-text-field
-            label="Bairro"
+          label="Bairro"
             v-model="endereco.Bairro"
             :readonly="readOnlyComCEP"
           >
           </v-text-field>
           <v-row>
             <v-text-field
-              label="Rua"
-              class="ml-3 mr-3"
-              v-model="endereco.Rua"
-              :readonly="readOnlyComCEP"
+            label="Rua"
+            class="ml-3 mr-3"
+            v-model="endereco.Rua"
+            :readonly="readOnlyComCEP"
             >
             </v-text-field>
-
+            
             <v-text-field
-              label="Número"
+            label="Número"
               class="mr-3"
               max-width="50%"
               v-model="endereco.Numero"
@@ -380,7 +405,7 @@
               { title: 'Praça', value: 'praca' },
               { title: 'Travessa', value: 'travessa' },
               { title: 'Outros', value: 'outros' },
-            ]"
+              ]"
             item-title="title"
             item-value="value"
           >
@@ -397,40 +422,125 @@
             ]"
             item-title="title"
             item-value="value"
-          >
+            >
             >
           </v-select>
 
           <v-row class="mt-6" justify="center" align="center">
             <v-btn
-              color="primary"
-              :loading="loadingEndereco"
+            color="primary"
+            :loading="loadingEndereco"
               class="mr-3"
               type="submit"
-            >
+              >
               Salvar Alterações
             </v-btn>
             <v-btn
+            color="grey"
+            variant="outlined"
+            type="button"
+            @click="voltarHome"
+            >
+            Cancelar
+          </v-btn>
+        </v-row>
+      </v-form>
+    </v-card>
+  </v-col>
+  </v-row>
+   
+      
+      <v-dialog
+          max-width="500"
+          v-model="buttonSairClicado"
+          v-if="buttonSairClicado"
+        >
+          <v-card class="pa-4" elevation="8" rounded="xl">
+            <v-card-title class="text-center font-weight-bold text-h4">
+              <v-icon color="error" size="32" class="mr-2"
+                >mdi-alert-circle-outline</v-icon
+              >
+              Confirmar saída
+            </v-card-title>
+
+            <v-card-text class="text-center text-h5 text-medium-emphasis">
+              Tem certeza de que deseja sair da sua conta?
+            </v-card-text>
+
+            <v-card-actions class="justify-center mt-2">
+              <v-btn
+                color="grey"
+                variant="outlined"
+                rounded="xl"
+                @click="buttonSairClicado = false"
+                width="120"
+              >
+                Cancelar
+              </v-btn>
+
+              <v-btn
+                color="error"
+                variant="flat"
+                rounded="xl"
+                width="120"
+                :loading="loadingLogout"
+                @click="FazerLogout"
+              >
+                Sair
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      <v-dialog
+        max-width="500"
+        v-model="confirmacaoSair"
+        v-if="confirmacaoSair"
+      >
+        <v-card class="pa-4" elevation="8" rounded="xl">
+          <v-card-title class="text-center font-weight-bold text-h4">
+            <v-icon color="error" size="32" class="mr-2"
+              >mdi-alert-circle-outline</v-icon
+            >
+            Confirmar Exclusão
+          </v-card-title>
+
+          <v-card-text class="text-center text-h5 text-medium-emphasis">
+            Deseja realmente excluir sua conta?
+          </v-card-text>
+
+          <v-card-actions class="justify-center mt-2">
+            <v-btn
               color="grey"
               variant="outlined"
-              type="button"
-              @click="voltarHome"
+              rounded="xl"
+              @click="confirmacaoSair = false"
+              width="120"
             >
               Cancelar
             </v-btn>
-          </v-row>
-        </v-form>
-      </v-card>
-      <v-row class="mt-4" justify="center" align="center">
-        <v-btn
-          v-if="!loadingInit"
-          text="Excluir conta"
-          color="red"
-          @click="confirmacaoSair = !confirmacaoSair"
-        >
-        </v-btn>
-      </v-row>
-      <div class="divItens">
+
+            <v-btn
+              color="error"
+              variant="flat"
+              rounded="xl"
+              width="120"
+              :loading="loadingExclusao"
+              @click="ExcluirConta"
+            >
+              EXCLUIR
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-divider
+      thickness="10"
+      class="mt-10"
+      >
+
+      </v-divider>
+      <div v-if="produtos.length > 0 || !loadingInit" style="width: 100%; display: flex; flex-direction: column;">
+      <h1 class="mt-10">Meus anúncios</h1>
+      <div v-if="produtos.length > 0" class="divItens">
             <v-card
               width="330"
               min-height="300"
@@ -531,37 +641,7 @@
                 </v-tooltip>
               </v-chip>
 
-              <v-chip
-                class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
-                size="small"
-                text-color="white"
-                pill
-                outlined
-              >
-                <v-tooltip top>
-                  <template #activator="{ props }">
-                    <p
-                      class="ellipses"
-                      v-bind="props"
-                      v-if="vendedor.length > 0"
-                    >
-                      <v-icon left small class="mr-2">mdi-account</v-icon>
-                      {{
-                        vendedor.find((v) => v.id == item.usuario_id)?.nome ||
-                        "Sem vendedor "
-                      }}
-                    </p>
-                    <p v-else>Carregando vendedor...</p>
-                  </template>
-                  <span style="max-width: 150px; display: block">
-                    Vendedor :
-                    {{
-                      vendedor.find((v) => v.id == item.usuario_id)?.nome ||
-                      "Sem vendedor"
-                    }}
-                  </span>
-                </v-tooltip>
-              </v-chip>
+             
 
               <div class="divBtnAdicionar">
                 <v-card-actions class="divBtnsAcoes">
@@ -591,90 +671,54 @@
               </div>
             </v-card>
           </div>
-      <v-dialog
-          max-width="500"
-          v-model="buttonSairClicado"
-          v-if="buttonSairClicado"
-        >
-          <v-card class="pa-4" elevation="8" rounded="xl">
-            <v-card-title class="text-center font-weight-bold text-h4">
-              <v-icon color="error" size="32" class="mr-2"
-                >mdi-alert-circle-outline</v-icon
+          <div 
+          
+          v-else>
+            <v-expand-transition>
+              <v-alert
+              variant="tonal"
+              type="warning"
               >
-              Confirmar saída
-            </v-card-title>
-
-            <v-card-text class="text-center text-h5 text-medium-emphasis">
-              Tem certeza de que deseja sair da sua conta?
-            </v-card-text>
-
-            <v-card-actions class="justify-center mt-2">
-              <v-btn
-                color="grey"
-                variant="outlined"
-                rounded="xl"
-                @click="buttonSairClicado = false"
-                width="120"
-              >
-                Cancelar
-              </v-btn>
-
-              <v-btn
-                color="error"
-                variant="flat"
-                rounded="xl"
-                width="120"
-                :loading="loadingLogout"
-                @click="FazerLogout"
-              >
-                Sair
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      <v-dialog
-        max-width="500"
-        v-model="confirmacaoSair"
-        v-if="confirmacaoSair"
+              <p class="font-weight-bold text-h5">Sem produtos!</p>
+              <p class="text-h5">Você não tem nenhum produto anunciado ainda, tente anunciar um <span class="font-weight-bold"><a href="/anunciar">aqui.</a></span></p>
+              </v-alert>
+            </v-expand-transition>
+          </div>
+        </div>
+        <v-divider
+      thickness="10"
+      class="mt-10"
       >
-        <v-card class="pa-4" elevation="8" rounded="xl">
-          <v-card-title class="text-center font-weight-bold text-h4">
-            <v-icon color="error" size="32" class="mr-2"
-              >mdi-alert-circle-outline</v-icon
-            >
-            Confirmar Exclusão
-          </v-card-title>
 
-          <v-card-text class="text-center text-h5 text-medium-emphasis">
-            Deseja realmente excluir sua conta?
-          </v-card-text>
+      </v-divider>
+      <h1 class="mt-10">Meus pagamentos</h1>
+  <v-container>
+    <v-data-table :headers="headers" :items="pagamentos" :items-per-page="5" class="border-md text-subtitle-1">
+  <template #item.valor="{ item }">
+    {{ item?.valor != null ? `R$ ${Number(item.valor).toFixed(2)}` : "-" }}
+  </template>
 
-          <v-card-actions class="justify-center mt-2">
-            <v-btn
-              color="grey"
-              variant="outlined"
-              rounded="xl"
-              @click="confirmacaoSair = false"
-              width="120"
-            >
-              Cancelar
-            </v-btn>
+  <template #item.valor_pago="{ item }">
+    {{ item?.valor_pago != null ? `R$ ${Number(item.valor_pago).toFixed(2)}` : "-" }}
+  </template>
 
-            <v-btn
-              color="error"
-              variant="flat"
-              rounded="xl"
-              width="120"
-              :loading="loadingExclusao"
-              @click="ExcluirConta"
-            >
-              EXCLUIR
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-container>
+  <template #item.uuid="{ item }">
+    {{ item?.pagamento_uuid || "-" }}
+  </template>
+
+  <template #item.data="{ item }">
+    {{ item?.createdAt ? formatarDataISO(item.createdAt) : "-" }}
+  </template>
+  <template #item.forma="{ item }">
+    {{ pegarForma(item?.forma_pagamento_id) }}
+  </template>
+  <template #item.status="{ item }">
+    {{ pegarStatus(item?.status_pagamento_id) }}
+  </template>
+</v-data-table>
   </v-container>
+ 
+    </v-container>
    </v-layout>
 </template>
 
@@ -689,11 +733,30 @@ const router = useRouter();
 const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 
-onMounted(async () => {
-  if (!tokenExiste.value) {
-    router.push("/");
-  }
-});
+const headers = ref([
+  { title: "Nº", key: "id" },
+  { title: "Forma de pagamento", key: "forma" },
+  { title: "Status", key: "status" },
+  { title: "Valor", key: "valor" },
+  { title: "Valor Pago", key: "valor_pago" },
+  { title: "Data", key: "data" },
+  { title: "Identificação", key: "uuid" },
+]);
+
+
+
+function formatarDataISO(iso) {
+  if (!iso) return "";
+  
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hour = String(d.getHours()).padStart(2, "0");
+  const minute = String(d.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} ${hour}:${minute}`;
+}
 
 const formRef = ref(null);
 const ddiOptions = [
@@ -943,17 +1006,22 @@ watch(imagemPerfil, (i) => {
 function voltarHome() {
   router.push("/");
 }
+function toAnunciar() {
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/anunciar");
+}
 
 const retrieve = ref();
 const loadingInit = ref(true);
 
 onMounted(async () => {
-  if (!tokenExiste.value) {
+ if (!tokenExiste.value) {
     router.push("/");
     return;
   }
-
-
 
 try {
     const res = await connection.get("/desapega/usuarios/retrieve", {
@@ -1055,6 +1123,11 @@ if (telRaw.length > 11) {
   } finally {
     loadingInit.value = false;
   }
+  await getProdutos()
+  await getCategorias()
+  await getPagamentos()
+  await carregarFormasPagamento()
+  await carregarStatusPagamento()
 });
 
 const confirmacaoSair = ref(false);
@@ -1184,12 +1257,12 @@ async function getProdutos() {
   if (retrieve.admin == true) {
     try {
       const res = await Promise.race([
-        connection.get(`/desapega/produtos/${retrieve?.value.id}`),
+        connection.get(`/desapega/produtos/usuario/${retrieve?.value.id}`),
         timeout,
       ]);
 
       if (res.status == 200) {
-        produtos.value = res.data.produtos     
+        produtos.value = res.data     
   
         erroGetProduto.value = false;
       } else {
@@ -1212,12 +1285,12 @@ async function getProdutos() {
   } else {
     try {
       const res = await Promise.race([
-        connection.get(`/desapega/produtos/${retrieve?.value.id}`),
+        connection.get(`/desapega/produtos/usuario/${retrieve?.value.id}`),
         timeout,
       ]);
 
       if (res.status == 200) {
-        produtos.value = res.data.produtos     
+        produtos.value = res.data     
       
         erroGetProduto.value = false;
       } else {
@@ -1241,6 +1314,25 @@ async function getProdutos() {
 }
 
 
+const categorias = ref([])
+const carregandoInformacoes = ref(false)
+
+async function getCategorias() {
+  carregandoInformacoes.value = true;
+  try {
+    const res = await connection.get(`/desapega/categorias`);
+    if (res.status == 200) {
+      console.log(res.data.nome, "Nome categoria");
+      categorias.value = res.data;
+    } else {
+      return "Sem categoria";
+    }
+  } catch (error) {
+    return null;
+  } finally {
+    carregandoInformacoes.value = false;
+  }
+}
 function getProdutoImage(imagem) {
   if (!imagem || imagem === "Sem imagem" || imagem === "null") {
     return "/png-triste-erro.png";
@@ -1254,7 +1346,7 @@ function getProdutoImage(imagem) {
   if (imagem.startsWith("iVBORw0KGgo"))
     return `data:image/png;base64,${imagem}`;
   if (imagem.startsWith("R0lGODlh") || imagem.startsWith("R0lGODdh"))
-    return `data:image/gif;base64,${imagem}`; // GIF
+    return `data:image/gif;base64,${imagem}`; 
   if (imagem.startsWith("UklGR")) return `data:image/webp;base64,${imagem}`;
 
   return `data:image/png;base64,${imagem}`;
@@ -1262,13 +1354,80 @@ function getProdutoImage(imagem) {
 
 watch(erroGetProduto, (v) => console.log("erroGetProduto mudou para ->", v));
 
-function recarregarProdutos() {
-  getProdutos();
-}
 
-watch(itens, (novoItem) => {
-  novoItem.forEach((item) => {
-    console.log(item, "Produtos");
-  });
+const pagamentos = ref([])
+
+async function getPagamentos() {
+  try {
+    const res = await connection.get(
+      `/desapega/pagamentos/usuario/${retrieve?.value.id}`
+    );
+    if (res.status === 200) {
+      pagamentos.value = res.data
+     
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+const formasPagamento = ref([])
+const statusPagamento = ref([])
+
+async function carregarFormasPagamento() {
+  try {
+    const res = await connection.get("/desapega/formasPagamento", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    console.log(res.data, "formas Pagamento")
+    
+      
+        formasPagamento.value = res.data
+      
+    
+  } catch (err) {
+    console.error("carregarFormasPagamento:", err);
+    toast.error(
+      err.response?.data?.message || "Erro ao buscar formas de pagamento"
+    );
+  }
+}
+function pegarForma(id) {
+  id = Number(id);
+  if (!id) return "-";
+
+  const forma = formasPagamento.value.find(f => f.id === id);
+  return forma ? forma.forma : "Desconhecido";
+}
+async function carregarStatusPagamento() {
+  try {
+    const res = await connection.get("/desapega/statusPagamento", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+       console.log(res.data, "status Pagamento")
+   
+     
+        statusPagamento.value = res.data
+      
+    
+  } catch (err) {
+    console.error("carregarFormasPagamento:", err);
+    toast.error(
+      err.response?.data?.message || "Erro ao buscar status de pagamento"
+    );
+  }
+}
+function pegarStatus(id) {
+  id = Number(id)
+  if(!id) return "-"
+
+  const status = statusPagamento.value.find((f) => f.id == id)
+  return status ? status.descricao : "Desconhecido"
+}
+watch(pagamentos, (p) => {
+  console.log(p, "pagamentos")
+})
+
+watch(produtos, (novoItem) => {
+    console.log(novoItem, "Produtos");
 });
 </script>
