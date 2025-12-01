@@ -1,0 +1,86 @@
+.pagamento-container {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+.pagamento-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.cancelar-animado {
+  transition: transform 0.15s ease-in-out, opacity 0.2s;
+}
+
+.cancelar-animado:hover {
+  transform: scale(1.06);
+  opacity: 0.9;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+.pagamento-container {
+  padding-top: 40px;
+}
+
+.botao-cancelar {
+  transition: 0.25s;
+}
+
+.botao-cancelar:hover {
+  transform: scale(1.04);
+}
+.items-list-enhanced > .v-sheet {
+    display: flex;
+    align-items: center;
+}
+
+
+.flex-grow-1 {
+    flex-grow: 1;
+    min-width: 0; 
+}
+.pagamento-container {
+  min-height: 60vh;
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 300ms ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+
+.v-overlay__content > .v-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.items-list-enhanced .v-sheet {
+  background: #fff;
+}
+
+
+.v-alert .v-icon {
+  margin-right: 12px;
+}
+
+
+.v-progress-linear .v-progress-linear__bar {
+  border-radius: 6px;
+}

@@ -4,8 +4,10 @@ import Login from '@/pages/login/login.vue'
 import Perfil from '@/pages/perfil/perfil.vue'
 import Carrinho from '@/pages/carrinho/carrinho.vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import path from 'path'
-import AdminPanel from '@/pages/adminPanel/adminPanel.vue'
+import Detalhes from '@/pages/produtoDetalhes/detalhes.vue'
+import Pagamento from '@/pages/pagamento/pagamento.vue'
+import CompletarCadastro from '@/pages/completarCadastro/completarCadastro.vue'
+
 
 const routes = [
   {path: "/login", name: 'Login', component: Login},
@@ -13,7 +15,11 @@ const routes = [
   {path: "/cadastro", name: 'Cadastro', component: Cadastro},
   {path: "/admin", name: 'Admin', component: AdminPanel},
   {path: "/perfil", name: 'Perfil', component: Perfil},
-  {path: "/carrinho", name: 'Carrinho', component: Carrinho}
+  {path: "/carrinho", name: 'Carrinho', component: Carrinho},
+  {path: "/produto/:id", name: 'Detalhes', component: Detalhes},
+  {path: "/anunciar", name: 'Anunciar', component: Anunciar},
+  {path: "/pagamento/:uuid", name: 'Pagamento', component: Pagamento},
+  {path: "/completar-cadastro", name: 'CompletarCadastro', component: CompletarCadastro}
 ]
 
 const router = createRouter({
