@@ -241,7 +241,7 @@
             <v-btn v-if="boletoUrl" small outlined color="orange" :href="boletoUrl" target="_blank">Abrir Boleto</v-btn>
           </v-sheet>
 
-          <!-- Outros / erro -->
+
           <v-sheet v-else class="pa-3 mt-3 text-center bg-red-lighten-5 rounded-lg">
             <v-icon color="red" size="30">mdi-alert-circle</v-icon>
             <p class="mt-2 text-body-1">Método de pagamento inválido. Contate o suporte.</p>
@@ -334,8 +334,11 @@ const totalComFrete = computed(() => subtotal.value + frete.value);
 const metodoPagamentoNormalizado = computed(() => {
   if (!metodoPagamento.value) return null;
   const mp = metodoPagamento.value.toString().trim().toLowerCase();
+  console.log(mp, "mp")
   if (["pix", "cartao", "boleto"].includes(mp)) return mp;
-  return "outro";
+  else{
+    return "outro";
+  }
 });
 const isPix = computed(() => metodoPagamentoNormalizado.value === "pix");
 const isCartao = computed(() => metodoPagamentoNormalizado.value === "cartao");
@@ -374,43 +377,62 @@ const POLLING_DELAY_MS = 5000;
 
 async function getPagamento() {
   loadingPagamento.value = true;
+
   try {
+  
     const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve?.value.id}`, {
       headers: { Authorization: `Bearer ${token.value}` }
     });
-    const pagamento = res.data;
-    statusPagamento.value = pagamento.status_pagamento_id;
+    const pagamentos = res.data; // sempre array
 
+    if (!pagamentos || pagamentos.length === 0) {
+      toast.error("Nenhum pagamento encontrado.");
+      loadingPagamento.value = false;
+      return;
+    }
+
+    // 2️⃣ Pegar o primeiro pagamento
+    const pagamentoAtual = pagamentos[0];
+    statusPagamento.value = pagamentoAtual.status_pagamento_id;
+
+    // 3️⃣ Buscar formas de pagamento
     const resFormas = await connection.get("/desapega/formasPagamento", {
       headers: { Authorization: `Bearer ${token.value}` }
     });
     const formas = resFormas.data;
-    const formaSelecionada = formas.find(f => f.id === pagamento.forma_pagamento_id);
+
+    // 4️⃣ Normalizar forma selecionada
+    const formaSelecionada = formas.find(f => f.id === pagamentoAtual.forma_pagamento_id);
     metodoPagamento.value = formaSelecionada?.forma?.toLowerCase() || "outro";
 
+    // 5️⃣ PIX
     if (isPix.value) {
-  
-      pixQrCode.value = pagamento.pix_qr_code ? `data:image/png;base64,${pagamento.pix_qr_code}` : null;
+      pixQrCode.value = pagamentoAtual.pix_qr_code
+        ? `data:image/png;base64,${pagamentoAtual.pix_qr_code}`
+        : null;
 
-    
-      pixCopiaCodigo.value = pagamento.pix_copia_codigo || null;
+      pixCopiaCodigo.value = pagamentoAtual.pix_copia_codigo || null;
+
       if (!pixQrCode.value && pixCopiaCodigo.value) {
-      
         gerarQrCodePix(pixCopiaCodigo.value).then(dataUrl => {
           if (dataUrl) pixQrCode.value = dataUrl;
         });
       }
 
-      
-      if (pagamento.expiracao) iniciarContagemRegressiva(new Date(pagamento.expiracao));
+      if (pagamentoAtual.expiracao) {
+        iniciarContagemRegressiva(new Date(pagamentoAtual.expiracao));
+      }
 
       iniciarPollingStatus();
     }
 
-    if (isBoleto.value) boletoUrl.value = pagamento.boleto_url || null;
+    // 6️⃣ BOLETO
+    if (isBoleto.value) {
+      boletoUrl.value = pagamentoAtual.boleto_url || null;
+    }
 
-  
-    if (pagamento.status_pagamento_id === STATUS.pago) {
+    // 7️⃣ Status já pago
+    if (pagamentoAtual.status_pagamento_id === STATUS.pago) {
       toast.success("Pagamento já aprovado! Redirecionando...");
       setTimeout(() => router.push("/"), 800);
     }
@@ -421,6 +443,7 @@ async function getPagamento() {
     loadingPagamento.value = false;
   }
 }
+
 
 
 function iniciarContagemRegressiva(expiracaoISO) {
