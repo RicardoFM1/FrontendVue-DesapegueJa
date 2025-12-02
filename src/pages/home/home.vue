@@ -6,10 +6,20 @@ isto?
         <v-app-bar>
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
           <v-toolbar-title>Filtros</v-toolbar-title>
+       <v-btn
+          prepend-icon="mdi-account"
+           variant="flat"
+          color="#4A90E2"
+          :disabled="carregandoProdutos"
+           @click="dialogSocial = !dialogSocial">
+           Social
+          </v-btn>
+
 
           <v-btn
             prepend-icon="mdi-check"
             variant="flat"
+            class="ml-4 mr-4"
             color="#5865f2"
             @click="toAnunciar"
             :disabled="carregandoProdutos"
@@ -122,6 +132,65 @@ isto?
             </v-card>
           </v-menu>
         </v-app-bar>
+<v-dialog v-model="dialogSocial" max-width="600">
+  <v-card class="pa-4" rounded="xl" elevation="6">
+
+    <v-card-title class="d-flex align-center mb-2">
+      <v-icon size="32" color="#4A90E2" class="mr-3">mdi-account-search</v-icon>
+      <span class="text-h5 font-weight-bold">Buscar Vendedores</span>
+    </v-card-title>
+
+    <v-divider class="mb-4"></v-divider>
+
+    <v-card-text>
+      <v-text-field
+        v-model="pesquisaVendedor"
+        label="Pesquisar vendedor"
+        prepend-inner-icon="mdi-magnify"
+        variant="outlined"
+        rounded="lg"
+        class="mb-4"
+      />
+
+      <v-list>
+        <v-list-item
+          v-for="v in vendedoresFiltrados"
+          :key="v.id"
+          class="rounded-lg my-1"
+        >
+          <v-list-item-avatar color="#4A90E2">
+            <v-icon color="white">mdi-account</v-icon>
+          </v-list-item-avatar>
+
+          <v-list-item-content>
+            <v-list-item-title>{{ v.nome }}</v-list-item-title>
+            <v-list-item-subtitle>{{ v.email }}</v-list-item-subtitle>
+          </v-list-item-content>
+
+         
+          <v-btn
+            color="#4A90E2"
+            variant="flat"
+            rounded="lg"
+            @click="acessarPerfil(v.id)"
+          >
+            Perfil
+          </v-btn>
+
+        </v-list-item>
+      </v-list>
+
+    </v-card-text>
+
+    <v-card-actions class="justify-end">
+      <v-btn variant="text" color="red" @click="dialogSocial = false">
+        Fechar
+      </v-btn>
+    </v-card-actions>
+
+  </v-card>
+</v-dialog>
+
         <v-dialog
           max-width="500"
           v-model="buttonSairClicado"
@@ -423,6 +492,16 @@ isto?
           <v-app-bar-nav-icon @click="drawer = !drawer"> </v-app-bar-nav-icon>
 
           <v-toolbar-title>Filtros</v-toolbar-title>
+                   <v-btn
+            prepend-icon="mdi-check"
+            variant="flat"
+            class="ml-4 mr-4"
+            color="#5865f2"
+            @click="toAnunciar"
+            :disabled="carregandoProdutos"
+          >
+            Anunciar
+          </v-btn>
           <v-btn
             prepend-icon="mdi-check"
             variant="flat"
@@ -759,6 +838,7 @@ import "@mdi/font/css/materialdesignicons.css";
 
 const menu = ref(false);
 const menuButton = ref(null);
+const dialogSocial = ref(false)
 
 const token = ref();
 const tokenExiste = ref(false);
@@ -810,6 +890,7 @@ async function getVendedor() {
     if (res.status == 200) {
       console.log(res.data);
       vendedor.value = res.data;
+    
     } else {
       return "Sem vendedor";
     }
@@ -1123,6 +1204,19 @@ const itensFiltrados = computed(() => {
 
     return listaFiltrada;
 });
+const pesquisaVendedor = ref("");
+
+const vendedoresFiltrados = computed(() => {
+  const termo = pesquisaVendedor.value.toLowerCase().trim();
+  if (!termo) return vendedor.value;
+
+  return vendedor.value.filter((u) =>
+    (u.nome && u.nome.toLowerCase().includes(termo)) ||
+    (u.email && u.email.toLowerCase().includes(termo)) ||
+    (u.username && u.username.toLowerCase().includes(termo))
+  );
+});
+
 
 const getIniciais = (nome) => {
   if (!nome) return "?";
@@ -1198,6 +1292,10 @@ function toCadastro() {
 }
 function toLogin() {
   router.push("/login");
+}
+
+function acessarPerfil(id){
+  router.push(`/perfilsocial/${id}`);
 }
 </script>
 
