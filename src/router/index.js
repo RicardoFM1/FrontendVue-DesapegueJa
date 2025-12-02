@@ -28,5 +28,21 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:7000/desapega",
+  timeout: 10000
+});
+
+// Intercepta requisição e adiciona token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export default router
+
