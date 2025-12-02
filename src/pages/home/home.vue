@@ -135,9 +135,24 @@ isto?
 <v-dialog v-model="dialogSocial" max-width="600">
   <v-card class="pa-4" rounded="xl" elevation="6">
 
-    <v-card-title class="d-flex align-center mb-2">
-      <v-icon size="32" color="#4A90E2" class="mr-3">mdi-account-search</v-icon>
-      <span class="text-h5 font-weight-bold">Buscar Vendedores</span>
+    <!-- TÍTULO + BOTÃO X -->
+    <v-card-title class="d-flex align-center justify-space-between mb-2">
+
+      <div class="d-flex align-center">
+        <v-icon size="32" color="#4A90E2" class="mr-3">mdi-account-search</v-icon>
+        <span class="text-h5 font-weight-bold">Buscar Vendedores</span>
+      </div>
+
+      <!-- BOTÃO X NO TOPO DIREITO -->
+      <v-btn
+        icon
+        variant="text"
+        color="red"
+        @click="dialogSocial = false"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+
     </v-card-title>
 
     <v-divider class="mb-4"></v-divider>
@@ -158,20 +173,23 @@ isto?
           :key="v.id"
           class="rounded-lg my-1"
         >
+          <!-- Avatar -->
           <v-list-item-avatar color="#4A90E2">
             <v-icon color="white">mdi-account</v-icon>
           </v-list-item-avatar>
 
+          <!-- Nome e Email -->
           <v-list-item-content>
             <v-list-item-title>{{ v.nome }}</v-list-item-title>
             <v-list-item-subtitle>{{ v.email }}</v-list-item-subtitle>
           </v-list-item-content>
 
-         
+          <!-- BOTÃO PERFIL AO LADO -->
           <v-btn
             color="#4A90E2"
             variant="flat"
             rounded="lg"
+            class="ml-auto"
             @click="acessarPerfil(v.id)"
           >
             Perfil
@@ -182,14 +200,9 @@ isto?
 
     </v-card-text>
 
-    <v-card-actions class="justify-end">
-      <v-btn variant="text" color="red" @click="dialogSocial = false">
-        Fechar
-      </v-btn>
-    </v-card-actions>
-
   </v-card>
 </v-dialog>
+
 
         <v-dialog
           max-width="500"

@@ -8,6 +8,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Detalhes from '@/pages/produtoDetalhes/detalhes.vue'
 import Pagamento from '@/pages/pagamento/pagamento.vue'
 import CompletarCadastro from '@/pages/completarCadastro/completarCadastro.vue'
+import Perfilsocial from '@/pages/perfilsoical/perfilsocial.vue'
 
 
 const routes = [
@@ -19,7 +20,8 @@ const routes = [
   {path: "/produto/:id", name: 'Detalhes', component: Detalhes},
   {path: "/anunciar", name: 'Anunciar', component: Anunciar},
   {path: "/pagamento/:uuid", name: 'Pagamento', component: Pagamento},
-  {path: "/completar-cadastro", name: 'CompletarCadastro', component: CompletarCadastro}
+  {path: "/completar-cadastro", name: 'CompletarCadastro', component: CompletarCadastro},
+  {path: "/perfilsocial/:id", name: 'Social', component: Perfilsocial},
 ]
 
 const router = createRouter({
