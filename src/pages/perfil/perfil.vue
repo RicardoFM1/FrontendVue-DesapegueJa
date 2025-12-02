@@ -114,17 +114,6 @@
 
             <v-btn
               block
-              color="#eaece7"
-              variant="flat"
-              class="mb-4"
-              prepend-icon="mdi-account"
-              @click="toPerfil"
-              :disabled="carregando"
-            >
-              PERFIL
-            </v-btn>
-            <v-btn
-              block
               color="#cc0000"
               variant="flat"
               class="mb-4"

@@ -139,11 +139,23 @@
               density="compact"
               hide-details
             ></v-select>
-
+                <v-btn
+                    variant="flat"
+                    color="#2196F3"
+                    class="btnDetalhes"
+                    max-width="100"
+                    @click="toDetalhes(item.id)"
+                    density="comfortable"
+                    :disabled="carregandoInformacoes"
+                  >
+                    Detalhes
+                  </v-btn>
             <button @click="clickRemover(item)">
               <v-icon>mdi-delete</v-icon>
             </button>
+           
           </div>
+          
         </div>
       </v-sheet>
     </v-sheet>
@@ -891,6 +903,9 @@ async function removerItem() {
 
 function voltar() {
   router.push("/");
+}
+function toDetalhes(id) {
+  router.push(`/produto/${id}`);
 }
 
 function irParaPagamento() {
