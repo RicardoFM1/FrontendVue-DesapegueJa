@@ -18,14 +18,15 @@
     </header>
 
     <main class="admin-main">
-      <!-- USUÁRIOS -->
+
+      <!-- =================== USUÁRIOS =================== -->
       <section v-if="aba === 'usuarios'" class="panel">
         <h2>Usuários</h2>
 
         <div class="form-card">
           <input v-model="newUser.name" placeholder="Nome" />
           <input v-model="newUser.email" placeholder="Email" />
-          <button @click="createUser">Criar</button>
+          <button @click="createUser" class="primary">Criar</button>
         </div>
 
         <table class="admin-table" v-if="usuarios.length">
@@ -35,12 +36,12 @@
           <tbody>
             <tr v-for="u in usuarios" :key="u.id">
               <td>{{ u.id }}</td>
-              <td><input v-model="u.name" /></td>
-              <td><input v-model="u.email" /></td>
+              <td>{{ u.name }}</td>
+              <td>{{ u.email }}</td>
               <td>{{ formatDate(u.created_at) }}</td>
               <td>
-                <button @click="updateUser(u)">Salvar</button>
-                <button @click="deleteUser(u.id)">Excluir</button>
+                <button @click="openEditUser(u)" class="edit-btn">Editar</button>
+                <button @click="deleteUser(u.id)" class="delete-btn">Excluir</button>
               </td>
             </tr>
           </tbody>
@@ -48,13 +49,13 @@
         <p v-else>Nenhum usuário encontrado.</p>
       </section>
 
-      <!-- CATEGORIAS -->
+      <!-- =================== CATEGORIAS =================== -->
       <section v-if="aba === 'categorias'" class="panel">
         <h2>Categorias</h2>
 
         <div class="form-card">
           <input v-model="newCategoria.nome" placeholder="Nome da categoria" />
-          <button @click="createCategoria">Criar</button>
+          <button @click="createCategoria" class="primary">Criar</button>
         </div>
 
         <table class="admin-table" v-if="categorias.length">
@@ -62,10 +63,10 @@
           <tbody>
             <tr v-for="c in categorias" :key="c.id">
               <td>{{ c.id }}</td>
-              <td><input v-model="c.nome" /></td>
+              <td>{{ c.nome }}</td>
               <td>
-                <button @click="updateCategoria(c)">Salvar</button>
-                <button @click="deleteCategoria(c.id)">Excluir</button>
+                <button @click="openEditCategoria(c)" class="edit-btn">Editar</button>
+                <button @click="deleteCategoria(c.id)" class="delete-btn">Excluir</button>
               </td>
             </tr>
           </tbody>
@@ -73,7 +74,7 @@
         <p v-else>Nenhuma categoria encontrada.</p>
       </section>
 
-      <!-- PRODUTOS -->
+      <!-- =================== PRODUTOS =================== -->
       <section v-if="aba === 'produtos'" class="panel">
         <h2>Produtos</h2>
 
@@ -84,7 +85,7 @@
             <option :value="null">-- Selecionar categoria --</option>
             <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nome }}</option>
           </select>
-          <button @click="createProduto">Criar</button>
+          <button @click="createProduto" class="primary">Criar</button>
         </div>
 
         <table class="admin-table" v-if="produtos.length">
@@ -92,17 +93,12 @@
           <tbody>
             <tr v-for="p in produtos" :key="p.id">
               <td>{{ p.id }}</td>
-              <td><input v-model="p.nome" /></td>
-              <td><input v-model.number="p.preco" type="number" /></td>
+              <td>{{ p.nome }}</td>
+              <td>R$ {{ p.preco }}</td>
+              <td>{{ categorias.find(c => c.id === p.categoria_id)?.nome ?? '---' }}</td>
               <td>
-                <select v-model="p.categoria_id">
-                  <option :value="null">--</option>
-                  <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nome }}</option>
-                </select>
-              </td>
-              <td>
-                <button @click="updateProduto(p)">Salvar</button>
-                <button @click="deleteProduto(p.id)">Excluir</button>
+                <button @click="openEditProduto(p)" class="edit-btn">Editar</button>
+                <button @click="deleteProduto(p.id)" class="delete-btn">Excluir</button>
               </td>
             </tr>
           </tbody>
@@ -110,32 +106,7 @@
         <p v-else>Nenhum produto encontrado.</p>
       </section>
 
-      <!-- PAGAMENTOS -->
-      <section v-if="aba === 'pagamentos'" class="panel">
-        <h2>Formas de Pagamento</h2>
-
-        <div class="form-card">
-          <input v-model="newPagamento.nome" placeholder="Nome da forma" />
-          <button @click="createPagamento">Criar</button>
-        </div>
-
-        <table class="admin-table" v-if="pagamentos.length">
-          <thead><tr><th>ID</th><th>Nome</th><th>Ações</th></tr></thead>
-          <tbody>
-            <tr v-for="pg in pagamentos" :key="pg.id">
-              <td>{{ pg.id }}</td>
-              <td><input v-model="pg.nome" /></td>
-              <td>
-                <button @click="updatePagamento(pg)">Salvar</button>
-                <button @click="deletePagamento(pg.id)">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>Nenhuma forma de pagamento encontrada.</p>
-      </section>
-
-      <!-- ENDEREÇOS -->
+      <!-- =================== ENDEREÇOS =================== -->
       <section v-if="aba === 'enderecos'" class="panel">
         <h2>Endereços</h2>
 
@@ -143,7 +114,7 @@
           <input v-model="newEndereco.rua" placeholder="Rua" />
           <input v-model="newEndereco.numero" placeholder="Número" />
           <input v-model="newEndereco.cidade" placeholder="Cidade" />
-          <button @click="createEndereco">Criar</button>
+          <button @click="createEndereco" class="primary">Criar</button>
         </div>
 
         <table class="admin-table" v-if="enderecos.length">
@@ -151,12 +122,12 @@
           <tbody>
             <tr v-for="e in enderecos" :key="e.id">
               <td>{{ e.id }}</td>
-              <td><input v-model="e.rua" /></td>
-              <td><input v-model="e.numero" /></td>
-              <td><input v-model="e.cidade" /></td>
+              <td>{{ e.rua }}</td>
+              <td>{{ e.numero }}</td>
+              <td>{{ e.cidade }}</td>
               <td>
-                <button @click="updateEndereco(e)">Salvar</button>
-                <button @click="deleteEndereco(e.id)">Excluir</button>
+                <button @click="openEditEndereco(e)" class="edit-btn">Editar</button>
+                <button @click="deleteEndereco(e.id)" class="delete-btn">Excluir</button>
               </td>
             </tr>
           </tbody>
@@ -164,80 +135,57 @@
         <p v-else>Nenhum endereço encontrado.</p>
       </section>
 
-      <!-- STATUS DE ORDEM -->
-      <section v-if="aba === 'status'" class="panel">
-        <h2>Status de Ordem</h2>
-
-        <div class="form-card">
-          <input v-model="newStatus.nome" placeholder="Nome do status" />
-          <button @click="createStatus">Criar</button>
-        </div>
-
-        <table class="admin-table" v-if="statusList.length">
-          <thead><tr><th>ID</th><th>Nome</th><th>Ações</th></tr></thead>
-          <tbody>
-            <tr v-for="s in statusList" :key="s.id">
-              <td>{{ s.id }}</td>
-              <td><input v-model="s.nome" /></td>
-              <td>
-                <button @click="updateStatus(s)">Salvar</button>
-                <button @click="deleteStatus(s.id)">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>Nenhum status cadastrado.</p>
-      </section>
-
-      <!-- ORDENS DE COMPRA -->
-      <section v-if="aba === 'ordens'" class="panel">
-        <h2>Ordens de Compra</h2>
-
-        <table class="admin-table" v-if="ordens.length">
-          <thead><tr><th>ID</th><th>Usuário</th><th>Total</th><th>Status</th><th>Ações</th></tr></thead>
-          <tbody>
-            <tr v-for="o in ordens" :key="o.id">
-              <td>{{ o.id }}</td>
-              <td>{{ o.usuario?.name ?? o.usuario_id }}</td>
-              <td>{{ o.total }}</td>
-              <td>
-                <select v-model="o.status_id" @change="changeOrderStatus(o)">
-                  <option v-for="s in statusList" :key="s.id" :value="s.id">{{ s.nome }}</option>
-                </select>
-              </td>
-              <td>
-                <button @click="viewOrder(o)">Ver</button>
-                <button @click="deleteOrder(o.id)">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>Nenhuma ordem encontrada.</p>
-      </section>
-
-      <!-- CARRINHO -->
-      <section v-if="aba === 'carrinho'" class="panel">
-        <h2>Carrinhos</h2>
-
-        <table class="admin-table" v-if="carrinhos.length">
-          <thead><tr><th>ID</th><th>Usuário</th><th>Itens</th><th>Total</th><th>Ações</th></tr></thead>
-          <tbody>
-            <tr v-for="c in carrinhos" :key="c.id">
-              <td>{{ c.id }}</td>
-              <td>{{ c.usuario?.name ?? c.usuario_id }}</td>
-              <td>{{ c.itens?.length ?? 0 }}</td>
-              <td>{{ c.total ?? 0 }}</td>
-              <td>
-                <button @click="viewCart(c)">Ver</button>
-                <button @click="clearCart(c.id)">Limpar</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>Nenhum carrinho ativo.</p>
-      </section>
-
     </main>
+
+    <!-- =================== MODAIS =================== -->
+
+    <!-- EDITAR USUÁRIO -->
+    <div v-if="modalUser" class="modal">
+      <div class="modal-content">
+        <h3>Editar Usuário</h3>
+        <input v-model="editUser.name" placeholder="Nome" />
+        <input v-model="editUser.email" placeholder="Email" />
+        <button @click="saveEditUser" class="primary">Salvar</button>
+        <button class="close" @click="modalUser=false">Fechar</button>
+      </div>
+    </div>
+
+    <!-- EDITAR CATEGORIA -->
+    <div v-if="modalCategoria" class="modal">
+      <div class="modal-content">
+        <h3>Editar Categoria</h3>
+        <input v-model="editCategoria.nome" placeholder="Nome" />
+        <button @click="saveEditCategoria" class="primary">Salvar</button>
+        <button class="close" @click="modalCategoria=false">Fechar</button>
+      </div>
+    </div>
+
+    <!-- EDITAR PRODUTO -->
+    <div v-if="modalProduto" class="modal">
+      <div class="modal-content">
+        <h3>Editar Produto</h3>
+        <input v-model="editProduto.nome" placeholder="Nome" />
+        <input v-model.number="editProduto.preco" placeholder="Preço" type="number" />
+        <select v-model="editProduto.categoria_id">
+          <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nome }}</option>
+        </select>
+        <button @click="saveEditProduto" class="primary">Salvar</button>
+        <button class="close" @click="modalProduto=false">Fechar</button>
+      </div>
+    </div>
+
+    <!-- EDITAR ENDEREÇO -->
+    <div v-if="modalEndereco" class="modal">
+      <div class="modal-content">
+        <h3>Editar Endereço</h3>
+        <input v-model="editEndereco.rua" placeholder="Rua" />
+        <input v-model="editEndereco.numero" placeholder="Número" />
+        <input v-model="editEndereco.cidade" placeholder="Cidade" />
+        <button @click="saveEditEndereco" class="primary">Salvar</button>
+        <button class="close" @click="modalEndereco=false">Fechar</button>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -249,87 +197,264 @@ import { connection } from '@/connection/axiosConnection';
 const router = useRouter();
 const aba = ref('usuarios');
 
-// UTIL
+// ==================== UTIL ====================
 const tokenHeader = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '';
+const formatDate = d => d ? new Date(d).toLocaleDateString('pt-BR') : '';
 
-// USUÁRIOS
+// ==================== USUÁRIOS ====================
 const usuarios = ref([]);
 const newUser = ref({ name: '', email: '' });
-async function loadUsers() { try { usuarios.value = (await connection.get('/desapega/usuarios', tokenHeader())).data || []; } catch(e){console.error(e);} }
-async function createUser(){ try{ await connection.post('/desapega/usuarios', newUser.value, tokenHeader()); newUser.value = {name:'',email:''}; loadUsers(); }catch(e){console.error(e);} }
-async function updateUser(u){ try{ await connection.put(`/desapega/usuarios/${u.id}`, u, tokenHeader()); loadUsers(); }catch(e){console.error(e);} }
-async function deleteUser(id){ try{ await connection.delete(`/desapega/usuarios/${id}`, tokenHeader()); loadUsers(); }catch(e){console.error(e);} }
 
-// CATEGORIAS
+async function loadUsers() { usuarios.value = (await connection.get('/desapega/usuarios', tokenHeader())).data || []; }
+async function createUser() { await connection.post('/desapega/usuarios', newUser.value, tokenHeader()); newUser.value = {name:'',email:''}; loadUsers(); }
+async function deleteUser(id) { await connection.delete(`/desapega/usuarios/${id}`, tokenHeader()); loadUsers(); }
+function openEditUser(u){ editUser.value = {...u}; modalUser.value = true; }
+async function saveEditUser(){ await connection.put(`/desapega/usuarios/${editUser.value.id}`, editUser.value, tokenHeader()); modalUser.value=false; loadUsers(); }
+
+// ==================== CATEGORIAS ====================
 const categorias = ref([]);
 const newCategoria = ref({ nome: '' });
-async function loadCategorias(){ try{ categorias.value = (await connection.get('/desapega/categorias', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function createCategoria(){ try{ await connection.post('/desapega/categorias', newCategoria.value, tokenHeader()); newCategoria.value = {nome:''}; loadCategorias(); }catch(e){console.error(e);} }
-async function updateCategoria(c){ try{ await connection.put(`/desapega/categorias/${c.id}`, c, tokenHeader()); loadCategorias(); }catch(e){console.error(e);} }
-async function deleteCategoria(id){ try{ await connection.delete(`/desapega/categorias/${id}`, tokenHeader()); loadCategorias(); }catch(e){console.error(e);} }
 
-// PRODUTOS
+async function loadCategorias(){ categorias.value = (await connection.get('/desapega/categorias', tokenHeader())).data || []; }
+async function createCategoria(){ await connection.post('/desapega/categorias', newCategoria.value, tokenHeader()); newCategoria.value={nome:''}; loadCategorias(); }
+function openEditCategoria(c){ editCategoria.value={...c}; modalCategoria.value=true; }
+async function saveEditCategoria(){ await connection.put(`/desapega/categorias/${editCategoria.value.id}`, editCategoria.value, tokenHeader()); modalCategoria.value=false; loadCategorias(); }
+async function deleteCategoria(id){ await connection.delete(`/desapega/categorias/${id}`, tokenHeader()); loadCategorias(); }
+
+// ==================== PRODUTOS ====================
 const produtos = ref([]);
 const newProduto = ref({ nome:'', preco:0, categoria_id:null });
-async function loadProdutos(){ try{ produtos.value = (await connection.get('/desapega/produtos', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function createProduto(){ try{ await connection.post('/desapega/produtos', newProduto.value, tokenHeader()); newProduto.value = {nome:'',preco:0,categoria_id:null}; loadProdutos(); }catch(e){console.error(e);} }
-async function updateProduto(p){ try{ await connection.put(`/desapega/produtos/${p.id}`, p, tokenHeader()); loadProdutos(); }catch(e){console.error(e);} }
-async function deleteProduto(id){ try{ await connection.delete(`/desapega/produtos/${id}`, tokenHeader()); loadProdutos(); }catch(e){console.error(e);} }
 
-// PAGAMENTOS
-const pagamentos = ref([]);
-const newPagamento = ref({ nome: '' });
-async function loadPagamentos(){ try{ pagamentos.value = (await connection.get('/desapega/pagamentos', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function createPagamento(){ try{ await connection.post('/desapega/pagamentos', newPagamento.value, tokenHeader()); newPagamento.value = {nome:''}; loadPagamentos(); }catch(e){console.error(e);} }
-async function updatePagamento(pg){ try{ await connection.put(`/desapega/pagamentos/${pg.id}`, pg, tokenHeader()); loadPagamentos(); }catch(e){console.error(e);} }
-async function deletePagamento(id){ try{ await connection.delete(`/desapega/pagamentos/${id}`, tokenHeader()); loadPagamentos(); }catch(e){console.error(e);} }
+async function loadProdutos(){ produtos.value = (await connection.get('/desapega/produtos', tokenHeader())).data || []; }
+async function createProduto(){ await connection.post('/desapega/produtos', newProduto.value, tokenHeader()); newProduto.value={nome:'',preco:0,categoria_id:null}; loadProdutos(); }
+function openEditProduto(p){ editProduto.value={...p}; modalProduto.value=true; }
+async function saveEditProduto(){ await connection.put(`/desapega/produtos/${editProduto.value.id}`, editProduto.value, tokenHeader()); modalProduto.value=false; loadProdutos(); }
+async function deleteProduto(id){ await connection.delete(`/desapega/produtos/${id}`, tokenHeader()); loadProdutos(); }
 
-// ENDEREÇOS
+// ==================== ENDEREÇOS ====================
 const enderecos = ref([]);
 const newEndereco = ref({ rua:'', numero:'', cidade:'' });
-async function loadEnderecos(){ try{ enderecos.value = (await connection.get('/desapega/enderecos', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function createEndereco(){ try{ await connection.post('/desapega/enderecos', newEndereco.value, tokenHeader()); newEndereco.value = {rua:'',numero:'',cidade:''}; loadEnderecos(); }catch(e){console.error(e);} }
-async function updateEndereco(e){ try{ await connection.put(`/desapega/enderecos/${e.id}`, e, tokenHeader()); loadEnderecos(); }catch(e){console.error(e);} }
-async function deleteEndereco(id){ try{ await connection.delete(`/desapega/enderecos/${id}`, tokenHeader()); loadEnderecos(); }catch(e){console.error(e);} }
 
-// STATUS DE ORDEM
-const statusList = ref([]);
-const newStatus = ref({ nome: '' });
-async function loadStatus(){ try{ statusList.value = (await connection.get('/desapega/status', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function createStatus(){ try{ await connection.post('/desapega/status', newStatus.value, tokenHeader()); newStatus.value = {nome:''}; loadStatus(); }catch(e){console.error(e);} }
-async function updateStatus(s){ try{ await connection.put(`/desapega/status/${s.id}`, s, tokenHeader()); loadStatus(); }catch(e){console.error(e);} }
-async function deleteStatus(id){ try{ await connection.delete(`/desapega/status/${id}`, tokenHeader()); loadStatus(); }catch(e){console.error(e);} }
+async function loadEnderecos(){ enderecos.value = (await connection.get('/desapega/enderecos', tokenHeader())).data || []; }
+async function createEndereco(){ await connection.post('/desapega/enderecos', newEndereco.value, tokenHeader()); newEndereco.value={rua:'',numero:'',cidade:''}; loadEnderecos(); }
+function openEditEndereco(e){ editEndereco.value={...e}; modalEndereco.value=true; }
+async function saveEditEndereco(){ await connection.put(`/desapega/enderecos/${editEndereco.value.id}`, editEndereco.value, tokenHeader()); modalEndereco.value=false; loadEnderecos(); }
+async function deleteEndereco(id){ await connection.delete(`/desapega/enderecos/${id}`, tokenHeader()); loadEnderecos(); }
 
-// ORDENS DE COMPRA
-const ordens = ref([]);
-async function loadOrdens(){ try{ ordens.value = (await connection.get('/desapega/ordens', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function changeOrderStatus(o){ try{ await connection.put(`/desapega/ordens/${o.id}`, { status_id: o.status_id }, tokenHeader()); loadOrdens(); }catch(e){console.error(e);} }
-async function viewOrder(o){ try{ const res = await connection.get(`/desapega/ordens/${o.id}`, tokenHeader()); alert(JSON.stringify(res.data, null, 2)); }catch(e){console.error(e);} }
-async function deleteOrder(id){ try{ await connection.delete(`/desapega/ordens/${id}`, tokenHeader()); loadOrdens(); }catch(e){console.error(e);} }
+// ==================== MODAIS ====================
+const modalUser = ref(false);
+const editUser = ref({});
 
-// CARRINHOS
-const carrinhos = ref([]);
-async function loadCarrinhos(){ try{ carrinhos.value = (await connection.get('/desapega/carrinhos', tokenHeader())).data || []; }catch(e){console.error(e);} }
-async function viewCart(c){ try{ const res = await connection.get(`/desapega/carrinhos/${c.id}`, tokenHeader()); alert(JSON.stringify(res.data, null, 2)); }catch(e){console.error(e);} }
-async function clearCart(id){ try{ await connection.delete(`/desapega/carrinhos/${id}`, tokenHeader()); loadCarrinhos(); }catch(e){console.error(e);} }
+const modalCategoria = ref(false);
+const editCategoria = ref({});
 
-onMounted(()=>{
-  // carrega tudo ao abrir o painel
-  loadUsers(); loadCategorias(); loadProdutos(); loadPagamentos(); loadEnderecos(); loadStatus(); loadOrdens(); loadCarrinhos();
+const modalProduto = ref(false);
+const editProduto = ref({});
+
+const modalEndereco = ref(false);
+const editEndereco = ref({});
+
+// ==================== ON MOUNT ====================
+onMounted(() => {
+  loadUsers();
+  loadCategorias();
+  loadProdutos();
+  loadEnderecos();
 });
 
+// BOTÃO VOLTAR
 const voltar = () => router.push('/');
 </script>
 
 <style>
-@import "../css/paginaAdminPanel/admin.css";
-.admin-header{display:flex;justify-content:space-between;align-items:center}
-.header-actions{display:flex;gap:10px;align-items:center}
-.form-card{display:flex;gap:10px;margin:12px 0}
-.admin-table{width:100%;border-collapse:collapse}
-.admin-table th,.admin-table td{padding:8px;border:1px solid #ddd}
-.panel{margin-top:16px}
-.select-aba{padding:8px;border-radius:6px}
-.logout-btn{background:#ef4444;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+/* ======================= */
+/*      LAYOUT BASE        */
+/* ======================= */
+
+.admin-container {
+  width: 100%;
+  min-height: 100vh;
+  background: #f4f5f7;
+  padding: 20px;
+  font-family: "Inter", sans-serif;
+}
+
+.admin-header {
+  background: #ffffff;
+  padding: 18px 22px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.admin-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ======================= */
+/*       SELECT E INPUTS   */
+/* ======================= */
+
+.select-aba,
+.form-card input,
+.form-card select,
+.modal-content input,
+.modal-content select {
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.select-aba:focus,
+.form-card input:focus,
+.modal-content input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
+}
+
+/* ======================= */
+/*        BOTÕES           */
+/* ======================= */
+
+button {
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+.logout-btn {
+  background: #ef4444;
+  color: #fff;
+}
+
+button.primary {
+  background: #4f46e5;
+  color: white;
+}
+
+button.edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+button.delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+/* ======================= */
+/*         FORM CARDS      */
+/* ======================= */
+
+.form-card {
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+}
+
+/* ======================= */
+/*          TABLES         */
+/* ======================= */
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.admin-table thead {
+  background: #f9fafb;
+}
+
+.admin-table th {
+  padding: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-align: left;
+}
+
+.admin-table td {
+  padding: 12px;
+  border-top: 1px solid #e5e7eb;
+  color: #4b5563;
+}
+
+.admin-table tbody tr:hover {
+  background: #f3f4f6;
+}
+
+/* ======================= */
+/*          PANELS         */
+/* ======================= */
+
+.panel h2 {
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ======================= */
+/*          MODAL          */
+/* ======================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 350px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.modal-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.close {
+  background: #6b7280;
+  color: white;
+}
 </style>

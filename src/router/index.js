@@ -7,6 +7,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Detalhes from '@/pages/produtoDetalhes/detalhes.vue'
 import Pagamento from '@/pages/pagamento/pagamento.vue'
 import CompletarCadastro from '@/pages/completarCadastro/completarCadastro.vue'
+import AdminPanel from '@/pages/adminPanel/adminPanel.vue'
+import Anunciar from '@/pages/anunciar/anunciar.vue'
 
 
 const routes = [
