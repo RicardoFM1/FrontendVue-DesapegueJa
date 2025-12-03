@@ -744,7 +744,7 @@
 
             <template #item.acoes="{ item }">
               <v-btn
-                v-if="pegarStatus(item.status_pagamento_id) === 'Pendente'"
+                v-if="pegarStatus(item.status_pagamento_id) === 'pendente'"
                 color="primary"
                 size="small"
                 variant="tonal"
