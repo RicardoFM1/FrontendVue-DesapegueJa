@@ -29,7 +29,7 @@ isto?
           
 
             <v-btn
-            class="ml-4 mr-4"
+           
             variant="flat"
             prepend-icon="mdi-cart"
             color="#3fa34f"
