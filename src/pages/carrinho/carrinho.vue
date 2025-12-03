@@ -1,321 +1,498 @@
 <template>
-  
-  <v-sheet
-    v-if="carregandoCarrinho"
-    class="d-flex justify-center align-center my-8"
-    height="200"
-  >
-    <v-progress-circular size="50" color="teal" indeterminate>
-    </v-progress-circular>
-    <p class="ml-3">Carregando seu carrinho... aguarde</p>
-  </v-sheet>
-  <v-sheet
-    class="d-flex align-center justify-center mt-10"
-    v-if="erroGetProduto"
-  >
-    <v-sheet
-      width="400"
-      color="red-darken-2"
-      class="pa-4 mb-4 text-white text-center rounded-lg"
-      elevation="4"
-    >
-      <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
-      <p class="text-h6 mb-2">Erro ao listar seu carrinho</p>
-      <p class="mb-4">Verifique sua conexão e tente novamente.</p>
-      <v-btn
-        color="white"
-        variant="outlined"
-        prepend-icon="mdi-refresh"
-        @click="carregarCarrinhoCompleto"
-        :disabled="carregandoCarrinho"
-      >
-        Tentar novamente
-      </v-btn>
-    </v-sheet>
-  </v-sheet>
-  <v-dialog
-    max-width="500"
-    v-model="modalConfirmacaoOpen"
-    v-if="modalConfirmacaoOpen"
-  >
-    <v-card class="pa-4" elevation="8" rounded="xl">
-      <v-card-title class="text-center font-weight-bold text-h4">
-        <v-icon color="error" size="32" class="mr-2"
-          >mdi-alert-circle-outline</v-icon
-        >
-        Remover produto
-      </v-card-title>
-
-      <v-card-text class="text-center text-h5 text-medium-emphasis">
-        Tem certeza que quer remover esse produto do seu carrinho?
-      </v-card-text>
-
-      <v-card-actions class="justify-center mt-2">
-        <v-btn
-          color="grey"
-          variant="outlined"
-          rounded="xl"
-          @click="modalConfirmacaoOpen = false"
-          width="120"
-        >
-          Cancelar
-        </v-btn>
-
-        <v-btn
-          color="error"
-          variant="flat"
-          rounded="xl"
-          width="120"
-          :loading="loadingRemover"
-          @click="removerItem"
-        >
-          Remover
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <v-container class="d-flex cart-container">
-    <v-sheet
-      class="sheetItems"
-      v-if="!erroGetProduto && !carregandoCarrinho && carrinhoUser.length > 0"
-    >
-      <v-sheet class="cart-items">
-        <div class="cart-item" v-for="(item, index) in carrinhoUser">
-          <v-img
-            :src="getProdutoImage(item.imagem)"
-            width="50"
-            height="150"
-            class="imgItem"
+  <v-layout class="bg-grey-lighten-5 d-flex flex-column">
+    <v-container class="py-6" style="max-width: 1400px">
+      <v-row align="center">
+        <v-col cols="12">
+          <v-btn
+            variant="text"
+            color="primary"
+            prepend-icon="mdi-arrow-left"
+            @click="voltar"
+            class="text-body-1 font-weight-bold pa-0 ml-n2 text-capitalize mb-4"
           >
-            <template #error>
-              <img src="/png-triste-erro.png" alt="Imagem não disponível" />
-            </template>
-          </v-img>
-
-          <div class="item-details">
-            <v-tooltip top>
-              <template #activator="{ props }">
-                <div v-bind="props" class="font-weight-bold ellipses">
-                  {{ item?.nome || "Produto indisponível" }}
-                </div>
-              </template>
-              <span>{{ item?.nome || "Produto indisponível" }}</span>
-            </v-tooltip>
-
-            <v-tooltip top>
-              <template #activator="{ props }">
-                <div
-                  v-bind="props"
-                  class="text-green font-weight-bold ellipses"
-                >
-                  R$
-                  {{
-                    (item?.preco * item?.quantidade) / 100 ||
-                    "Preço indisponível"
-                  }}
-                </div>
-              </template>
-              <span
-                >R$
-                {{
-                  (item?.preco * item?.quantidade) / 100 || "Preço indisponível"
-                }}</span
-              >
-            </v-tooltip>
-          </div>
-
-          <div class="item-actions">
-            <v-select
-              v-model="item.quantidade"
-              :items="
-                Array.from(
-                  {
-                    length: Math.max(item.estoque, item.quantidade),
-                  },
-                  (_, i) => i + 1
-                )
-              "
-              @update:modelValue="atualizarQuantidade(item)"
-              density="compact"
-              hide-details
-            ></v-select>
-                <v-btn
-                    variant="flat"
-                    color="#2196F3"
-                    class="btnDetalhes"
-                    max-width="100"
-                    @click="toDetalhes(item.id)"
-                    density="comfortable"
-                    :disabled="carregandoInformacoes"
-                  >
-                    Detalhes
-                  </v-btn>
-            <button @click="clickRemover(item)">
-              <v-icon>mdi-delete</v-icon>
-            </button>
-           
-          </div>
-          
-        </div>
-      </v-sheet>
-    </v-sheet>
-
-    <v-sheet
-      class="cart-summary"
-      v-if="!erroGetProduto && carrinhoUser.length > 0 && !carregandoCarrinho"
-    >
-      <p><strong>Subtotal:</strong> R$ {{ subtotal / 100 }}</p>
-      <p v-if="metodoEntrega === 'entrega'" class="text-orange">
-        Frete de R$15 adicionado automaticamente
-      </p>
-      <p><strong>Total:</strong> R$ {{ totalComFrete / 100 }}</p>
-
-      <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
-        <h3 class="text-h6 mb-3 font-weight-bold">Método de Entrega</h3>
-
-        <v-radio-group
-          v-model="metodoEntrega"
-          :disabled="existePagamento || loadingComprar"
-        >
-          <v-radio label="Combinar com o vendedor" value="combinar"></v-radio>
-          <v-radio label="Entrega" value="entrega" />
-        </v-radio-group>
-        <v-expand-transition>
-  <v-alert
-    v-if="metodoEntrega === 'entrega' && enderecoIncompleto(enderecoUsuario)"
-    type="error"
-    icon="mdi-map-marker-alert"
-    class="my-3"
-    variant="tonal"
-  >
-    <p class="font-weight-bold">Endereço Incompleto!</p>
-    <p>Complete seu endereço para que possamos fazer a entrega.</p>
-  </v-alert>
-</v-expand-transition>
-
-<v-expand-transition>
-  </v-expand-transition>
-        <v-expand-transition>
-          <v-sheet
-            v-if="metodoEntrega === 'combinar'"
-            class="pa-3 mt-3 text-center bg-blue-lighten-5"
-            rounded="lg"
+            Voltar às compras
+          </v-btn>
+          <h1
+            class="text-h4 font-weight-bold text-grey-darken-3 d-flex align-center"
           >
-            <v-icon color="blue" size="30">mdi-account-voice</v-icon>
-            <p class="mt-2 text-body-1">
-              Após finalizar a compra, você receberá os dados para combinar
-              local e horário com o vendedor.
-            </p>
-          </v-sheet>
-        </v-expand-transition>
-      </v-sheet>
+            <v-icon size="36" color="primary" class="mr-2"
+              >mdi-cart-outline</v-icon
+            >
+            Seu Carrinho
+          </h1>
+        </v-col>
+      </v-row>
+    </v-container>
 
-      <v-sheet class="pa-4 mt-4" rounded="lg" elevation="2">
-        <h3 class="text-h6 mb-3 font-weight-bold">Forma de Pagamento</h3>
-
-        <v-radio-group
-          v-if="formasPagamento.length"
-          v-model="metodoPagamento"
-          :disabled="existePagamento || loadingComprar"
-        >
-          <v-radio
-            v-for="forma in formasPagamento"
-            :key="forma.id"
-            :label="forma.forma"
-            :value="forma.forma"
-          />
-        </v-radio-group>
-
-        <div v-else>
-          <p>Não há formas de pagamento disponíveis no momento.</p>
-        </div>
-
-        <v-expand-transition>
-          <v-sheet
-            v-if="metodoPagamento"
-            class="pa-3 mt-3 text-center bg-grey-lighten-4"
-            rounded="lg"
-          >
-            <v-icon size="30">mdi-cash-multiple</v-icon>
-            <p class="mt-2 text-body-1">
-              Você selecionou: <strong>{{ metodoPagamento }}</strong>
-            </p>
-            <small>O pagamento será finalizado na próxima etapa.</small>
-          </v-sheet>
-        </v-expand-transition>
-
-        <v-expand-transition>
-          <v-sheet
-            v-if="metodoPagamento && metodoPagamento.toLowerCase() === 'cartao'"
-            class="pa-3 mt-3 text-center bg-blue-lighten-5"
-            rounded="lg"
-          >
-            <v-icon color="blue" size="30">mdi-credit-card</v-icon>
-            <p class="mt-2 text-body-1">
-              Pagamento com cartão no próximo passo
-            </p>
-          </v-sheet>
-        </v-expand-transition>
-      </v-sheet>
-      <v-expand-transition>
-        <v-alert
-          v-if="existePagamento"
-          type="info"
-          icon="mdi-information"
-          class="my-4 text-center"
-          color="blue-darken-1"
-          variant="tonal"
-        >
-          <p class="font-weight-bold">Pagamento em Andamento</p>
-          <p>
-            Você já tem um pedido e pagamento pendente. Clique em "Verificar
-            Pagamento" para continuar onde parou.
+    <v-container class="pb-10 pt-0" style="max-width: 1400px">
+      <v-row v-if="carregandoCarrinho" justify="center">
+        <v-col cols="12" class="text-center py-12">
+          <v-progress-circular
+            size="64"
+            color="primary"
+            indeterminate
+          ></v-progress-circular>
+          <p class="mt-4 text-h6 text-grey-darken-1">
+            Carregando seu carrinho... aguarde
           </p>
-        </v-alert>
-      </v-expand-transition>
-      <div class="cart-buttons">
-        <v-btn class="btn-voltar" @click="voltar"> ← Voltar às compras </v-btn>
+        </v-col>
+      </v-row>
 
-        <v-btn
-          v-if="existePagamento"
-          color="green"
-          class="btn-verificar"
-          prepend-icon="mdi-barcode-scan"
-          @click="irParaPagamento"
-        >
-          Verificar Pagamento
-        </v-btn>
+      <v-row v-else-if="erroGetProduto" justify="center">
+        <v-col cols="12" md="6">
+          <v-alert
+            type="error"
+            variant="tonal"
+            title="Erro ao listar seu carrinho 😢"
+            text="Não foi possível carregar os itens. Verifique sua conexão e tente novamente."
+            icon="mdi-wifi-off"
+            class="my-8"
+          >
+            <template #append>
+              <v-btn
+                color="error"
+                variant="outlined"
+                size="small"
+                prepend-icon="mdi-refresh"
+                @click="carregarCarrinhoCompleto"
+                :disabled="carregandoCarrinho"
+              >
+                Tentar novamente
+              </v-btn>
+            </template>
+          </v-alert>
+        </v-col>
+      </v-row>
 
-        <v-btn
-          class="btn-comprar"
-          :loading="loadingComprar"
-          @click="comprar"
-          :disabled="existePagamento || loadingComprar"
-        >
-          Finalizar compra
-        </v-btn>
-      </div>
-    </v-sheet>
+      <v-row v-else-if="carrinhoUser.length === 0" justify="center">
+        <v-col cols="12" md="6" class="text-center py-12">
+          <v-icon size="80" color="grey-lighten-1"
+            >mdi-basket-remove-outline</v-icon
+          >
+          <h2 class="text-h5 font-weight-medium mt-4 mb-3">
+            Seu carrinho está vazio 😢
+          </h2>
+          <p class="text-body-1 text-grey-darken-1 mb-6">
+            Parece que você ainda não adicionou nenhum produto.
+          </p>
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="large"
+            @click="voltar"
+            rounded="lg"
+          >
+            Começar a Comprar
+          </v-btn>
+        </v-col>
+      </v-row>
 
-    <v-sheet
-      v-if="!erroGetProduto && !carregandoCarrinho && carrinhoUser.length <= 0"
-      class="empty-cart"
-    >
-      <p>Seu carrinho está vazio 😢</p>
-      <button class="btn-voltar" @click="voltar">Voltar às compras</button>
-    </v-sheet>
+      <v-row v-else>
+        <v-col cols="12" md="8">
+          <v-card class="pa-4 pa-md-6 rounded-xl elevation-2">
+            <h2 class="text-h6 font-weight-bold mb-4">
+              Produtos ({{ carrinhoUser.length }} item(ns))
+            </h2>
+            <v-divider class="mb-4"></v-divider>
 
-    <v-dialog v-if="modalEndereco" v-model="modalEndereco" max-width="600px" max-height="900px">
-      <v-card class="pa-6">
-        <v-card-title class="text-h5 pa-5 text-center">
-          Endereço do usuário
+            <div
+              v-for="(item, index) in carrinhoUser"
+              :key="item.id"
+              class="mb-4"
+            >
+              <v-card
+                variant="outlined"
+                class="pa-3 rounded-lg d-flex align-center"
+                :class="{ 'bg-red-lighten-5': item.estoque === 0 }"
+              >
+                <v-avatar size="100" rounded="lg" class="mr-4 flex-shrink-0">
+                  <v-img
+                    :src="getProdutoImage(item.imagem)"
+                    cover
+                    :alt="item?.nome"
+                  >
+                    <template #error>
+                      <v-icon size="40" color="grey-lighten-1"
+                        >mdi-image-off-outline</v-icon
+                      >
+                    </template>
+                  </v-img>
+                </v-avatar>
+
+                <div class="flex-grow-1 mr-4">
+                  <v-tooltip location="top">
+                    <template #activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="text-subtitle-1 font-weight-bold mb-1 text-truncate"
+                        style="max-width: 300px"
+                      >
+                        {{ item?.nome || "Produto indisponível" }}
+                      </div>
+                    </template>
+                    <span>{{ item?.nome || "Produto indisponível" }}</span>
+                  </v-tooltip>
+
+                  <div class="text-h6 font-weight-black text-success">
+                    {{
+                      ((item?.preco * item?.quantidade) / 100).toLocaleString(
+                        "pt-BR",
+                        { style: "currency", currency: "BRL" }
+                      )
+                    }}
+                  </div>
+                  <div class="text-h6 text-grey-darken-1">
+                    ({{
+                      (item?.preco / 100).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })
+                    }}
+                    por unidade)
+                  </div>
+
+                  <v-chip
+                    v-if="item.estoque === 0"
+                    color="error"
+                    size="small"
+                    variant="flat"
+                    class="mt-2 text-h6"
+                    prepend-icon="mdi-alert-octagon"
+                  >
+                    Última unidade!!
+                  </v-chip>
+                </div>
+
+                <div
+                  class="d-flex flex-column align-end flex-shrink-0"
+                  style="width: 150px"
+                >
+                  <v-select
+                    v-model="item.quantidade"
+                    :items="
+                      Array.from(
+                        {
+                          length: Math.min(
+                            item.estoque > 0 ? item.estoque : 1,
+                            100
+                          ),
+                        } /* Limita a quantidade máxima razoável */,
+                        (_, i) => i + 1
+                      )
+                    "
+                    @update:modelValue="atualizarQuantidade(item)"
+                    density="compact"
+                    hide-details
+                    label="Qtd."
+                    variant="outlined"
+                    :disabled="item.estoque === 0"
+                    class="mb-3"
+                  ></v-select>
+
+                  <div class="d-flex">
+                    <v-btn
+                      variant="tonal"
+                      color="primary"
+                      size="small"
+                      class="mr-2"
+                      @click="toDetalhes(item.id)"
+                      :disabled="carregandoInformacoes"
+                    >
+                      Ver Detalhes
+                    </v-btn>
+
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="error"
+                      size="small"
+                      @click="clickRemover(item)"
+                    >
+                      <v-icon>mdi-trash-can-outline</v-icon>
+                      <v-tooltip activator="parent" location="top"
+                        >Remover</v-tooltip
+                      >
+                    </v-btn>
+                  </div>
+                </div>
+              </v-card>
+
+              <v-divider
+                v-if="index < carrinhoUser.length - 1"
+                class="my-4"
+              ></v-divider>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card
+            class="cart-summary pa-4 pa-md-6 rounded-xl elevation-4 sticky-summary"
+          >
+            <h2 class="text-h5 font-weight-bold mb-4">Resumo da Compra</h2>
+            <v-divider class="mb-4"></v-divider>
+
+            <div class="d-flex justify-space-between text-body-1 mb-2">
+              <span>Subtotal:</span>
+              <span class="font-weight-bold">{{
+                (subtotal / 100).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })
+              }}</span>
+            </div>
+            <div class="d-flex justify-space-between text-body-1 mb-4">
+              <span>Frete (Entrega):</span>
+              <span
+                :class="{
+                  'text-orange font-weight-bold': metodoEntrega === 'entrega',
+                  'text-grey': metodoEntrega !== 'entrega',
+                }"
+              >
+                {{
+                  metodoEntrega === "entrega"
+                    ? (15).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })
+                    : "Grátis/Combinar"
+                }}
+              </span>
+            </div>
+
+            <v-divider class="mb-4"></v-divider>
+
+            <div class="d-flex justify-space-between text-h6 mb-6">
+              <span>Total:</span>
+              <span class="font-weight-black text-primary">{{
+                (totalComFrete / 100).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })
+              }}</span>
+            </div>
+
+            <v-card variant="outlined" class="pa-4 mb-4 rounded-lg">
+              <h3
+                class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center"
+              >
+                <v-icon size="20" color="primary" class="mr-2"
+                  >mdi-truck-outline</v-icon
+                >
+                Método de Entrega
+              </h3>
+
+              <v-radio-group
+                v-model="metodoEntrega"
+                :disabled="existePagamento || loadingComprar"
+                hide-details
+              >
+                <v-radio
+                  label="Combinar com o vendedor"
+                  value="combinar"
+                  color="success"
+                ></v-radio>
+                <v-radio
+                  label="Entrega (adiciona R$15)"
+                  value="entrega"
+                  color="success"
+                />
+              </v-radio-group>
+
+              <v-expand-transition>
+                <v-alert
+                  v-if="
+                    metodoEntrega === 'entrega' &&
+                    enderecoIncompleto(enderecoUsuario)
+                  "
+                  type="warning"
+                  icon="mdi-map-marker-alert"
+                  class="my-3"
+                  variant="tonal"
+                  density="compact"
+                >
+                  <p class="font-weight-bold">Endereço Incompleto!</p>
+                  <p>
+                    Complete seu endereço para a entrega.
+                    <v-btn
+                      variant="text"
+                      size="small"
+                      class="pa-0 text-decoration-underline"
+                      @click="modalEndereco = true"
+                      >Clique aqui</v-btn
+                    >
+                  </p>
+                </v-alert>
+              </v-expand-transition>
+
+              <v-expand-transition>
+                <v-sheet
+                  v-if="metodoEntrega === 'combinar'"
+                  class="pa-3 mt-3 bg-blue-lighten-5"
+                  rounded="lg"
+                  variant="flat"
+                >
+                  <div class="d-flex align-center">
+                    <v-icon color="blue" class="mr-2"
+                      >mdi-handshake-outline</v-icon
+                    >
+                    <p class="text-body-2">
+                      Você combinará a retirada/entrega diretamente com o
+                      vendedor após a compra.
+                    </p>
+                  </div>
+                </v-sheet>
+              </v-expand-transition>
+            </v-card>
+
+            <v-card variant="outlined" class="pa-4 mb-6 rounded-lg">
+              <h3
+                class="text-subtitle-1 font-weight-bold mb-3 d-flex align-center"
+              >
+                <v-icon size="20" color="primary" class="mr-2"
+                  >mdi-credit-card-settings-outline</v-icon
+                >
+                Forma de Pagamento
+              </h3>
+
+              <v-radio-group
+                v-if="formasPagamento.length"
+                v-model="metodoPagamento"
+                :disabled="existePagamento || loadingComprar"
+                hide-details
+              >
+                <v-radio
+                  v-for="forma in formasPagamento"
+                  :key="forma.id"
+                  :label="forma.forma"
+                  :value="forma.forma"
+                  color="success"
+                />
+              </v-radio-group>
+
+              <div v-else class="text-body-2 text-red-darken-2">
+                Nenhuma forma de pagamento disponível.
+              </div>
+            </v-card>
+
+            <v-expand-transition>
+              <v-alert
+                v-if="existePagamento"
+                type="info"
+                icon="mdi-cash-lock-open"
+                class="my-4"
+                color="blue-darken-1"
+                variant="tonal"
+                density="compact"
+              >
+                <p class="font-weight-bold">Pagamento em Andamento</p>
+                <p class="text-caption">
+                  Você já tem um pedido pendente. Clique em "Verificar
+                  Pagamento" abaixo.
+                </p>
+              </v-alert>
+            </v-expand-transition>
+
+            <v-btn
+              v-if="existePagamento"
+              color="blue-darken-1"
+              variant="flat"
+              block
+              size="large"
+              prepend-icon="mdi-barcode-scan"
+              @click="irParaPagamento"
+              class="font-weight-bold mb-3"
+              rounded="lg"
+            >
+              Verificar Pagamento
+            </v-btn>
+
+            <v-btn
+              v-else
+              color="success"
+              variant="flat"
+              block
+              size="large"
+              :loading="loadingComprar"
+              @click="comprar"
+              :disabled="
+                loadingComprar ||
+                existePagamento ||
+                !metodoPagamento ||
+                (metodoEntrega === 'entrega' &&
+                  enderecoIncompleto(enderecoUsuario))
+              "
+              class="font-weight-bold"
+              rounded="lg"
+            >
+              <v-icon left>mdi-cash-check</v-icon>
+              Finalizar Compra
+            </v-btn>
+
+            <v-btn
+              variant="text"
+              color="grey-darken-1"
+              block
+              class="mt-3 text-capitalize"
+              @click="voltar"
+            >
+              Continuar Comprando
+            </v-btn>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <v-dialog max-width="450" v-model="modalConfirmacaoOpen" persistent>
+      <v-card class="pa-6 rounded-xl elevation-10 text-center">
+        <v-avatar color="red-lighten-5" size="70" class="mb-4">
+          <v-icon color="error" size="40">mdi-trash-can-outline</v-icon>
+        </v-avatar>
+        <v-card-title class="text-h5 font-weight-bold mb-2">
+          Remover Produto?
         </v-card-title>
-        <v-divider class="my-4"></v-divider>
+
+        <v-card-text class="text-body-1 text-medium-emphasis">
+          Tem certeza que deseja remover este item do seu carrinho?
+        </v-card-text>
+
+        <v-card-actions class="justify-center mt-4">
+          <v-btn
+            color="grey"
+            variant="outlined"
+            rounded="xl"
+            @click="modalConfirmacaoOpen = false"
+            width="120"
+          >
+            Cancelar
+          </v-btn>
+
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="xl"
+            width="120"
+            :loading="loadingRemover"
+            @click="removerItem"
+          >
+            Remover
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="modalEndereco" max-width="600px" max-height="900px">
+      <v-card class="pa-6 rounded-xl">
+        <v-card-title class="text-h5 font-weight-bold pa-0 mb-4 text-center">
+          <v-icon color="primary" class="mr-2">mdi-map-marker</v-icon>
+          Atualizar Endereço
+        </v-card-title>
+        <v-divider class="mb-6"></v-divider>
         <v-form @submit.prevent="salvarAlteracoesEndereco">
           <v-text-field
             label="CEP"
             v-model="enderecoForm.Cep"
-            append-inner-icon="mdi-delete"
+            append-inner-icon="mdi-close-circle"
             @click:append-inner="
               (enderecoForm.Cep = ''),
                 (enderecoForm.Bairro = ''),
@@ -323,16 +500,17 @@
                 (enderecoForm.Estado = ''),
                 (enderecoForm.Rua = '')
             "
-            placeholder="00000-00"
+            placeholder="00000-000"
             @input="onInputCep"
-          >
-          </v-text-field>
+            variant="outlined"
+            density="comfortable"
+          ></v-text-field>
+
           <v-select
             label="Estado"
             v-model="enderecoForm.Estado"
             :readonly="readOnlyComCEP"
             :items="[
-              { title: '', value: '' },
               { title: 'Acre', value: 'AC' },
               { title: 'Alagoas', value: 'AL' },
               { title: 'Amapá', value: 'AP' },
@@ -361,44 +539,52 @@
               { title: 'Sergipe', value: 'SE' },
               { title: 'Tocantins', value: 'TO' },
             ]"
-            :item-title="title"
-            :item-value="value"
-          >
-          </v-select>
+            item-title="title"
+            item-value="value"
+            variant="outlined"
+            density="comfortable"
+          ></v-select>
+
           <v-text-field
             label="Cidade"
             v-model="enderecoForm.Cidade"
             :readonly="readOnlyComCEP"
-          >
-          </v-text-field>
+            variant="outlined"
+            density="comfortable"
+          ></v-text-field>
+
           <v-text-field
             label="Bairro"
             v-model="enderecoForm.Bairro"
             :readonly="readOnlyComCEP"
-          >
-          </v-text-field>
-          <v-row>
-            <v-text-field
-              label="Rua"
-              class="ml-3 mr-3"
-              v-model="enderecoForm.Rua"
-              :readonly="readOnlyComCEP"
-            >
-            </v-text-field>
+            variant="outlined"
+            density="comfortable"
+          ></v-text-field>
 
-            <v-text-field
-              label="Número"
-              class="mr-3"
-              max-width="50%"
-              v-model="enderecoForm.Numero"
-            >
-            </v-text-field>
+          <v-row>
+            <v-col cols="9" class="py-0">
+              <v-text-field
+                label="Rua"
+                v-model="enderecoForm.Rua"
+                :readonly="readOnlyComCEP"
+                variant="outlined"
+                density="comfortable"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="3" class="py-0">
+              <v-text-field
+                label="Número"
+                v-model="enderecoForm.Numero"
+                variant="outlined"
+                density="comfortable"
+              ></v-text-field>
+            </v-col>
           </v-row>
+
           <v-select
             label="Tipo de logradouro"
             v-model="enderecoForm.Logradouro"
             :items="[
-              { title: '', value: '' },
               { title: 'Rua', value: 'rua' },
               { title: 'Avenida', value: 'avenida' },
               { title: 'Praça', value: 'praca' },
@@ -407,33 +593,39 @@
             ]"
             item-title="title"
             item-value="value"
-          >
-          </v-select>
-          <v-text-field label="Complemento" v-model="enderecoForm.Complemento">
-          </v-text-field>
+            variant="outlined"
+            density="comfortable"
+          ></v-select>
 
-          <v-row class="mt-6" justify="center" align="center">
-            <v-btn
-              color="primary"
-              :loading="loadingEndereco"
-              class="mr-3"
-              type="submit"
-            >
-              Salvar Alterações
-            </v-btn>
+          <v-text-field
+            label="Complemento"
+            v-model="enderecoForm.Complemento"
+            variant="outlined"
+            density="comfortable"
+          ></v-text-field>
+
+          <v-card-actions class="justify-end pt-4">
             <v-btn
               color="grey"
               variant="outlined"
-              type="button"
-              @click="router.go(0)"
+              @click="modalEndereco = false"
+              class="text-capitalize"
             >
-              Cancelar
+              Fechar
             </v-btn>
-          </v-row>
+            <v-btn
+              color="primary"
+              :loading="loadingEndereco"
+              type="submit"
+              variant="flat"
+            >
+              Salvar
+            </v-btn>
+          </v-card-actions>
         </v-form>
       </v-card>
     </v-dialog>
-  </v-container>
+  </v-layout>
 </template>
 
 <script setup>
@@ -447,7 +639,7 @@ import "@mdi/font/css/materialdesignicons.css";
 const router = useRouter();
 
 const token = ref(localStorage.getItem("token") || "");
-console.log(token.value)
+console.log(token.value);
 const tokenExiste = ref(!!token.value);
 
 const retrieve = ref(null);
@@ -472,7 +664,6 @@ const loadingComprar = ref(false);
 const loadingEndereco = ref(false);
 const modalEndereco = ref(false);
 
-
 const enderecoForm = ref({
   Cep: "",
   Estado: "",
@@ -488,7 +679,7 @@ const enderecoForm = ref({
 const enderecoUsuario = ref(null);
 const pagamentoUUID = ref("");
 const existePagamento = ref(false);
-const pagamentoUsuarioStatus = ref()
+const pagamentoUsuarioStatus = ref();
 
 const frete = computed(() => (metodoEntrega.value === "entrega" ? 1500 : 0));
 const subtotal = computed(() =>
@@ -502,7 +693,6 @@ const readOnlyComCEP = computed(() => {
   const numeros = (enderecoForm.value.Cep || "").replace(/\D/g, "");
   return numeros.length === 8;
 });
-
 
 async function getRetrieve() {
   try {
@@ -669,7 +859,21 @@ async function buscarOrdemUsuario() {
   }
 }
 
+async function verificarStatusPagamentoPendende() {
+  const pagamentos = await buscarPagamentoUsuario();
 
+  const pagamentoPendente = (pagamentos || []).find(
+    (p) => p.status_pagamento_id === 1
+  );
+
+  if (pagamentoPendente) {
+    existePagamento.value = true;
+    pagamentoUUID.value = pagamentoPendente.pagamento_uuid;
+  } else {
+    existePagamento.value = false;
+    pagamentoUUID.value = "";
+  }
+}
 const salvarAlteracoesEndereco = async () => {
   loadingEndereco.value = true;
   try {
@@ -714,11 +918,16 @@ async function comprar() {
     return;
   }
 
-  if (metodoEntrega.value === "entrega" && enderecoIncompleto(enderecoUsuario.value)) {
-       modalEndereco.value = true;
-        toast.warning("Para 'Entrega', complete seu endereço!", { autoClose: 3000 });
-        return; 
-    }
+  if (
+    metodoEntrega.value === "entrega" &&
+    enderecoIncompleto(enderecoUsuario.value)
+  ) {
+    modalEndereco.value = true;
+    toast.warning("Para 'Entrega', complete seu endereço!", {
+      autoClose: 3000,
+    });
+    return;
+  }
 
   if (!metodoPagamento.value) {
     toast.error("Selecione uma forma de pagamento");
@@ -807,7 +1016,6 @@ async function comprar() {
       observacao: "",
     };
 
-    
     const pagamentoRes = await connection.post(
       "/desapega/pagamentos",
       pagamentoBody,
@@ -817,19 +1025,16 @@ async function comprar() {
       }
     );
 
-    const novoPagamentoUUID = pagamentoRes.data?.pagamento_uuid; 
+    const novoPagamentoUUID = pagamentoRes.data?.pagamento_uuid;
 
     if (!novoPagamentoUUID) {
-        toast.error("Erro: Pagamento criado mas UUID não retornado.");
-        return;
+      toast.error("Erro: Pagamento criado mas UUID não retornado.");
+      return;
     }
-    
-    
-    pagamentoUUID.value = novoPagamentoUUID; 
-    
-    
-    router.push(`/pagamento/${novoPagamentoUUID}`); 
-  
+
+    pagamentoUUID.value = novoPagamentoUUID;
+
+    router.push(`/pagamento/${novoPagamentoUUID}`);
   } catch (err) {
     console.error("comprar erro:", err);
 
@@ -849,25 +1054,33 @@ async function comprar() {
 }
 
 async function atualizarQuantidade(item) {
-
   item.quantidade = Number(item.quantidade);
   carrinhoUser.value = [...carrinhoUser.value];
-  try{
+  try {
     const body = {
-      quantidade: item.quantidade
+      quantidade: item.quantidade,
+    };
+    const res = await connection.patch(
+      `/desapega/carrinho/${retrieve?.value.id}/${item.id}`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
+    if (res.status === 200 || res.status === 201) {
+      toast.success("Quantidade atualizada com sucesso!", { autoClose: 2000 });
+    } else {
+      toast.error("Erro ao tentar atualizar essa quantidade", {
+        autoClose: 2000,
+      });
     }
-    const res = await connection.patch(`/desapega/carrinho/${retrieve?.value.id}/${item.id}`, body, 
-      {headers: {
-        Authorization: `Bearer ${token.value}`
-      }}
-    )
-    if(res.status === 200 || res.status === 201){
-      toast.success("Quantidade atualizada com sucesso!", {autoClose: 2000})
-    }else{
-      toast.error("Erro ao tentar atualizar essa quantidade", {autoClose: 2000})
-    }
-  }catch(err){
-    toast.error(err.response?.data?.message || "Erro ao tentar atualizar essa quantidade do produto")
+  } catch (err) {
+    toast.error(
+      err.response?.data?.message ||
+        "Erro ao tentar atualizar essa quantidade do produto"
+    );
   }
 }
 
@@ -887,8 +1100,8 @@ async function removerItem() {
       }
     );
     toast.success("Item removido do carrinho!", { autoClose: 2000 });
-    setTimeout(async() => {
-    router.go(0)
+    setTimeout(async () => {
+      router.go(0);
     }, 1000);
   } catch (err) {
     console.error("removerItem:", err);
@@ -958,7 +1171,7 @@ async function getPagamentos() {
     );
     if (res.status === 200) {
       pagamentoUUID.value = res.data.pagamento_uuid;
-      pagamentoUsuarioStatus.value = res.data.status_pagamento_id
+      pagamentoUsuarioStatus.value = res.data.status_pagamento_id;
     }
   } catch (err) {
     console.log(err);
@@ -978,10 +1191,11 @@ onMounted(async () => {
   ]);
   setarCarrinhoUser();
   getPagamentos();
+  verificarStatusPagamentoPendende();
 
   const pagamento = await buscarPagamentoUsuario();
   if (pagamento?.id) {
-    if(pagamentoUsuarioStatus.value == 1){
+    if (pagamentoUsuarioStatus.value == 1) {
       existePagamento.value = true;
     }
     pagamentoUUID.value =
@@ -993,7 +1207,6 @@ onMounted(async () => {
 });
 
 async function carregarCarrinhoCompleto() {
-
   carregandoCarrinho.value = true;
   erroGetProduto.value = false;
 
@@ -1003,19 +1216,17 @@ async function carregarCarrinhoCompleto() {
       if (!retrieve.value) throw new Error("Usuário não logado/encontrado.");
     }
 
-
     await Promise.all([
       getCarrinho(),
-      getProdutos(), 
+      getProdutos(),
       carregarFormasPagamento(),
       getEndereco(),
       getPagamentos(),
+      verificarStatusPagamentoPendende(),
     ]);
 
- 
     setarCarrinhoUser();
 
-   
     const pagamento = await buscarPagamentoUsuario();
     if (pagamento?.id) {
       existePagamento.value = true;
@@ -1029,19 +1240,16 @@ async function carregarCarrinhoCompleto() {
         "Erro ao carregar dados do carrinho/produtos"
     );
   } finally {
- 
     carregandoCarrinho.value = false;
   }
 }
 watch(metodoEntrega, (novo, antigo) => {
-  if (novo === "entrega" && enderecoIncompleto(enderecoForm.value)) {
-  
-modalEndereco.value = true;
-    
-    toast.warning("Complete seu endereço para usar a opção 'Entrega'.", {
-      autoClose: 3000,
-    });
-  }
+  if (novo === "entrega" && enderecoIncompleto(enderecoForm.value)) {
+    modalEndereco.value = true;
+    toast.warning("Complete seu endereço para usar a opção 'Entrega'.", {
+      autoClose: 3000,
+    });
+  }
 });
 
 function enderecoIncompleto(end) {
