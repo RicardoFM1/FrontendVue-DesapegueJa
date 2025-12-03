@@ -383,7 +383,7 @@ async function getPagamento() {
     const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve?.value.id}`, {
       headers: { Authorization: `Bearer ${token.value}` }
     });
-    const pagamentos = res.data; // sempre array
+    const pagamentos = res.data;
 
     if (!pagamentos || pagamentos.length === 0) {
       toast.error("Nenhum pagamento encontrado.");
@@ -391,21 +391,21 @@ async function getPagamento() {
       return;
     }
 
-    // 2️⃣ Pegar o primeiro pagamento
+    
     const pagamentoAtual = pagamentos[0];
     statusPagamento.value = pagamentoAtual.status_pagamento_id;
 
-    // 3️⃣ Buscar formas de pagamento
+
     const resFormas = await connection.get("/desapega/formasPagamento", {
       headers: { Authorization: `Bearer ${token.value}` }
     });
     const formas = resFormas.data;
 
-    // 4️⃣ Normalizar forma selecionada
+   
     const formaSelecionada = formas.find(f => f.id === pagamentoAtual.forma_pagamento_id);
     metodoPagamento.value = formaSelecionada?.forma?.toLowerCase() || "outro";
 
-    // 5️⃣ PIX
+    
     if (isPix.value) {
       pixQrCode.value = pagamentoAtual.pix_qr_code
         ? `data:image/png;base64,${pagamentoAtual.pix_qr_code}`
@@ -426,12 +426,12 @@ async function getPagamento() {
       iniciarPollingStatus();
     }
 
-    // 6️⃣ BOLETO
+   
     if (isBoleto.value) {
       boletoUrl.value = pagamentoAtual.boleto_url || null;
     }
 
-    // 7️⃣ Status já pago
+    
     if (pagamentoAtual.status_pagamento_id === STATUS.pago) {
       toast.success("Pagamento já aprovado! Redirecionando...");
       setTimeout(() => router.push("/"), 800);
@@ -486,41 +486,38 @@ async function checarStatusPagamento() {
   if (!retrieve?.value?.id) return;
   loadingPolling.value = true;
   try {
-    const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
-    const pagamento = res.data;
+    const res = await connection.get(`/desapega/pagamentos/usuario/${retrieve.value.id}`, { 
+      headers: { Authorization: `Bearer ${token.value}` } 
+    });
 
-    statusPagamento.value = pagamento.status_pagamento_id;
+    const pagamentos = res.data; 
+    if (!pagamentos || pagamentos.length === 0) return;
 
-    if (pagamento.status_pagamento_id === STATUS.pago) {
+    const pagamentoAtual = pagamentos[0]; 
+    statusPagamento.value = pagamentoAtual.status_pagamento_id;
+
+    if (pagamentoAtual.status_pagamento_id === STATUS.pago) {
       clearInterval(pollingInterval);
       toast.success("Pagamento aprovado!");
       setTimeout(() => router.push("/"), 900);
-     
     }
 
-   
-    if ([STATUS.rejeitado, STATUS.erro].includes(pagamento.status_pagamento_id)) {
-  clearInterval(pollingInterval);
+    if ([STATUS.rejeitado, STATUS.erro].includes(pagamentoAtual.status_pagamento_id)) {
+      clearInterval(pollingInterval);
+      toast.error("Pagamento recusado ou erro no processamento.");
 
-  toast.error("Pagamento recusado ou erro no processamento.");
+      pixQrCode.value = null;
+      pixCopiaCodigo.value = null;
+      boletoUrl.value = null;
 
- 
-  pixQrCode.value = null;
-  pixCopiaCodigo.value = null;
-  boletoUrl.value = null;
+      timerExpirado.value = true;
+      tempoRestante.value = "00:00";
+      percentualRestante.value = 0;
 
-  
-  timerExpirado.value = true;
-  tempoRestante.value = "00:00";
-  percentualRestante.value = 0;
-  await cancelarPagamento();
- 
-  setTimeout(() => {
-    router.push("/carrinho");
-  }, 1200);
-
-  return;
-}
+      await cancelarPagamento();
+      setTimeout(() => router.push("/carrinho"), 1200);
+      return;
+    }
 
   } catch (err) {
     console.error("Erro polling pagamento:", err);
@@ -530,6 +527,7 @@ async function checarStatusPagamento() {
     loadingPolling.value = false;
   }
 }
+
 
 
 function abrirModalCancelamento() {
