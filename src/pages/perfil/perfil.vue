@@ -9,7 +9,17 @@
         class="pa-2"
       ></v-breadcrumbs>
       <v-spacer></v-spacer>
-
+      <v-btn
+            variant="tonal"
+            prepend-icon="mdi-home"
+            color="primary"
+            @click="toHome"
+            :disabled="carregando"
+            rounded="lg"
+            class="hidden-sm-and-down mr-3"
+          >
+            Home
+          </v-btn>
       <v-btn
         prepend-icon="mdi-plus"
         variant="flat"

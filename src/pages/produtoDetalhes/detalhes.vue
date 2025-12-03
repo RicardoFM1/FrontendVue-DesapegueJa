@@ -38,26 +38,24 @@
             Home
           </v-btn>
 
-          <v-badge
-            :content="carrinho.length"
-            color="error"
-            overlap
-            offset-x="5"
-            offset-y="5"
-            class="mx-3"
+          <v-btn 
+            icon 
+            class="mr-2 pa-2" 
+            @click="toCarrinho"
+            :disabled="carregandoProdutos"
+            
           >
-            <v-btn
-              variant="flat"
-              prepend-icon="mdi-cart"
-              color="success"
-              @click="toCarrinho"
-              :disabled="carregando"
-              rounded="lg"
-              class="font-weight-bold"
+            <v-badge 
+              color="error" 
+              :content="carrinho.length" 
+              v-if="carrinho.length > 0"
+              offset-x="5" 
+              offset-y="5"
             >
-              Carrinho
-            </v-btn>
-          </v-badge>
+              <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
+            </v-badge>
+            <v-icon v-else color="grey-darken-2">mdi-cart-outline</v-icon>
+          </v-btn>
 
           <v-menu v-model="menu" offset-y location="bottom end">
             <template #activator="{ props }">
@@ -151,9 +149,7 @@
             <span class="text-h4 text-primary font-weight-black">
                 {{ precoFormatado }}
             </span>
-            <span class="text-caption text-grey ml-2 font-weight-bold">
-                ou em até 10x sem juros
-            </span>
+           
           </div>
           
           <v-btn 
