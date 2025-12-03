@@ -132,76 +132,98 @@ isto?
             </v-card>
           </v-menu>
         </v-app-bar>
-<v-dialog v-model="dialogSocial" max-width="600">
-  <v-card class="pa-4" rounded="xl" elevation="6">
+<v-dialog 
+    v-model="dialogSocial" 
+    max-width="600" 
+    scrollable
+    transition="dialog-bottom-transition"
+  >
+    <v-card class="rounded-xl overflow-hidden" elevation="10">
+      
+      <v-card-title class="d-flex align-center justify-space-between py-4 px-5 bg-grey-lighten-4">
+        <div class="d-flex align-center">
+          <v-avatar color="primary" variant="tonal" size="40" class="mr-3">
+            <v-icon color="primary">mdi-store-search</v-icon>
+          </v-avatar>
+          <div>
+            <span class="text-h5 font-weight-bold d-block" style="line-height: 1.2;">Vendedores</span>
+            <span class=" text-medium-emphasis text-h6">Encontre parceiros comerciais</span>
+          </div>
+        </div>
+        
+        <v-btn icon variant="text" color="grey-darken-1" @click="dialogSocial = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
 
-    <!-- TÍTULO + BOTÃO X -->
-    <v-card-title class="d-flex align-center justify-space-between mb-2">
+      <v-divider></v-divider>
 
-      <div class="d-flex align-center">
-        <v-icon size="32" color="#4A90E2" class="mr-3">mdi-account-search</v-icon>
-        <span class="text-h5 font-weight-bold">Buscar Vendedores</span>
+      <div class="px-5 pt-5 pb-2">
+        <v-text-field
+          v-model="pesquisaVendedor"
+          placeholder="Busque por nome ou email..."
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="comfortable"
+          color="primary"
+          bg-color="grey-lighten-5"
+          clearable
+          hide-details
+          class="search-field-modern"
+        ></v-text-field>
       </div>
 
-      <!-- BOTÃO X NO TOPO DIREITO -->
-      <v-btn
-        icon
-        variant="text"
-        color="red"
-        @click="dialogSocial = false"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-
-    </v-card-title>
-
-    <v-divider class="mb-4"></v-divider>
-
-    <v-card-text>
-      <v-text-field
-        v-model="pesquisaVendedor"
-        label="Pesquisar vendedor"
-        prepend-inner-icon="mdi-magnify"
-        variant="outlined"
-        rounded="lg"
-        class="mb-4"
-      />
-
-      <v-list>
-        <v-list-item
-          v-for="v in vendedoresFiltrados"
-          :key="v.id"
-          class="rounded-lg my-1"
+      <v-card-text class="px-5 pb-5" style="height: 400px;">
+        
+        <div 
+          v-if="vendedoresFiltrados.length === 0" 
+          class="d-flex flex-column align-center justify-center fill-height text-center py-10"
         >
-          <!-- Avatar -->
-          <v-list-item-avatar color="#4A90E2">
-            <v-icon color="white">mdi-account</v-icon>
-          </v-list-item-avatar>
+          <v-icon size="64" color="grey-lighten-2" class="mb-3">mdi-account-off-outline</v-icon>
+          <div class="text-h6 text-grey-darken-1">Nenhum vendedor encontrado</div>
+          <div class="text-body-2 text-grey">Tente buscar por outro termo.</div>
+        </div>
 
-          <!-- Nome e Email -->
-          <v-list-item-content>
-            <v-list-item-title>{{ v.nome }}</v-list-item-title>
-            <v-list-item-subtitle>{{ v.email }}</v-list-item-subtitle>
-          </v-list-item-content>
-
-          <!-- BOTÃO PERFIL AO LADO -->
-          <v-btn
-            color="#4A90E2"
-            variant="flat"
-            rounded="lg"
-            class="ml-auto"
+        <v-list v-else lines="two" class="bg-transparent pa-0">
+          <v-list-item
+            v-for="v in vendedoresFiltrados"
+            :key="v.id"
+            class="seller-item mb-2 rounded-lg elevation-1 border-thin"
+            :ripple="false"
             @click="acessarPerfil(v.id)"
           >
-            Perfil
-          </v-btn>
+            <template v-slot:prepend>
+              <v-avatar color="primary" variant="flat" size="48" class="mr-3 elevation-2">
+                <v-img v-if="v.foto" :src="v.foto" cover></v-img>
+                <span v-else class="text-white font-weight-bold">{{ getIniciais(v.nome) }}</span>
+              </v-avatar>
+            </template>
 
-        </v-list-item>
-      </v-list>
+            <v-list-item-title class="font-weight-bold text-h5 text-high-emphasis ">
+              {{ v.nome }}
+            </v-list-item-title>
+            
+            <v-list-item-subtitle class="d-flex align-center mt-1 text-h6">
+              <v-icon size="14" class="mr-1" color="grey">mdi-email-outline</v-icon>
+              {{ v.email }}
+            </v-list-item-subtitle>
 
-    </v-card-text>
-
-  </v-card>
-</v-dialog>
+            <template v-slot:append>
+              <v-btn
+                icon
+                variant="text"
+                color="primary"
+                size="small"
+                class="arrow-btn"
+              >
+                <v-icon>mdi-chevron-right</v-icon>
+              </v-btn>
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 
 
         <v-dialog
