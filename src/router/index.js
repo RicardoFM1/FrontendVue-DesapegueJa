@@ -9,7 +9,7 @@ import Pagamento from '@/pages/pagamento/pagamento.vue'
 import CompletarCadastro from '@/pages/completarCadastro/completarCadastro.vue'
 import AdminPanel from '@/pages/adminPanel/adminPanel.vue'
 import Anunciar from '@/pages/anunciar/anunciar.vue'
-import Perfilsocial from '@/pages/perfilsoical/perfilsocial.vue'
+import Perfilsocial from '@/pages/perfilsocial/perfilsocial.vue'
 
 
 
