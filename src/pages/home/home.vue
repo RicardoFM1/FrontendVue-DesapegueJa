@@ -234,7 +234,7 @@ isto?
         </v-dialog>
         <v-navigation-drawer v-model="drawer" :width="345">
           <v-col>
-            <h5>minimo:</h5>
+            <h5>preço minimo:</h5>
             <v-number-input
               :model-value="minimo"
               @update:model-value="minimo = $event"
@@ -242,7 +242,7 @@ isto?
           </v-col>
 
           <v-col>
-            <h5>maximo:</h5>
+            <h5>preço maximo:</h5>
             <v-number-input
               :model-value="maximo"
               @update:model-value="maximo = $event"
@@ -254,11 +254,19 @@ isto?
           <v-divider></v-divider>
           <p class="subtitleCategoria">Categoria:</p>
           <div class="divCheckboxCategoria">
-            <v-combobox
-              class="comboboxCategoria"
-              label="Selecionar"
+          <v-col >
+          <v-select
+    
+              v-model="categoria"
               :items="categorias"
-            ></v-combobox>
+              item-title="nome"
+              item-value="id"
+              label="Selecionar"
+              dense
+              ></v-select>
+            </v-col>       
+
+
           </div>
         </v-navigation-drawer>
 
@@ -544,7 +552,7 @@ isto?
 
         <v-navigation-drawer v-model="drawer" :width="345">
           <v-col>
-            <h5>minimo:</h5>
+            <h5>preço minimo:</h5>
             <v-number-input
               :model-value="minimo"
               @update:model-value="minimo = $event"
@@ -552,7 +560,7 @@ isto?
           </v-col>
 
           <v-col>
-            <h5>maximo:</h5>
+            <h5>preço maximo:</h5>
             <v-number-input
               :model-value="maximo"
               @update:model-value="maximo = $event"
@@ -564,11 +572,18 @@ isto?
           <v-divider></v-divider>
           <p class="subtitleCategoria">Categoria:</p>
           <div class="divCheckboxCategoria">
-            <v-combobox
-              class="comboboxCategoria"
-              label="Selecionar"
+                  <v-col>
+          <v-select
+            class="comboboxCategoria"
+              v-model="categoria"
               :items="categorias"
-            ></v-combobox>
+              item-title="nome"
+              item-value="id"
+              label="Selecionar"
+              dense
+              ></v-select>
+            </v-col>    
+
           </div>
         </v-navigation-drawer>
 
@@ -865,23 +880,43 @@ const categorias = ref([]);
 const erroGetProduto = ref(false);
 const vendedor = ref([]);
 const carregandoInformacoes = ref(true);
+const categoriasSelect = ref([]);
 
 async function getCategorias() {
   carregandoInformacoes.value = true;
   try {
     const res = await connection.get(`/desapega/categorias`);
+
     if (res.status == 200) {
-      console.log(res.data.nome, "Nome categoria");
       categorias.value = res.data;
+
+  
+      categorias.value.unshift({
+        id: 0,
+        nome: "Todos"
+      });
+
     } else {
       return "Sem categoria";
     }
+
   } catch (error) {
     return null;
   } finally {
     carregandoInformacoes.value = false;
   }
 }
+
+
+
+const rules = {
+  required: v => !!v || "Campo obrigatório",
+  min3: v => (v?.length >= 3) || "Mínimo de 3 caracteres",
+  min10: v => (v?.length >= 10) || "Escreva pelo menos 10 caracteres",
+  preco: v => v > 0 || "Preço inválido",
+  estoque: v => v > 0 || "Estoque deve ser maior que 0"
+}
+
 
 async function getVendedor() {
   carregandoInformacoes.value = true;
@@ -1108,6 +1143,9 @@ watch(itens, (novoItem) => {
 
 const modalAlertShow = ref(false);
 
+
+
+
 async function addToCart(item) {
   if (!tokenExiste.value) {
     modalAlertShow.value = !modalAlertShow.value;
@@ -1148,7 +1186,7 @@ const categoriasList = [];
 const search = ref("");
 
 
-
+const categoria = ref(0);
 const minimo = ref(0);
 const maximo = ref(null);
 const searchMinMax = ref("");
@@ -1162,17 +1200,16 @@ watch(page, async() => {
 })
 const usuarioLogadoId = computed(() => retrieve.value?.id);
 const itensFiltrados = computed(() => {
-   
     let listaFiltrada = itens.value;
 
-    
+
     if (tokenExiste.value && usuarioLogadoId.value) {
         listaFiltrada = listaFiltrada.filter(
             (item) => item.usuario_id !== usuarioLogadoId.value
         );
     }
 
-    
+
     if (search.value) {
         const termoPesquisa = search.value.toLowerCase();
         listaFiltrada = listaFiltrada.filter(
@@ -1182,7 +1219,14 @@ const itensFiltrados = computed(() => {
         );
     }
 
-    
+
+    if (categoria.value && categoria.value !== 0) {
+        listaFiltrada = listaFiltrada.filter(
+            (item) => item.categoria_id === categoria.value
+        );
+    }
+
+
     const precoMinimoEmCentavos = minimo.value * 100;
     const precoMaximoEmCentavos = maximo.value * 100;
 
@@ -1216,6 +1260,7 @@ const vendedoresFiltrados = computed(() => {
     (u.username && u.username.toLowerCase().includes(termo))
   );
 });
+
 
 
 const getIniciais = (nome) => {
@@ -1297,6 +1342,24 @@ function toLogin() {
 function acessarPerfil(id){
   router.push(`/perfilsocial/${id}`);
 }
+watch(minimo, (novo) => {
+
+  minimo.value = Math.max(0, novo);
+
+
+  if (maximo.value > 0) {
+    minimo.value = Math.min(minimo.value, maximo.value);
+  }
+});
+
+watch(maximo, (novo) => {
+
+  maximo.value = Math.max(0, novo);
+
+  maximo.value = Math.max(maximo.value, minimo.value);
+});
+
+
 </script>
 
 <style>
