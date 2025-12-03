@@ -1,288 +1,246 @@
 <template>
-  <v-breadcrumbs
-class="text-black mt-12"
-:items="[
-{ text: 'Home', disabled: false, href: '/' },
-{ text: 'Detalhes', disabled: true },
+  <v-layout class="bg-grey-lighten-5 d-flex flex-column">
+    
+    <v-container class="py-4" style="max-width: 1400px;"> 
+      <v-row align="center" justify="space-between">
+        
+        <v-col cols="12" md="4" class="py-0">
+          <v-breadcrumbs
+            :items="[{ text: 'Home', disabled: false, to: '/' }, { text: 'Detalhes', disabled: true }]"
+            class="pa-4"
+          >
+            <template #title="{ item }">
+              <span class="text-caption text-grey-darken-1">{{ item.text }}</span>
+            </template>
+          </v-breadcrumbs>
+          <v-btn
+            variant="text"
+            color="primary"
+            prepend-icon="mdi-arrow-left"
+            @click="voltar"
+            class="text-body-1 font-weight-bold pa-0 ml-n2 text-capitalize"
+            :disabled="carregandoProdutos"
+          >
+            Voltar
+          </v-btn>
+        </v-col>
 
-]"
->
-<template #title="{ item }">
-<span>{{ item.text }}</span>
-</template>
-</v-breadcrumbs>
-  <v-layout>
+        <v-col cols="12" md="8" class="d-flex justify-end align-center py-0">
+          <v-btn
+            variant="tonal"
+            prepend-icon="mdi-home"
+            color="primary"
+            @click="toHome"
+            :disabled="carregando"
+            rounded="lg"
+            class="hidden-sm-and-down mr-3"
+          >
+            Home
+          </v-btn>
 
-    <v-container class="detalhes-container">
-      <v-app-bar>
-       
-        <v-spacer></v-spacer>
-         <v-btn
-    variant="flat"
-    prepend-icon="mdi-home"
-    color="#1976D2"
-    @click="toHome"
-    :disabled="carregando"
-  >
-    Home
-  </v-btn>
-        <v-badge
-  :content="carrinho.length"
-  color="primary"
-  class="ml-4 mr-4"
->
-  <v-btn
-    variant="flat"
-    prepend-icon="mdi-cart"
-    color="#3fa34f"
-    @click="toCarrinho"
-    :disabled="carregando"
-  >
-    Carrinho
-  </v-btn>
-</v-badge>
+          <v-badge
+            :content="carrinho.length"
+            color="error"
+            overlap
+            offset-x="5"
+            offset-y="5"
+            class="mx-3"
+          >
+            <v-btn
+              variant="flat"
+              prepend-icon="mdi-cart"
+              color="success"
+              @click="toCarrinho"
+              :disabled="carregando"
+              rounded="lg"
+              class="font-weight-bold"
+            >
+              Carrinho
+            </v-btn>
+          </v-badge>
 
           <v-menu v-model="menu" offset-y location="bottom end">
             <template #activator="{ props }">
-              <v-tooltip top>
-                <template #activator="{ props: tooltip }">
-                  <v-btn
-                    v-bind="{ ...props, ...tooltip }"
-                    :disabled="carregando"
-                    variant="text"
-                  >
-                    <v-icon>mdi-dots-vertical</v-icon>
-                  </v-btn>
-                </template>
-                <span>Mais opções</span>
-              </v-tooltip>
-            </template>
-
-            <v-card class="pa-4" width="300">
-              <v-row justify="center">
-                <v-avatar
-                  size="70"
-                  class="d-flex align-center justify-center"
-                  :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
-                >
-                  <template v-if="avatarUsuario.tipo === 'imagem'">
-                    <v-img :src="avatarUsuario.src" cover />
-                  </template>
-
-                  <template v-else>
-                    <span class="text-white text-h6 font-weight-bold">
-                      {{ avatarUsuario.texto }}
-                    </span>
-                  </template>
-                </v-avatar>
-              </v-row>
-              <v-row justify="center">
-                <v-tooltip top>
-                  <template #activator="{ props }">
-                    <div v-bind="props" class="pa-1 nomeUsuario ellipses">
-                      {{ usuario?.nome }}
-                    </div>
-                  </template>
-                  <span>{{ usuario?.nome }}</span>
-                </v-tooltip>
-              </v-row>
-
-              <v-row justify="center">
-                <v-tooltip top>
-                  <template #activator="{ props }">
-                    <div v-bind="props" class="pa-1 emailUsuario ellipses">
-                      {{ usuario?.email }}
-                    </div>
-                  </template>
-                  <span>{{ usuario?.email }}</span>
-                </v-tooltip>
-              </v-row>
-
-              <v-divider class="my-3"></v-divider>
-
-              <v-btn
-                block
-                color="#eaece7"
-                variant="flat"
-                class="mb-4"
-                prepend-icon="mdi-account"
-                @click="toPerfil"
-                :disabled="carregando"
-              >
-                PERFIL
+              <v-btn icon v-bind="props" class="ml-1">
+                <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
-              <v-btn
-                block
-                color="#cc0000"
-                variant="flat"
-                class="mb-4"
-                prepend-icon="mdi-logout"
-                @click="buttonSairClicado = !buttonSairClicado"
-                :disabled="carregando"
-                >
-                SAIR
+            </template>
+            <v-card class="pa-4 rounded-xl" width="300" elevation="4">
+              <div class="d-flex flex-column align-center mb-3">
+                <v-avatar size="80" class="mb-3" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
+                  <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
+                  <span v-else class="text-h4 text-white">{{ avatarUsuario.texto }}</span>
+                </v-avatar>
+                <div class="text-h6 font-weight-bold text-truncate w-100 text-center">{{ usuario?.nome }}</div>
+                <div class="text-caption text-grey text-truncate w-100 text-center">{{ usuario?.email }}</div>
+              </div>
+
+              <v-divider class="mb-3"></v-divider>
+
+              <v-btn block variant="tonal" color="primary" class="mb-2 rounded-lg" prepend-icon="mdi-account" @click="toPerfil">
+                Meu Perfil
+              </v-btn>
+              <v-btn block variant="outlined" color="error" class="rounded-lg" prepend-icon="mdi-logout" @click="buttonSairClicado = !buttonSairClicado">
+                Sair
               </v-btn>
             </v-card>
           </v-menu>
-        </v-app-bar>
-      <v-btn
-      class="btn-voltar-fixo text-h5 mt-10"
-      color="blue"
-      prepend-icon="mdi-arrow-left"
-      @click="voltar"
-      width="100"
-      variant="text"
-      >
-      Voltar
-    </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
     
-    <div v-if="carregandoProdutos" class="d-flex justify-center align-center my-8" style="height: 300px">
-      <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
-    </div>
+    <v-divider></v-divider>
     
-    <div v-else-if="erroGetProduto" style="width: 100%; display: flex; justify-content: center;">
-      <v-sheet
-        width="400"
-        color="red-darken-2"
-        class="pa-4 mb-4 text-white text-center rounded-lg"
-        elevation="4"
-      >
-        <v-icon size="40" color="white" class="mb-2">mdi-alert-circle</v-icon>
-        <p class="text-h6 mb-2">Erro ao carregar o produto 😢</p>
-        <p class="mb-4">Verifique sua conexão e tente novamente.</p>
-        <v-btn
-          color="white"
-          variant="outlined"
-          prepend-icon="mdi-refresh"
-          @click="recarregarProdutos"
+    <v-container class="bg-white pa-6 pa-md-10 rounded-xl elevation-1 mb-8" style="max-width: 1400px;">
+      
+      <div v-if="carregandoProdutos" class="d-flex flex-column justify-center align-center my-8" style="height: 400px">
+        <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
+        <p class="mt-4 text-grey-darken-1">Carregando detalhes do produto...</p>
+      </div>
+      
+      <div v-else-if="erroGetProduto" class="d-flex justify-center my-8">
+        <v-alert
+          type="error"
+          variant="tonal"
+          title="Erro ao carregar o produto 😢"
+          text="Não foi possível buscar os detalhes do produto. Verifique sua conexão e tente novamente."
+          icon="mdi-wifi-off"
+          closable
+          max-width="600"
         >
-          Tentar novamente
-        </v-btn>
-      </v-sheet>
-    </div>
-
-    <div v-else class="detalhes-conteudo">
-      <div class="imagem-container">
-        <v-img
-          :src="getProdutoImage(produto.imagem)"
-          class="produto-imagem"
-          :aspect-ratio="1"
-          contain
-        ></v-img>
+          <template #append>
+             <v-btn color="error" variant="outlined" size="small" @click="recarregarProdutos">Tentar Novamente</v-btn>
+          </template>
+        </v-alert>
       </div>
 
-      <div class="info-container">
-        <h1 class="titulo-produto">{{ produto.nome }}</h1>
-
-        <div class="avaliacoes">
-          <v-icon color="amber">mdi-star</v-icon>
-          <v-icon color="amber">mdi-star</v-icon>
-          <v-icon color="amber">mdi-star</v-icon>
-          <v-icon color="amber">mdi-star</v-icon>
-          <v-icon color="amber">mdi-star-half-full</v-icon>
-          <span class="texto-avaliacao">(483)</span>
-        </div>
-
-        <div class="preco-container">
-          <p class="preco-novo">{{ precoFormatado }}</p>
-          
-          
-        </div>
-
+      <v-row v-else class="detalhes-conteudo">
         
-        <div class="detalhes-produto text-h5">
-          <p class="mt-4"><strong>Descrição:</strong> {{ produto.descricao }}</p>
-          <p class="mt-4"><strong>Categoria:</strong> {{ categoriaNome }}</p>
-          <p class="mt-4"><strong>Anunciado em:</strong> {{ produto.data_post }}</p>
-          <p class="mt-4"><strong>Vendedor:</strong> {{ vendedorNome }}</p>
-          <p class="mt-4"><strong>Estoque:</strong> {{ produto.estoque }}</p>
-        </div>
-
-        <v-btn class="btn-carrinho" :disabled="loadingInformacoes || produto.estoque <= 0" :loading="loadingAdicionar" @click="adicionarAoCarrinho">
-          <v-icon left>mdi-cart</v-icon>
-          ADICIONAR AO CARRINHO
-        </v-btn>
-      </div>
-    </div>
-  </v-container>
-</v-layout>
-<v-dialog
-          max-width="500"
-          v-model="buttonSairClicado"
-          v-if="buttonSairClicado"
-        >
-          <v-card class="pa-4" elevation="8" rounded="xl">
-            <v-card-title class="text-center font-weight-bold text-h4">
-              <v-icon color="error" size="32" class="mr-2"
-                >mdi-alert-circle-outline</v-icon
-              >
-              Confirmar saída
-            </v-card-title>
-
-            <v-card-text class="text-center text-h5 text-medium-emphasis">
-              Tem certeza de que deseja sair da sua conta?
-            </v-card-text>
-
-            <v-card-actions class="justify-center mt-2">
-              <v-btn
-                color="grey"
-                variant="outlined"
-                rounded="xl"
-                @click="buttonSairClicado = false"
-                width="120"
-              >
-                Cancelar
-              </v-btn>
-
-              <v-btn
-                color="error"
-                variant="flat"
-                rounded="xl"
-                width="120"
-                :loading="loadingLogout"
-                @click="FazerLogout"
-              >
-                Sair
-              </v-btn>
-            </v-card-actions>
+        <v-col cols="12" md="6" class="pr-md-8">
+          <v-card class="rounded-xl elevation-2"> 
+            <v-img
+              :src="getProdutoImage(produto.imagem)"
+              class="produto-imagem"
+              height="500"
+              cover
+            >
+               <template #placeholder>
+                  <v-row class="fill-height ma-0" align="center" justify="center">
+                     <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
+                  </v-row>
+               </template>
+            </v-img>
           </v-card>
-        </v-dialog>
-   <v-dialog
-            max-width="500"
-            v-model="usuarioNaoLogado"
-            v-if="usuarioNaoLogado == true"
-          >
-            <v-card title="Aviso">
-              <template #prepend>
-                <v-icon size="42" color="yellow">mdi-alert</v-icon>
-              </template>
-              <v-card-text>
-                Usuário sem permissão para executar esta ação! Tente primeiro
-                fazer login.
-              </v-card-text>
-              <v-card-actions>
-                <v-btn
-                  text="Fazer login"
-                  base-color="green"
-                  variant="flat"
-                  v-model="usuarioNaoLogado"
-                  @click="toLogin"
-                  :disabled="carregandoProdutos"
-                >
-              </v-btn>
-                <v-btn
-                  text="Ok"
-                  base-color="blue"
-                  v-model="usuarioNaoLogado"
-                  @click="usuarioNaoLogado = false"
-                  :disabled="carregandoProdutos"
-                  >
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-</template>
+        </v-col>
 
+        <v-col cols="12" md="6">
+          
+          <h1 class="text-h3 font-weight-bold mb-4">{{ produto.nome }}</h1>
+          
+          <div class="d-flex align-center mb-6">
+            
+            
+            <v-chip size="default" variant="tonal" color="grey-darken-1" label>
+                {{ categoriaNome }}
+            </v-chip>
+          </div>
+          
+          <v-divider class="mb-6"></v-divider>
+
+          <div class="preco-container mb-6">
+            <span class="text-h4 text-primary font-weight-black">
+                {{ precoFormatado }}
+            </span>
+            <span class="text-caption text-grey ml-2 font-weight-bold">
+                ou em até 10x sem juros
+            </span>
+          </div>
+          
+          <v-btn 
+            block 
+            size="large"
+            color="success" 
+            class="text-h6 text-capitalize rounded-lg font-weight-bold mb-6"
+            :disabled="loadingInformacoes || produto.estoque <= 0" 
+            :loading="loadingAdicionar" 
+            @click="adicionarAoCarrinho"
+            elevation="4"
+          >
+            <v-icon left>mdi-cart-plus</v-icon>
+            {{ produto.estoque > 0 ? 'ADICIONAR AO CARRINHO' : 'ESGOTADO' }}
+          </v-btn>
+
+          <v-card variant="tonal" color="grey-lighten-4" class="pa-4 rounded-lg mb-6">
+            <v-list density="compact" class="pa-0">
+              <v-list-item class="px-0">
+                <v-list-item-title class="font-weight-bold">
+                  <v-icon size="18" class="mr-2" color="success">mdi-check-circle-outline</v-icon>
+                  Estoque: 
+                  <span :class="{'text-success': produto.estoque > 0, 'text-error': produto.estoque <= 0}">
+                    {{ produto.estoque > 0 ? `${produto.estoque} disponível` : 'Esgotado' }}
+                  </span>
+                </v-list-item-title>
+              </v-list-item>
+              
+              <v-list-item class="px-0">
+                <v-list-item-title class="font-weight-bold">
+                  <v-icon size="18" class="mr-2" color="primary">mdi-store</v-icon>
+                  Vendedor: <span class="text-primary">{{ vendedorNome }}</span>
+                </v-list-item-title>
+              </v-list-item>
+              
+              <v-list-item class="px-0">
+                <v-list-item-title class="font-weight-bold">
+                  <v-icon size="18" class="mr-2" color="grey-darken-1">mdi-calendar-range</v-icon>
+                  Anunciado em: {{ produto.data_post }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-card>
+          
+          <div class="detalhes-produto">
+            <h2 class="text-h6 font-weight-bold mb-3">Descrição do Produto</h2>
+            <p class="text-body-1 text-medium-emphasis" style="line-height: 1.6;">
+              {{ produto.descricao }}
+            </p>
+          </div>
+          
+        </v-col>
+      </v-row>
+    </v-container>
+    
+    <v-dialog v-model="buttonSairClicado" max-width="400">
+      <v-card class="rounded-xl pa-4" elevation="10">
+        <div class="text-center pt-4">
+          <v-avatar color="red-lighten-5" size="80" class="mb-4">
+             <v-icon color="error" size="40">mdi-logout-variant</v-icon>
+          </v-avatar>
+          <div class="text-h5 font-weight-bold mb-2">Sair da Conta?</div>
+          <div class="text-body-2 text-grey">Tem certeza que deseja encerrar sua sessão?</div>
+        </div>
+        <v-card-actions class="justify-center mt-6">
+           <v-btn variant="text" color="grey" rounded="lg" @click="buttonSairClicado = false" class="px-6">Cancelar</v-btn>
+           <v-btn color="error" variant="flat" rounded="lg" @click="FazerLogout" :loading="loadingLogout" class="px-6">Sair Agora</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="usuarioNaoLogado" max-width="400">
+      <v-card class="rounded-xl pa-4">
+        <div class="text-center pt-2">
+           <v-icon size="48" color="amber" class="mb-2">mdi-alert</v-icon>
+           <div class="text-h6 font-weight-bold">Aviso</div>
+           <div class="text-body-2 text-grey mt-2">Usuário sem permissão para executar esta ação! Tente primeiro fazer login.</div>
+        </div>
+        <v-card-actions class="justify-center mt-4">
+           <v-btn variant="outlined" color="primary" @click="toLogin" class="mx-2">Fazer Login</v-btn>
+           <v-btn variant="text" @click="usuarioNaoLogado = false" class="mx-2">Ok</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+  </v-layout>
+</template>
 <script setup>
 import { ref, onMounted, watch, computed, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
