@@ -1,311 +1,281 @@
 <template>
-  <div class="admin-container">
-    <header class="admin-header">
-      <h1>Painel Administrativo</h1>
-    </header>
+  <v-app>
+    <v-main>
+      <v-container fluid class="pa-4">
+        
+        <v-row>
+          <v-col cols="12">
+            <v-card class="pa-4" color="primary" dark>
+              <v-card-title class="text-h4">
+                Painel Administrativo 🛠️
+              </v-card-title>
+            </v-card>
+          </v-col>
+        </v-row>
+        
+        <v-divider class="my-4"></v-divider>
 
-    <nav class="tabs">
-      <button :class="{ active: activeTab === 'usuarios' }" @click="changeTab('usuarios')">Usuários</button>
-      <button :class="{ active: activeTab === 'categorias' }" @click="changeTab('categorias')">Categorias</button>
-      <button :class="{ active: activeTab === 'produtos' }" @click="changeTab('produtos')">Produtos</button>
-      <button :class="{ active: activeTab === 'enderecos' }" @click="changeTab('enderecos')">Endereços</button>
-    </nav>
+        <v-tabs
+          v-model="activeTab"
+          background-color="transparent"
+          color="primary"
+          show-arrows
+        >
+          <v-tab value="usuarios">Usuários</v-tab>
+          <v-tab value="categorias">Categorias</v-tab>
+          <v-tab value="produtos">Produtos</v-tab>
+          <v-tab value="enderecos">Endereços</v-tab>
+        </v-tabs>
 
-    <main class="admin-main">
+        <v-card class="mt-4" elevation="4">
+          <v-card-text>
+            <v-window v-model="activeTab">
+              
+              <v-window-item value="usuarios">
+                <div class="d-flex justify-space-between align-center mb-4">
+                  <h2 class="text-h5">Usuários</h2>
+                  <v-btn color="success" @click="openModal('usuario')">
+                    <v-icon left>mdi-plus</v-icon>
+                    + Usuário
+                  </v-btn>
+                </div>
+                <v-data-table
+                  :headers="usuarioHeaders"
+                  :items="usuarios"
+                  :items-per-page="10"
+                  class="elevation-1"
+                >
+                  <template v-slot:item.isAdmin="{ item }">
+                    <v-chip :color="item.isAdmin ? 'green' : 'red'" dark small>
+                      {{ item.isAdmin ? 'Sim' : 'Não' }}
+                    </v-chip>
+                  </template>
+                  <template v-slot:item.dataNascimento="{ item }">
+                    {{ item.dataNascimento ? new Date(item.dataNascimento).toLocaleDateString('pt-BR') : 'N/A' }}
+                  </template>
+                  <template v-slot:item.actions="{ item }">
+                    <v-btn small color="primary" class="mr-2" @click="openModal('usuario', item)">Editar</v-btn>
+                    <v-btn small color="error" @click="deleteData(item.id, 'usuario')">Excluir</v-btn>
+                  </template>
+                </v-data-table>
+              </v-window-item>
 
-      <section v-if="activeTab === 'usuarios'">
-        <div class="section-header">
-          <h2>Usuários</h2>
-          <button class="add-btn" @click="openModal('usuario')">+ Usuário</button>
-        </div>
+              <v-window-item value="categorias">
+                <div class="d-flex justify-space-between align-center mb-4">
+                  <h2 class="text-h5">Categorias</h2>
+                  <v-btn color="success" @click="openModal('categoria')">
+                    <v-icon left>mdi-plus</v-icon>
+                    + Categoria
+                  </v-btn>
+                </div>
+                <v-data-table
+                  :headers="categoriaHeaders"
+                  :items="categorias"
+                  :items-per-page="10"
+                  class="elevation-1"
+                >
+                  <template v-slot:item.status="{ item }">
+                    <v-chip :color="item.status === 'Ativo' ? 'green' : 'red'" dark small>
+                      {{ item.status }}
+                    </v-chip>
+                  </template>
+                  <template v-slot:item.cor="{ item }">
+                    <v-chip :color="item.cor || '#ccc'" dark small>Cor</v-chip>
+                  </template>
+                  <template v-slot:item.actions="{ item }">
+                    <v-btn small color="primary" class="mr-2" @click="openModal('categoria', item)">Editar</v-btn>
+                    <v-btn small color="error" @click="deleteData(item.id, 'categoria')">Excluir</v-btn>
+                  </template>
+                </v-data-table>
+              </v-window-item>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>CPF</th>
-              <th>Telefone</th>
-              <th>Nascimento</th>
-              <th>Admin</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in usuarios" :key="u.id">
-              <td>{{ u.id }}</td>
-              <td>{{ u.nome }}</td>
-              <td>{{ u.email }}</td>
-              <td>{{ u.cpf }}</td>
-              <td>{{ u.telefone }}</td>
-              <td>{{ u.dataNascimento ? new Date(u.dataNascimento).toLocaleDateString('pt-BR') : 'N/A' }}</td>
-              <td><span :class="u.isAdmin ? 'badge-ativo' : 'badge-inativo'">{{ u.isAdmin ? 'Sim' : 'Não' }}</span></td>
-              <td class="td-actions">
-                <button @click="openModal('usuario', u)" class="edit">Editar</button>
-                <button @click="deleteData(u.id, 'usuario')" class="delete">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+              <v-window-item value="produtos">
+                <div class="d-flex justify-space-between align-center mb-4">
+                  <h2 class="text-h5">Produtos</h2>
+                  <v-btn color="success" @click="openModal('produto')">
+                    <v-icon left>mdi-plus</v-icon>
+                    + Produto
+                  </v-btn>
+                </div>
+                <v-data-table
+                  :headers="produtoHeaders"
+                  :items="produtos"
+                  :items-per-page="10"
+                  class="elevation-1"
+                >
+                  <template v-slot:item.preco="{ item }">
+                    R$ {{ item.preco.toFixed(2) }}
+                  </template>
+                  <template v-slot:item.status="{ item }">
+                    <v-chip :color="item.status === 'Ativo' ? 'green' : 'red'" dark small>
+                      {{ item.status }}
+                    </v-chip>
+                  </template>
+                  <template v-slot:item.dataPost="{ item }">
+                    {{ item.dataPost ? new Date(item.dataPost).toLocaleDateString('pt-BR') : 'N/A' }}
+                  </template>
+                  <template v-slot:item.actions="{ item }">
+                    <v-btn small color="primary" class="mr-2" @click="openModal('produto', item)">Editar</v-btn>
+                    <v-btn small color="error" @click="deleteData(item.id, 'produto')">Excluir</v-btn>
+                  </template>
+                </v-data-table>
+              </v-window-item>
 
-      <section v-if="activeTab === 'categorias'">
-        <div class="section-header">
-          <h2>Categorias</h2>
-          <button class="add-btn" @click="openModal('categoria')">+ Categoria</button>
-        </div>
+              <v-window-item value="enderecos">
+                <div class="d-flex justify-space-between align-center mb-4">
+                  <h2 class="text-h5">Endereços</h2>
+                  <v-btn color="success" @click="openModal('endereco')">
+                    <v-icon left>mdi-plus</v-icon>
+                    + Endereço
+                  </v-btn>
+                </div>
+                <v-data-table
+                  :headers="enderecoHeaders"
+                  :items="enderecos"
+                  :items-per-page="10"
+                  class="elevation-1"
+                >
+                  <template v-slot:item.actions="{ item }">
+                    <v-btn small color="primary" class="mr-2" @click="openModal('endereco', item)">Editar</v-btn>
+                    <v-btn small color="error" @click="deleteData(item.id, 'endereco')">Excluir</v-btn>
+                  </template>
+                </v-data-table>
+              </v-window-item>
+              
+            </v-window>
+          </v-card-text>
+        </v-card>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>Status</th>
-              <th>Cor</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in categorias" :key="c.id">
-              <td>{{ c.id }}</td>
-              <td>{{ c.nome }}</td>
-              <td><span :class="c.status === 'Ativo' ? 'badge-ativo' : 'badge-inativo'">{{ c.status }}</span></td>
-              <td><div class="color-badge" :style="{ backgroundColor: c.cor || '#ccc' }"></div></td>
-              <td class="td-actions">
-                <button @click="openModal('categoria', c)" class="edit">Editar</button>
-                <button @click="deleteData(c.id, 'categoria')" class="delete">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+        <v-dialog v-model="modalOpen" max-width="600px">
+          <v-card>
+            <v-card-title class="text-h5 primary white--text">
+              {{ modalData.id ? 'Editar' : 'Adicionar' }} {{ modalType.charAt(0).toUpperCase() + modalType.slice(1) }}
+            </v-card-title>
+            <v-card-text class="pt-4">
+              <v-container>
+                
+                <v-form v-if="modalType === 'usuario'">
+                  <v-row>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.nome" label="Nome" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.email" label="Email" outlined dense type="email"></v-text-field></v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.cpf" label="CPF" outlined dense maxlength="14" hint="Apenas números"></v-text-field></v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.telefone" label="Telefone" outlined dense maxlength="15" hint="(DD) 99999-9999"></v-text-field></v-col>
+                    <v-col cols="12" sm="6">
+                      <v-text-field v-model="modalData.dataNascimento" label="Data de Nascimento" type="date" outlined dense></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <v-text-field v-model="modalData.senha" label="Senha" outlined dense type="password" :rules="[v => !!modalData.id || !!v || 'Campo obrigatório para novo usuário']"></v-text-field>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-checkbox v-model="modalData.isAdmin" label="É Administrador" color="primary"></v-checkbox>
+                    </v-col>
+                  </v-row>
+                </v-form>
 
-      <section v-if="activeTab === 'produtos'">
-        <div class="section-header">
-          <h2>Produtos</h2>
-          <button class="add-btn" @click="openModal('produto')">+ Produto</button>
-        </div>
+                <v-form v-if="modalType === 'categoria'">
+                  <v-row>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.nome" label="Nome da Categoria" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="6">
+                      <v-select v-model="modalData.status" :items="['Ativo', 'Inativo']" label="Status" outlined dense></v-select>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field v-model="modalData.cor" label="Cor de Destaque" type="color" outlined dense></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-form>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>Preço</th>
-              <th>Estoque</th>
-              <th>Status</th>
-              <th>Data Post</th>
-              <th>Categoria</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in produtos" :key="p.id">
-              <td>{{ p.id }}</td>
-              <td>{{ p.nome }}</td>
-              <td>R$ {{ p.preco }}</td>
-              <td>{{ p.estoque }}</td>
-              <td><span :class="p.status === 'Ativo' ? 'badge-ativo' : 'badge-inativo'">{{ p.status }}</span></td>
-              <td>{{ p.dataPost ? new Date(p.dataPost).toLocaleDateString('pt-BR') : 'N/A' }}</td>
-              <td>{{ p.categoriaId }}</td>
-              <td class="td-actions">
-                <button @click="openModal('produto', p)" class="edit">Editar</button>
-                <button @click="deleteData(p.id, 'produto')" class="delete">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+                <v-form v-if="modalType === 'produto'">
+                  <v-row>
+                    <v-col cols="12"><v-text-field v-model="modalData.nome" label="Nome do Produto" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.preco" label="Preço" type="number" prefix="R$" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.categoriaId" label="Categoria ID" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.estoque" label="Quantidade em Estoque" type="number" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="6">
+                      <v-select v-model="modalData.status" :items="['Ativo', 'Inativo']" label="Status" outlined dense></v-select>
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <v-text-field v-model="modalData.dataPost" label="Data de Publicação" type="date" outlined dense></v-text-field>
+                    </v-col>
+                    <v-col cols="12"><v-text-field v-model="modalData.imagem" label="URL da Imagem" outlined dense></v-text-field></v-col>
+                    <v-col cols="12">
+                      <v-textarea v-model="modalData.descricao" label="Descrição detalhada do produto" rows="4" outlined dense></v-textarea>
+                    </v-col>
+                  </v-row>
+                </v-form>
 
-      <section v-if="activeTab === 'enderecos'">
-        <div class="section-header">
-          <h2>Endereços</h2>
-          <button class="add-btn" @click="openModal('endereco')">+ Endereço</button>
-        </div>
+                <v-form v-if="modalType === 'endereco'">
+                  <v-row>
+                    <v-col cols="12" sm="6">
+                      <v-text-field v-model="modalData.cep" label="CEP" outlined dense maxlength="9" @blur="fetchCep" :loading="cepLoading"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.numero" label="Número" outlined dense></v-text-field></v-col>
+                    <v-col cols="12"><v-text-field v-model="modalData.rua" label="Rua" :disabled="cepLoading" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="4"><v-text-field v-model="modalData.bairro" label="Bairro" :disabled="cepLoading" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="4"><v-text-field v-model="modalData.cidade" label="Cidade" :disabled="cepLoading" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" sm="4"><v-text-field v-model="modalData.estado" label="Estado (UF)" maxlength="2" :disabled="cepLoading" outlined dense></v-text-field></v-col>
+                  </v-row>
+                </v-form>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>CEP</th>
-              <th>Rua</th>
-              <th>Número</th>
-              <th>Cidade</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="e in enderecos" :key="e.id">
-              <td>{{ e.id }}</td>
-              <td>{{ e.cep }}</td>
-              <td>{{ e.rua }}</td>
-              <td>{{ e.numero }}</td>
-              <td>{{ e.cidade }}</td>
-              <td class="td-actions">
-                <button @click="openModal('endereco', e)" class="edit">Editar</button>
-                <button @click="deleteData(e.id, 'endereco')" class="delete">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+              </v-container>
+            </v-card-text>
 
-    </main>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="error" text @click="closeModal">Cancelar</v-btn>
+              <v-btn color="success" @click="saveData">Salvar</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-    <div class="modal" v-if="modalOpen">
-      <div class="modal-content">
-
-        <h3 v-if="modalType === 'usuario'">
-          {{ modalData.id ? "Editar Usuário" : "Adicionar Usuário" }}
-        </h3>
-
-        <h3 v-if="modalType === 'categoria'">
-          {{ modalData.id ? "Editar Categoria" : "Adicionar Categoria" }}
-        </h3>
-
-        <h3 v-if="modalType === 'produto'">
-          {{ modalData.id ? "Editar Produto" : "Adicionar Produto" }}
-        </h3>
-
-        <h3 v-if="modalType === 'endereco'">
-          {{ modalData.id ? "Editar Endereço" : "Adicionar Endereço" }}
-        </h3>
-
-        <div v-if="modalType === 'usuario'" class="modal-grid">
-          <div class="form-row">
-            <label>Nome</label>
-            <input v-model="modalData.nome" placeholder="Nome" />
-          </div>
-          <div class="form-row">
-            <label>Email</label>
-            <input v-model="modalData.email" placeholder="Email" />
-          </div>
-          <div class="form-row">
-            <label>CPF</label>
-            <input v-model="modalData.cpf" placeholder="CPF" maxlength="14" />
-          </div>
-          <div class="form-row">
-            <label>Telefone</label>
-            <input v-model="modalData.telefone" placeholder="Telefone (DD) 99999-9999" maxlength="15" />
-          </div>
-          <div class="form-row">
-            <label>Data de Nascimento</label>
-            <input v-model="modalData.dataNascimento" type="date" />
-          </div>
-          <div class="form-row">
-            <label>Senha</label>
-            <input v-model="modalData.senha" placeholder="Senha" type="password" :required="!modalData.id" />
-          </div>
-          
-          <div class="checkbox-container full-row">
-            <input type="checkbox" id="isAdmin" v-model="modalData.isAdmin" />
-            <label for="isAdmin">É Administrador</label>
-          </div>
-        </div>
-
-        <div v-if="modalType === 'categoria'" class="modal-grid">
-          <div class="form-row">
-            <label>Nome da Categoria</label>
-            <input v-model="modalData.nome" placeholder="Nome da Categoria" />
-          </div>
-          <div class="form-row">
-            <label>Cor de Destaque</label>
-            <input v-model="modalData.cor" type="color" />
-          </div>
-          <div class="form-row">
-            <label>Status</label>
-            <select v-model="modalData.status">
-              <option value="Ativo">Ativo</option>
-              <option value="Inativo">Inativo</option>
-            </select>
-          </div>
-        </div>
-
-        <div v-if="modalType === 'produto'" class="modal-grid">
-          <div class="form-row full-row">
-            <label>Nome</label>
-            <input v-model="modalData.nome" placeholder="Nome do Produto" />
-          </div>
-          <div class="form-row">
-            <label>Preço</label>
-            <input v-model="modalData.preco" placeholder="Preço" type="number" />
-          </div>
-          <div class="form-row">
-            <label>Categoria ID</label>
-            <input v-model="modalData.categoriaId" placeholder="Categoria ID" />
-          </div>
-          <div class="form-row">
-            <label>Estoque</label>
-            <input v-model="modalData.estoque" placeholder="Quantidade em Estoque" type="number" />
-          </div>
-          <div class="form-row">
-            <label>Status</label>
-            <select v-model="modalData.status">
-              <option value="Ativo">Ativo</option>
-              <option value="Inativo">Inativo</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label>Data de Publicação</label>
-            <input v-model="modalData.dataPost" type="date" />
-          </div>
-          <div class="form-row full-row">
-            <label>URL da Imagem</label>
-            <input v-model="modalData.imagem" placeholder="URL da imagem principal" />
-          </div>
-          <div class="form-row full-row">
-            <label>Descrição</label>
-            <textarea v-model="modalData.descricao" placeholder="Descrição detalhada do produto" rows="4"></textarea>
-          </div>
-        </div>
-
-        <div v-if="modalType === 'endereco'" class="modal-grid">
-          <div class="form-row">
-            <label>CEP</label>
-            <input v-model="modalData.cep" placeholder="CEP (ex: 88888-888)" @blur="fetchCep" maxlength="9" />
-          </div>
-          <div class="form-row">
-            <label>Número</label>
-            <input v-model="modalData.numero" placeholder="Número" />
-          </div>
-          <div class="form-row full-row">
-            <label>Rua</label>
-            <input v-model="modalData.rua" placeholder="Rua" :disabled="cepLoading" />
-          </div>
-          <div class="form-row">
-            <label>Bairro</label>
-            <input v-model="modalData.bairro" placeholder="Bairro" :disabled="cepLoading" />
-          </div>
-          <div class="form-row">
-            <label>Cidade</label>
-            <input v-model="modalData.cidade" placeholder="Cidade" :disabled="cepLoading" />
-          </div>
-          <div class="form-row">
-            <label>Estado (UF)</label>
-            <input v-model="modalData.estado" placeholder="Estado (UF)" maxlength="2" :disabled="cepLoading" />
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="save" @click="saveData">Salvar</button>
-          <button class="cancel" @click="closeModal">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
-// NOTE: Você precisa garantir que 'connection' (seu axios customizado) e 'axios' (para ViaCEP) estejam disponíveis.
-// Se você não tem esses imports ou os caminhos estão errados, o código falhará.
 import { connection } from "@/connection/axiosConnection.js";
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default {
   data() {
     return {
       activeTab: "usuarios",
+      
+      usuarioHeaders: [
+        { text: 'ID', value: 'id' },
+        { text: 'Nome', value: 'nome' },
+        { text: 'Email', value: 'email' },
+        { text: 'CPF', value: 'cpf' },
+        { text: 'Telefone', value: 'telefone' },
+        { text: 'Nascimento', value: 'dataNascimento' },
+        { text: 'Admin', value: 'isAdmin' },
+        { text: 'Ações', value: 'actions', sortable: false },
+      ],
+      categoriaHeaders: [
+        { text: 'ID', value: 'id' },
+        { text: 'Nome', value: 'nome' },
+        { text: 'Status', value: 'status' },
+        { text: 'Cor', value: 'cor', sortable: false },
+        { text: 'Ações', value: 'actions', sortable: false },
+      ],
+      produtoHeaders: [
+        { text: 'ID', value: 'id' },
+        { text: 'Nome', value: 'nome' },
+        { text: 'Preço', value: 'preco' },
+        { text: 'Estoque', value: 'estoque' },
+        { text: 'Status', value: 'status' },
+        { text: 'Data Post', value: 'dataPost' },
+        { text: 'Categoria ID', value: 'categoriaId' },
+        { text: 'Ações', value: 'actions', sortable: false },
+      ],
+      enderecoHeaders: [
+        { text: 'ID', value: 'id' },
+        { text: 'CEP', value: 'cep' },
+        { text: 'Rua', value: 'rua' },
+        { text: 'Número', value: 'numero' },
+        { text: 'Cidade', value: 'cidade' },
+        { text: 'Ações', value: 'actions', sortable: false },
+      ],
 
       usuarios: [],
       categorias: [],
@@ -315,14 +285,13 @@ export default {
       modalOpen: false,
       modalType: "",
       modalData: {},
-      cepLoading: false 
+      cepLoading: false
     };
   },
 
   methods: {
-    // ========================= LÓGICA DE CEP (ViaCEP) =========================
     async fetchCep() {
-      const cep = this.modalData.cep.replace(/\D/g, ''); 
+      const cep = this.modalData.cep.replace(/\D/g, '');
 
       if (cep.length !== 8) return;
 
@@ -338,7 +307,7 @@ export default {
           this.modalData.estado = data.uf;
           this.modalData.bairro = data.bairro;
         } else {
-          alert('CEP não encontrado.');
+          alert('CEP não encontrado.'); 
           this.modalData.rua = '';
           this.modalData.cidade = '';
           this.modalData.estado = '';
@@ -352,17 +321,13 @@ export default {
     },
 
 
-    // ========================= MODAL =========================
-
-    // Função auxiliar para formatar datas para o input type="date" (AAAA-MM-DD)
     formatToDateInput(dateString) {
       if (!dateString) return "";
-      // Se já estiver no formato AAAA-MM-DD, retorna
       if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
 
       try {
           const date = new Date(dateString);
-          if (isNaN(date.getTime())) return ""; // Verifica se é uma data válida
+          if (isNaN(date.getTime())) return ""; 
 
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -375,55 +340,47 @@ export default {
 
     openModal(type, item = {}) {
       this.modalType = type;
-      this.cepLoading = false; 
+      this.cepLoading = false;
 
       if (type === "usuario") {
         this.modalData = {
           id: item.id || null,
           nome: item.nome || "",
           email: item.email || "",
-          cpf: item.cpf || "", 
+          cpf: item.cpf || "",
           telefone: item.telefone || "",
-          dataNascimento: this.formatToDateInput(item.dataNascimento), 
-          senha: "", 
-          isAdmin: item.isAdmin || false 
+          dataNascimento: this.formatToDateInput(item.dataNascimento),
+          senha: "",
+          isAdmin: item.isAdmin || false
         };
-      }
-
-      if (type === "categoria") {
+      } else if (type === "categoria") {
         this.modalData = {
           id: item.id || null,
           nome: item.nome || "",
-          status: item.status || "Ativo", 
-          cor: item.cor || "#6366f1"     
+          status: item.status || "Ativo",
+          cor: item.cor || "#6366f1"
         };
-      }
-
-      if (type === "produto") {
+      } else if (type === "produto") {
         this.modalData = {
           id: item.id || null,
           nome: item.nome || "",
-          preco: item.preco || 0,
+          preco: item.preco !== undefined && item.preco !== null ? Number(item.preco) : 0,
           categoriaId: item.categoriaId || "",
           descricao: item.descricao || "",
-          // CORREÇÃO: Inicializa estoque como número
-          estoque: item.estoque !== undefined && item.estoque !== null ? Number(item.estoque) : 0, 
-          // CORREÇÃO: Garante o formato da data para o input
+          estoque: item.estoque !== undefined && item.estoque !== null ? Number(item.estoque) : 0,
           dataPost: this.formatToDateInput(item.dataPost || new Date()),
           status: item.status || "Ativo",
           imagem: item.imagem || ""
         };
-      }
-
-      if (type === "endereco") {
+      } else if (type === "endereco") {
         this.modalData = {
           id: item.id || null,
-          cep: item.cep || "", 
+          cep: item.cep || "",
           rua: item.rua || "",
           numero: item.numero || "",
           cidade: item.cidade || "",
-          bairro: item.bairro || "", 
-          estado: item.estado || "" 
+          bairro: item.bairro || "",
+          estado: item.estado || ""
         };
       }
 
@@ -435,11 +392,8 @@ export default {
       this.modalData = {};
     },
 
-    // ========================= LISTAGENS =========================
-
     async loadUsuarios() {
       try {
-        // Assume que a API pode aceitar status como filtro
         const res = await connection.get("/usuarios?status=1");
         this.usuarios = res.data;
       } catch (error) {
@@ -449,7 +403,7 @@ export default {
 
     async loadCategorias() {
       try {
-        const res = await connection.get("/categorias"); 
+        const res = await connection.get("/categorias");
         this.categorias = res.data;
       } catch (error) {
         console.error("Erro ao carregar categorias:", error);
@@ -459,7 +413,6 @@ export default {
     async loadProdutos() {
       try {
         const res = await connection.get("/produtos?page=1&pageSize=200");
-        // Lógica de manipulação de resposta para garantir que 'produtos' é um array
         this.produtos = Array.isArray(res.data) ? res.data : res.data.produtos || [];
       } catch (error) {
         console.error("Erro ao carregar produtos:", error);
@@ -475,7 +428,18 @@ export default {
       }
     },
 
-    // ========================= SALVAR (ADICIONAR/EDITAR) =========================
+    reloadTab() {
+      if (this.activeTab === "usuarios") this.loadUsuarios();
+      else if (this.activeTab === "categorias") this.loadCategorias();
+      else if (this.activeTab === "produtos") this.loadProdutos();
+      else if (this.activeTab === "enderecos") this.loadEnderecos();
+    },
+
+    changeTab(tab) {
+      this.activeTab = tab;
+      this.reloadTab();
+    },
+    
     async saveData() {
       const item = this.modalData;
       const type = this.modalType;
@@ -488,22 +452,19 @@ export default {
 
       try {
         if (item.id) {
-          // Usa PATCH para atualizar
           await connection.patch(`${endpoint}/${item.id}`, item);
         } else {
-          // Usa POST para criar
           await connection.post(endpoint, item);
         }
 
         this.closeModal();
-        this.reloadTab(); 
+        this.reloadTab();
       } catch (error) {
         console.error(`Erro ao salvar ${type}:`, error.response ? error.response.data : error.message);
         alert(`Falha ao salvar. Verifique o console para detalhes.`);
       }
     },
     
-    // ========================= EXCLUIR =========================
     async deleteData(id, type) {
       if (!confirm(`Tem certeza que deseja excluir este(a) ${type} (ID: ${id})?`)) {
         return;
@@ -518,433 +479,19 @@ export default {
       try {
         await connection.delete(`${endpoint}/${id}`);
         alert(`${type} excluído(a) com sucesso.`);
-        this.reloadTab(); 
+        this.reloadTab();
       } catch (error) {
         console.error(`Erro ao excluir ${type}:`, error);
         alert(`Falha ao excluir. Verifique o console para detalhes.`);
       }
-    },
-
-    reloadTab() {
-      if (this.activeTab === "usuarios") this.loadUsuarios();
-      else if (this.activeTab === "categorias") this.loadCategorias();
-      else if (this.activeTab === "produtos") this.loadProdutos();
-      else if (this.activeTab === "enderecos") this.loadEnderecos();
-    },
-
-    changeTab(tab) {
-      this.activeTab = tab;
-      this.reloadTab();
     }
   },
 
   mounted() {
     this.loadUsuarios();
+    this.loadCategorias();
+    this.loadProdutos();
+    this.loadEnderecos();
   }
 };
 </script>
-
-<style>
-/* ========================================================= */
-/* RESET E LAYOUT BASE                     */
-/* ========================================================= */
-.admin-container {
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 30px;
-    font-family: 'Inter', sans-serif;
-    color: #1f2937;
-    background: #f4f6f9;
-    min-height: 100vh;
-    box-sizing: border-box;
-    transition: background-color 0.3s ease;
-}
-
-/* Header */
-.admin-header h1 {
-    margin: 0 0 30px 0;
-    font-size: 28px;
-    font-weight: 800;
-    color: #111827;
-    border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 15px;
-}
-
-/* Section Header */
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-.section-header h2 {
-    font-size: 22px;
-    color: #1f2937;
-    font-weight: 700;
-    margin: 0;
-}
-
-
-/* ========================================================= */
-/* NAVEGAÇÃO (TABS)                  */
-/* ========================================================= */
-.tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 30px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    padding: 6px;
-}
-
-.tabs button {
-    flex-grow: 1;
-    background: transparent;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all .3s ease;
-    color: #4b5563;
-    font-size: 15px;
-    outline: none;
-}
-
-.tabs button:hover:not(.active) {
-    background: #f3f4f6;
-    color: #1f2937;
-}
-
-.tabs .active {
-    background: linear-gradient(135deg, #0d9488, #059669); /* Teal/Emerald Gradient */
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
-    font-weight: 700;
-}
-
-
-/* ========================================================= */
-/* BOTÕES                          */
-/* ========================================================= */
-
-/* Botão principal de Adicionar */
-.add-btn, .edit, .delete, .save, .cancel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: 0;
-    cursor: pointer;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: all .2s ease;
-}
-
-.add-btn {
-    background: linear-gradient(45deg, #2563eb, #3b82f6); /* Blue Gradient */
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    padding: 10px 18px;
-}
-.add-btn:hover {
-    opacity: 0.95;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
-}
-
-/* Botões de Ação na Tabela */
-.edit {
-    background: #f59e0b; /* Amber */
-    color: #fff;
-    padding: 7px 12px;
-    border-radius: 8px;
-}
-.delete {
-    background: #ef4444; /* Red */
-    color: #fff;
-    padding: 7px 12px;
-    border-radius: 8px;
-}
-.edit:hover, .delete:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
-}
-
-/* Botões do Modal */
-.save {
-    background: #10b981; /* Emerald */
-    color: #fff;
-    padding: 10px 20px;
-}
-.cancel {
-    background: #6b7280; /* Gray */
-    color: #fff;
-    padding: 10px 20px;
-}
-.save:hover, .cancel:hover {
-    opacity: 0.9;
-}
-
-
-/* ========================================================= */
-/* TABELAS                         */
-/* ========================================================= */
-table {
-    width: 100%;
-    border-radius: 12px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); 
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow: hidden; 
-}
-
-thead {
-    background: #f9fafb; 
-}
-
-th, td {
-    padding: 15px 18px;
-    text-align: left;
-    color: #374151;
-    font-size: 14px;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-th {
-    font-weight: 700;
-    color: #1f2937;
-    font-size: 15px;
-}
-
-tbody tr:last-child td {
-    border-bottom: none;
-}
-
-tbody tr:hover {
-    background: #fdfefe;
-    transform: translateY(-1px);
-    transition: transform 0.1s ease, background 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    position: relative;
-    z-index: 1; 
-}
-
-.td-actions {
-    width: 180px;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-/* Badges de Status/Admin */
-.badge-ativo {
-    background: #0d9488; /* Teal */
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 12px;
-    display: inline-block;
-}
-.badge-inativo {
-    background: #ef4444; /* Red */
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 12px;
-    display: inline-block;
-}
-
-/* Badge de Cor para Categoria */
-.color-badge {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 3px solid #f3f4f6; 
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    display: inline-block;
-    vertical-align: middle;
-}
-
-
-/* ========================================================= */
-/* MODAL E FORM                     */
-/* ========================================================= */
-.modal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(17, 24, 39, 0.65); 
-    backdrop-filter: blur(5px);
-    z-index: 1200;
-    padding: 10px;
-}
-.modal-content {
-    width: 900px;
-    max-width: 95%;
-    background: #fff;
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.modal-content h3 {
-    font-size: 24px;
-    font-weight: 700;
-    color: #111827;
-    margin: 0;
-    border-bottom: 1px solid #f3f4f6;
-    padding-bottom: 15px;
-}
-
-.modal-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-    gap: 20px; 
-    align-items: start;
-}
-
-.full-row {
-    grid-column: 1 / -1;
-}
-
-/* Inputs, Selects, Textareas */
-input:not([type="checkbox"]):not([type="radio"]), select, textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid #d1d5db;
-    background: #f9fafb;
-    outline: none;
-    font-size: 15px;
-    color: #1f2937;
-    box-sizing: border-box;
-    transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
-}
-
-input[type="color"] {
-    height: 40px; 
-    padding: 4px; 
-}
-
-input:focus:not([type="checkbox"]):not([type="radio"]), select:focus, textarea:focus {
-    border-color: #3b82f6;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); 
-}
-
-.form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.form-row label {
-    font-size: 14px;
-    color: #4b5563;
-    font-weight: 600;
-}
-
-/* Checkbox */
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 5px 0;
-    font-weight: 600;
-    color: #374151;
-}
-.checkbox-container input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: #3b82f6; 
-}
-
-/* Modal Actions */
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #f3f4f6;
-}
-
-/* ========================================================= */
-/* RESPONSIVIDADE (MOBILE-FIRST)                      */
-/* ========================================================= */
-@media (max-width: 768px) {
-    .admin-container {
-        padding: 15px;
-    }
-    
-    .tabs {
-        flex-direction: column;
-        padding: 0;
-        gap: 0;
-        box-shadow: none;
-        border: 1px solid #e5e7eb;
-    }
-    .tabs button {
-        border-radius: 0;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .tabs button:last-child { border-bottom: none; }
-    .tabs .active {
-        box-shadow: none;
-        border-bottom: 2px solid #0d9488;
-    }
-    
-    .modal-grid {
-        grid-template-columns: 1fr; 
-    }
-    
-    /* Transformação da Tabela em Cartões */
-    table, thead, tbody, th, td, tr {
-        display: block;
-    }
-    thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-    tr {
-        margin-bottom: 15px;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    }
-    td {
-        border: none;
-        position: relative;
-        padding-left: 50%;
-        text-align: right;
-    }
-    td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 0;
-        width: 45%;
-        padding-left: 15px;
-        font-weight: 700;
-        text-align: left;
-        color: #1f2937;
-    }
-    .td-actions {
-        width: 100%;
-        justify-content: center;
-        padding: 10px 0;
-        border-top: 1px solid #f3f4f6;
-    }
-}
-</style>

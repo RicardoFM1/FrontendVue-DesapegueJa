@@ -15,6 +15,7 @@ import { createPinia } from 'pinia'
 import "vue3-toastify/dist/index.css"
 import Vue3Toastify, { toast } from "vue3-toastify";
 
+
 const app = createApp(App)
 
 app.use(createPinia())

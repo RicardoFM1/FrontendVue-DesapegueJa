@@ -1169,6 +1169,13 @@ const menu = ref(false);
 const buttonSairClicado = ref(false);
 const loadingLogout = ref(false);
 
+function FazerLogout(){
+  if(tokenExiste){
+    localStorage.removeItem("token")
+    router.push("/login")
+  }
+}
+
 const rulesEmail = [
   (v) =>
     !v ||
