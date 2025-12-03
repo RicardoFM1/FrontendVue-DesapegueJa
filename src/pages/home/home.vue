@@ -74,7 +74,7 @@
                 <span v-else class="text-h4 text-white">{{ avatarUsuario.texto }}</span>
               </v-avatar>
               <div class="text-h6 font-weight-bold text-truncate w-100 text-center">{{ usuario?.nome }}</div>
-              <div class="text-caption text-grey text-truncate w-100 text-center">{{ usuario?.email }}</div>
+              <div class="text-h6 text-grey text-truncate w-100 text-center">{{ usuario?.email }}</div>
             </div>
 
             <v-divider class="mb-3"></v-divider>
