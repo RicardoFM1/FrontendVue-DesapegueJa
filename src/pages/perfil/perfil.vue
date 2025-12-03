@@ -1,1008 +1,1048 @@
 <template>
-  <v-breadcrumbs
-    class="text-black mt-15"
-    :items="[
-      { text: 'Home', disabled: false, href: '/' },
-      { text: 'Perfil', disabled: true },
-    ]"
-  >
-    <template #title="{ item }">
-      <span>{{ item.text }}</span>
-    </template>
-  </v-breadcrumbs>
-  <v-layout>
-    <v-container class="pa-6" v-if="tokenExiste">
-      <v-app-bar>
-        <v-spacer></v-spacer>
+  <v-container class="pa-4 pa-sm-6" v-if="tokenExiste">
+    <v-toolbar flat>
+      <v-breadcrumbs
+        :items="[
+          { title: 'Home', disabled: false, href: '/' },
+          { title: 'Perfil', disabled: true },
+        ]"
+        class="pa-2"
+      ></v-breadcrumbs>
+      <v-spacer></v-spacer>
 
-        <v-btn
-          v-if="!loadingInit"
-          text="Excluir conta"
-          color="red"
-          variant="flat"
-          @click="confirmacaoSair = !confirmacaoSair"
+      <v-btn
+        prepend-icon="mdi-plus"
+        variant="flat"
+        color="primary"
+        class="text-capitalize font-weight-bold ml-2 hidden-xs"
+        rounded="lg"
+        elevation="2"
+        @click="toAnunciar"
+        :disabled="carregandoProdutos"
+      >
+        Anunciar
+      </v-btn>
+      <v-btn
+        icon
+        class="mr-2"
+        @click="toCarrinho"
+        :disabled="carregandoProdutos"
+      >
+        <v-badge
+          color="error"
+          :content="carrinho.length"
+          :model-value="carrinho.length > 0"
+          offset-x="5"
+          offset-y="5"
         >
-        </v-btn>
-        <v-btn
-          prepend-icon="mdi-check"
-          variant="flat"
-          color="#5865f2"
-          class="ml-4 mr-4"
-          @click="toAnunciar"
-          :disabled="loadingInit"
-        >
-          Anunciar
-        </v-btn>
-        <v-btn
-          variant="flat"
-          prepend-icon="mdi-home"
-          color="#1976D2"
-          @click="toHome"
-          :disabled="loadingInit"
-        >
-          Home
-        </v-btn>
-        <v-badge :content="carrinho.length" color="primary" class="ml-4 mr-4">
+          <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
+        </v-badge>
+      </v-btn>
+      <v-menu v-model="menu" offset-y location="bottom end">
+        <template #activator="{ props }">
+          <v-tooltip text="Mais opções" location="top">
+            <template #activator="{ props: tooltip }">
+              <v-btn
+                v-bind="{ ...props, ...tooltip }"
+                :disabled="carregando"
+                variant="text"
+                icon="mdi-dots-vertical"
+                class="ml-2"
+                @click.stop
+              />
+            </template>
+          </v-tooltip>
+        </template>
+
+        <v-card class="pa-4" width="300" rounded="lg">
+          <div class="d-flex flex-column align-center">
+            <v-avatar
+              size="70"
+              :color="
+                avatarUsuario.tipo === 'imagem' ? 'grey-lighten-3' : 'indigo'
+              "
+            >
+              <template v-if="avatarUsuario.tipo === 'imagem'">
+                <v-img :src="avatarUsuario.src" cover />
+              </template>
+              <template v-else>
+                <span class="text-white text-h6 font-weight-bold">
+                  {{ avatarUsuario.texto }}
+                </span>
+              </template>
+            </v-avatar>
+            <div class="text-h6 mt-2 text-truncate" style="max-width: 90%">
+              {{ usuario?.Nome }}
+            </div>
+            <div
+              class="text-caption text-medium-emphasis text-truncate"
+              style="max-width: 90%"
+            >
+              {{ usuario?.email }}
+            </div>
+          </div>
+
+          <v-divider class="my-3"></v-divider>
+
           <v-btn
-            variant="flat"
-            prepend-icon="mdi-cart"
-            color="#3fa34f"
-            @click="toCarrinho"
+            block
+            color="error"
+            variant="tonal"
+            class="mb-3"
+            prepend-icon="mdi-account-off-outline"
+            @click.stop="confirmacaoSair = true"
             :disabled="loadingInit"
           >
-            Carrinho
+            Excluir Conta
           </v-btn>
-        </v-badge>
 
-        <v-menu v-model="menu" offset-y location="bottom end">
-          <template #activator="{ props }">
-            <v-tooltip top>
-              <template #activator="{ props: tooltip }">
-                <v-btn
-                  v-bind="{ ...props, ...tooltip }"
-                  :disabled="carregando"
-                  variant="text"
+          <v-btn
+            block
+            color="red-darken-2"
+            variant="flat"
+            prepend-icon="mdi-logout"
+            @click.stop="buttonSairClicado = true"
+            :disabled="carregando"
+          >
+            SAIR
+          </v-btn>
+        </v-card>
+      </v-menu>
+    </v-toolbar>
+
+    <v-divider class="mb-6"></v-divider>
+
+    <div v-if="loadingInit" class="text-center py-10">
+      <v-progress-circular indeterminate color="primary" size="64" />
+      <p class="mt-3 text-h6">Carregando informações do perfil...</p>
+    </div>
+
+    <div v-else>
+      <v-tabs v-model="tab" color="primary" align-tabs="start" class="mb-4">
+        <v-tab value="perfil" prepend-icon="mdi-account-circle"
+          >Perfil & Endereço</v-tab
+        >
+        <v-tab value="anuncios" prepend-icon="mdi-store">Meus Anúncios</v-tab>
+        <v-tab value="pagamentos" prepend-icon="mdi-credit-card"
+          >Meus Pagamentos</v-tab
+        >
+      </v-tabs>
+
+      <v-window v-model="tab">
+        <v-window-item value="perfil">
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-card class="pa-6" rounded="lg" elevation="4">
+                <v-card-title class="text-h5 text-center mb-4 font-weight-bold">
+                  Dados Pessoais
+                </v-card-title>
+                <v-divider class="mb-6"></v-divider>
+
+                <v-row class="justify-center mb-6">
+                  <v-col cols="12" class="text-center">
+                    <v-avatar class="mb-3" size="120" color="grey-lighten-3">
+                      <template
+                        v-if="!imagemPerfil || imagemPerfil == 'Sem imagem'"
+                      >
+                        <v-icon size="80" color="grey-darken-1"
+                          >mdi-account-circle</v-icon
+                        >
+                      </template>
+                      <template v-else>
+                        <v-img :src="imagemPerfil" alt="Foto de Perfil" cover />
+                      </template>
+                    </v-avatar>
+
+                    <div class="mt-3">
+                      <v-btn
+                        variant="tonal"
+                        color="primary"
+                        class="mr-3"
+                        @click="abrirExplorador"
+                        prepend-icon="mdi-camera"
+                        :disabled="loading"
+                      >
+                        Alterar Foto
+                      </v-btn>
+                      <v-btn
+                        variant="outlined"
+                        color="red"
+                        @click="removerImagem"
+                        prepend-icon="mdi-delete"
+                        :disabled="
+                          loading ||
+                          !imagemPerfil ||
+                          imagemPerfil == 'Sem imagem'
+                        "
+                      >
+                        Remover
+                      </v-btn>
+                    </div>
+
+                    <input
+                      type="file"
+                      ref="inputArquivo"
+                      accept="image/png, image/jpeg"
+                      @change="carregarImagem"
+                      style="display: none"
+                    />
+                  </v-col>
+                </v-row>
+
+                <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
+                  <v-text-field
+                    v-model="usuario.Nome"
+                    label="Nome de usuário"
+                    prepend-inner-icon="mdi-account"
+                    variant="outlined"
+                  />
+
+                  <v-text-field
+                    v-model="usuario.email"
+                    label="Email"
+                    prepend-inner-icon="mdi-email"
+                    variant="outlined"
+                    :rules="rulesEmail"
+                  />
+
+                  <v-text-field
+                    v-model="usuario.senha"
+                    :type="mostrarSenha ? 'text' : 'password'"
+                    label="Nova Senha (deixe em branco para não alterar)"
+                    prepend-inner-icon="mdi-lock"
+                    :append-inner-icon="
+                      mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'
+                    "
+                    @click:append-inner="mostrarSenha = !mostrarSenha"
+                    :rules="rulesSenha"
+                    variant="outlined"
+                  />
+
+                  <v-text-field
+                    ref="inputCPF"
+                    v-model="usuario.CPF"
+                    label="CPF"
+                    prepend-inner-icon="mdi-card-account-details"
+                    placeholder="000.000.000-00"
+                    @input="usuario.CPF = formatCPF($event.target.value)"
+                    variant="outlined"
+                    maxlength="14"
+                  />
+
+                  <v-text-field
+                    ref="inputData"
+                    v-model="usuario.dataNascimento"
+                    label="Data de Nascimento"
+                    prepend-inner-icon="mdi-calendar"
+                    placeholder="DD/MM/AAAA"
+                    :rules="rulesDataNascimento"
+                    @input="
+                      usuario.dataNascimento = formatData($event.target.value)
+                    "
+                    variant="outlined"
+                    maxlength="10"
+                  />
+
+                  <v-row dense>
+                    <v-col cols="4">
+                      <v-select
+                        :items="ddiOptions"
+                        v-model="usuario.ddi"
+                        item-title="text"
+                        item-value="value"
+                        label="DDI"
+                        variant="outlined"
+                        :rules="rulesDDI"
+                      />
+                    </v-col>
+                    <v-col cols="8">
+                      <v-text-field
+                        label="Telefone"
+                        v-model="usuario.Telefone"
+                        prepend-inner-icon="mdi-cellphone"
+                        :rules="rulesTelefone"
+                        variant="outlined"
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <v-card-actions class="px-0 pt-4 justify-end">
+                    <v-btn
+                      color="grey"
+                      variant="outlined"
+                      type="button"
+                      @click="recarregarPagina"
+                    >
+                      Recarregar
+                    </v-btn>
+                    <v-btn
+                      color="primary"
+                      :loading="loading"
+                      type="submit"
+                      variant="flat"
+                    >
+                      Salvar Alterações
+                    </v-btn>
+                  </v-card-actions>
+                </v-form>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-card class="pa-6" rounded="lg" elevation="4">
+                <v-card-title
+                  class="text-h5 pa-0 text-center mb-4 font-weight-bold"
                 >
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
-              </template>
-              <span>Mais opções</span>
-            </v-tooltip>
-          </template>
+                  Endereço de Entrega
+                </v-card-title>
+                <v-divider class="mb-6"></v-divider>
 
-          <v-card class="pa-4" width="300">
-            <v-row justify="center">
-              <v-avatar
-                size="70"
-                class="d-flex align-center justify-center"
-                :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
-              >
-                <template v-if="avatarUsuario.tipo === 'imagem'">
-                  <v-img :src="avatarUsuario.src" cover />
-                </template>
+                <v-form @submit.prevent="salvarAlteracoesEndereco">
+                  <v-text-field
+                    label="CEP"
+                    v-model="endereco.Cep"
+                    prepend-inner-icon="mdi-map-marker-outline"
+                    append-inner-icon="mdi-close"
+                    @click:append-inner="
+                      (endereco.Cep = ''),
+                        (endereco.Bairro = ''),
+                        (endereco.Cidade = ''),
+                        (endereco.Estado = ''),
+                        (endereco.Rua = '')
+                    "
+                    placeholder="00000-00"
+                    @input="onInputCep"
+                    variant="outlined"
+                    maxlength="9"
+                  />
 
-                <template v-else>
-                  <span class="text-white text-h6 font-weight-bold">
-                    {{ avatarUsuario.texto }}
-                  </span>
-                </template>
-              </v-avatar>
-            </v-row>
-            <v-row justify="center">
-              <v-tooltip top>
-                <template #activator="{ props }">
-                  <div v-bind="props" class="pa-1 nomeUsuario ellipses">
-                    {{ usuario?.Nome }}
-                  </div>
-                </template>
-                <span>{{ usuario?.Nome }}</span>
-              </v-tooltip>
-            </v-row>
+                  <v-select
+                    label="Estado"
+                    v-model="endereco.Estado"
+                    :readonly="readOnlyComCEP"
+                    :items="[
+                      { title: 'Acre', value: 'AC' },
+                      { title: 'Alagoas', value: 'AL' },
+                      { title: 'Amapá', value: 'AP' },
+                      { title: 'Amazonas', value: 'AM' },
+                      { title: 'Bahia', value: 'BA' },
+                      { title: 'Ceará', value: 'CE' },
+                      { title: 'Distrito Federal', value: 'DF' },
+                      { title: 'Espírito Santo', value: 'ES' },
+                      { title: 'Goiás', value: 'GO' },
+                      { title: 'Maranhão', value: 'MA' },
+                      { title: 'Mato Grosso', value: 'MT' },
+                      { title: 'Mato Grosso do Sul', value: 'MS' },
+                      { title: 'Minas Gerais', value: 'MG' },
+                      { title: 'Pará', value: 'PA' },
+                      { title: 'Paraíba', value: 'PB' },
+                      { title: 'Paraná', value: 'PR' },
+                      { title: 'Pernambuco', value: 'PE' },
+                      { title: 'Piauí', value: 'PI' },
+                      { title: 'Rio de Janeiro', value: 'RJ' },
+                      { title: 'Rio Grande do Norte', value: 'RN' },
+                      { title: 'Rio Grande do Sul', value: 'RS' },
+                      { title: 'Rondônia', value: 'RO' },
+                      { title: 'Roraima', value: 'RR' },
+                      { title: 'Santa Catarina', value: 'SC' },
+                      { title: 'São Paulo', value: 'SP' },
+                      { title: 'Sergipe', value: 'SE' },
+                      { title: 'Tocantins', value: 'TO' },
+                    ]"
+                    item-title="title"
+                    item-value="value"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-map-marker-radius"
+                  />
 
-            <v-row justify="center">
-              <v-tooltip top>
-                <template #activator="{ props }">
-                  <div v-bind="props" class="pa-1 emailUsuario ellipses">
-                    {{ usuario?.email }}
-                  </div>
-                </template>
-                <span>{{ usuario?.email }}</span>
-              </v-tooltip>
-            </v-row>
+                  <v-text-field
+                    label="Cidade"
+                    v-model="endereco.Cidade"
+                    :readonly="readOnlyComCEP"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-city"
+                  />
 
-            <v-divider v-if="!loadingInit" class="my-3"></v-divider>
+                  <v-text-field
+                    label="Bairro"
+                    v-model="endereco.Bairro"
+                    :readonly="readOnlyComCEP"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-map-legend"
+                  />
 
-            <v-btn
-              block
-              color="#cc0000"
-              variant="flat"
-              class="mb-4"
-              prepend-icon="mdi-logout"
-              @click="buttonSairClicado = !buttonSairClicado"
-              :disabled="carregando"
-            >
-              SAIR
-            </v-btn>
-          </v-card>
-        </v-menu>
-      </v-app-bar>
+                  <v-row dense>
+                    <v-col cols="8">
+                      <v-text-field
+                        label="Rua"
+                        v-model="endereco.Rua"
+                        :readonly="readOnlyComCEP"
+                        variant="outlined"
+                        prepend-inner-icon="mdi-road-variant"
+                      />
+                    </v-col>
+                    <v-col cols="4">
+                      <v-text-field
+                        label="Número"
+                        v-model="endereco.Numero"
+                        variant="outlined"
+                        prepend-inner-icon="mdi-numeric"
+                      />
+                    </v-col>
+                  </v-row>
 
-      <div v-if="loadingInit" class="text-center pa-10">
-        <v-progress-circular indeterminate color="primary" size="64" />
-        <p class="mt-3">Carregando informações...</p>
-      </div>
+                  <v-select
+                    label="Tipo de logradouro"
+                    v-model="endereco.Logradouro"
+                    :items="[
+                      { title: 'Rua', value: 'rua' },
+                      { title: 'Avenida', value: 'avenida' },
+                      { title: 'Praça', value: 'praca' },
+                      { title: 'Travessa', value: 'travessa' },
+                      { title: 'Outros', value: 'outros' },
+                    ]"
+                    item-title="title"
+                    item-value="value"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-sign-direction"
+                  />
 
-      <v-row v-else class="mt-10">
-        <v-col cols="12" md="6">
-          <v-card class="mx-auto pa-6" max-width="600">
-            <v-card-title class="text-h5 text-center"
-              >Perfil do Usuário</v-card-title
-            >
-            <v-divider v-if="!loadingInit" class="my-4"></v-divider>
+                  <v-text-field
+                    label="Complemento (Opcional)"
+                    v-model="endereco.Complemento"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-post"
+                  />
 
-            <v-row class="justify-center mb-4">
-              <v-col cols="12" class="text-center">
-                <v-avatar class="mr-3" size="120">
-                  <template
-                    v-if="!imagemPerfil || imagemPerfil == 'Sem imagem'"
-                  >
-                    <v-icon size="80">mdi-account-circle</v-icon>
-                  </template>
-                  <template v-else>
-                    <v-img :src="imagemPerfil" alt="Foto de Perfil" cover />
-                  </template>
-                </v-avatar>
+                  <v-select
+                    label="Status do Endereço"
+                    v-model="endereco.Status"
+                    :items="[
+                      { title: 'Ativo (Endereço Principal)', value: 'ativo' },
+                      {
+                        title: 'Inativo (Salvo, mas não em uso)',
+                        value: 'inativo',
+                      },
+                    ]"
+                    item-title="title"
+                    item-value="value"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-check-circle-outline"
+                  />
 
-                <v-btn
-                  variant="outlined"
-                  color="primary"
-                  class="mt-3"
-                  @click="abrirExplorador"
-                >
-                  Alterar Foto
-                </v-btn>
-                <v-btn
-                  variant="outlined"
-                  color="red"
-                  class="mt-3 ml-3"
-                  @click="removerImagem"
-                >
-                  Remover Foto
-                </v-btn>
+                  <v-card-actions class="px-0 pt-4 justify-end">
+                    <v-btn
+                      color="primary"
+                      :loading="loadingEndereco"
+                      type="submit"
+                      variant="flat"
+                    >
+                      Salvar Alterações
+                    </v-btn>
+                  </v-card-actions>
+                </v-form>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-window-item>
 
-                <input
-                  type="file"
-                  ref="inputArquivo"
-                  accept="image/png, image/x-png"
-                  @change="carregarImagem"
-                  style="display: none"
-                />
-              </v-col>
-            </v-row>
-
-            <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
+        <v-window-item value="anuncios">
+          <h2 class="text-h4 mb-4 mt-2">
+            Meus Anúncios <v-icon color="primary">mdi-store</v-icon>
+          </h2>
+          <v-row class="mb-4">
+            <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="usuario.Nome"
-                label="Nome de usuário"
-                prepend-inner-icon="mdi-account"
+                prepend-inner-icon="mdi-magnify"
+                label="Buscar um produto pelo nome"
+                v-model="filtroProduto"
+                density="comfortable"
+                variant="outlined"
+                clearable
+                hide-details
               />
+            </v-col>
+          </v-row>
 
-              <v-text-field
-                v-model="usuario.email"
-                label="Email"
-                prepend-inner-icon="mdi-email"
-                :rules="rulesEmail"
-              />
-
-              <v-text-field
-                v-model="usuario.senha"
-                :type="mostrarSenha ? 'text' : 'password'"
-                label="Senha"
-                prepend-inner-icon="mdi-lock"
-                :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="mostrarSenha = !mostrarSenha"
-                :rules="rulesSenha"
-              />
-
-              <v-text-field
-                ref="inputCPF"
-                v-model="usuario.CPF"
-                label="CPF"
-                prepend-inner-icon="mdi-card-account-details"
-                placeholder="000.000.000-00"
-                @input="usuario.CPF = formatCPF($event.target.value)"
-              />
-
-              <v-text-field
-                ref="inputData"
-                v-model="usuario.dataNascimento"
-                label="Data de Nascimento"
-                prepend-inner-icon="mdi-calendar"
-                placeholder="DD/MM/AAAA"
-                :rules="rulesDataNascimento"
-                @input="
-                  usuario.dataNascimento = formatData($event.target.value)
-                "
-              />
-              <div style="display: flex; gap: 10px; width: 100%">
-                <v-select
-                  :items="ddiOptions"
-                  v-model="usuario.ddi"
-                  item-title="text"
-                  item-value="value"
-                  variant="outlined"
-                  density="comfortable"
-                  base-color="#293559"
-                  style="max-width: 140px; padding: 0"
-                  label="DDI"
-                  rounded="lg"
-                  :rules="rulesDDI"
-                />
-
-                <v-text-field
-                  label="Telefone"
-                  v-model="usuario.Telefone"
-                  prepend-inner-icon="mdi-cellphone"
-                  :rules="rulesTelefone"
-                  base-color="#293559"
-                  density="comfortable"
-                  variant="outlined"
-                  rounded="lg"
-                />
-              </div>
-
-              <v-row class="mt-6" justify="center" align="center">
-                <v-btn
-                  color="grey"
-                  class="mr-3"
-                  variant="outlined"
-                  type="button"
-                  @click="recarregarPagina"
-                >
-                  Recarregar
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  :loading="loading"
-                  class="mr-3"
-                  type="submit"
-                >
-                  Salvar Alterações
-                </v-btn>
-                <v-btn
-                  color="grey"
-                  variant="outlined"
-                  type="button"
-                  @click="voltarHome"
-                >
-                  Cancelar
-                </v-btn>
-              </v-row>
-            </v-form>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6" v-if="tokenExiste">
-          <div v-if="loadingInit" class="text-center pa-10">
-            <v-progress-circular indeterminate color="primary" size="64" />
-            <p class="mt-3">Carregando informações...</p>
-          </div>
-          <v-card v-else class="mx-auto pa-6" max-width="600">
-            <v-card-title class="text-h5 pa-5 text-center">
-              Endereço do usuário
-            </v-card-title>
-            <v-divider v-if="!loadingInit" class="my-4"></v-divider>
-            <v-form @submit.prevent="salvarAlteracoesEndereco">
-              <v-text-field
-                label="CEP"
-                v-model="endereco.Cep"
-                append-inner-icon="mdi-delete"
-                @click:append-inner="
-                  (endereco.Cep = ''),
-                    (endereco.Bairro = ''),
-                    (endereco.Cidade = ''),
-                    (endereco.Estado = ''),
-                    (endereco.Rua = '')
-                "
-                placeholder="00000-00"
-                @input="onInputCep"
-              >
-              </v-text-field>
-              <v-select
-                label="Estado"
-                v-model="endereco.Estado"
-                :readonly="readOnlyComCEP"
-                :items="[
-                  { title: '', value: '' },
-                  { title: 'Acre', value: 'AC' },
-                  { title: 'Alagoas', value: 'AL' },
-                  { title: 'Amapá', value: 'AP' },
-                  { title: 'Amazonas', value: 'AM' },
-                  { title: 'Bahia', value: 'BA' },
-                  { title: 'Ceará', value: 'CE' },
-                  { title: 'Distrito Federal', value: 'DF' },
-                  { title: 'Espírito Santo', value: 'ES' },
-                  { title: 'Goiás', value: 'GO' },
-                  { title: 'Maranhão', value: 'MA' },
-                  { title: 'Mato Grosso', value: 'MT' },
-                  { title: 'Mato Grosso do Sul', value: 'MS' },
-                  { title: 'Minas Gerais', value: 'MG' },
-                  { title: 'Pará', value: 'PA' },
-                  { title: 'Paraíba', value: 'PB' },
-                  { title: 'Paraná', value: 'PR' },
-                  { title: 'Pernambuco', value: 'PE' },
-                  { title: 'Piauí', value: 'PI' },
-                  { title: 'Rio de Janeiro', value: 'RJ' },
-                  { title: 'Rio Grande do Norte', value: 'RN' },
-                  { title: 'Rio Grande do Sul', value: 'RS' },
-                  { title: 'Rondônia', value: 'RO' },
-                  { title: 'Roraima', value: 'RR' },
-                  { title: 'Santa Catarina', value: 'SC' },
-                  { title: 'São Paulo', value: 'SP' },
-                  { title: 'Sergipe', value: 'SE' },
-                  { title: 'Tocantins', value: 'TO' },
-                ]"
-                :item-title="title"
-                :item-value="value"
-              >
-              </v-select>
-              <v-text-field
-                label="Cidade"
-                v-model="endereco.Cidade"
-                :readonly="readOnlyComCEP"
-              >
-              </v-text-field>
-              <v-text-field
-                label="Bairro"
-                v-model="endereco.Bairro"
-                :readonly="readOnlyComCEP"
-              >
-              </v-text-field>
-              <v-row>
-                <v-text-field
-                  label="Rua"
-                  class="ml-3 mr-3"
-                  v-model="endereco.Rua"
-                  :readonly="readOnlyComCEP"
-                >
-                </v-text-field>
-
-                <v-text-field
-                  label="Número"
-                  class="mr-3"
-                  max-width="50%"
-                  v-model="endereco.Numero"
-                >
-                </v-text-field>
-              </v-row>
-              <v-select
-                label="Tipo de logradouro"
-                v-model="endereco.Logradouro"
-                :items="[
-                  { title: '', value: '' },
-                  { title: 'Rua', value: 'rua' },
-                  { title: 'Avenida', value: 'avenida' },
-                  { title: 'Praça', value: 'praca' },
-                  { title: 'Travessa', value: 'travessa' },
-                  { title: 'Outros', value: 'outros' },
-                ]"
-                item-title="title"
-                item-value="value"
-              >
-              </v-select>
-              <v-text-field label="Complemento" v-model="endereco.Complemento">
-              </v-text-field>
-              <v-select
-                label="Status"
-                v-model="endereco.Status"
-                :items="[
-                  { title: '', value: '' },
-                  { title: 'Ativo', value: 'ativo' },
-                  { title: 'Inativo', value: 'inativo' },
-                ]"
-                item-title="title"
-                item-value="value"
-              >
-                >
-              </v-select>
-
-              <v-row class="mt-6" justify="center" align="center">
-                <v-btn
-                  color="primary"
-                  :loading="loadingEndereco"
-                  class="mr-3"
-                  type="submit"
-                >
-                  Salvar Alterações
-                </v-btn>
-                <v-btn
-                  color="grey"
-                  variant="outlined"
-                  type="button"
-                  @click="voltarHome"
-                >
-                  Cancelar
-                </v-btn>
-              </v-row>
-            </v-form>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-dialog v-model="modalEditarOpen" max-width="700">
-        <v-card elevation="3">
-          <v-form ref="form">
-            <v-card-title class="text-h6 font-weight-bold">
-              Editar Produto
-            </v-card-title>
-            <v-card class="card pa-3" outlined>
+         <div 
+  v-if="produtosFiltrados.length > 0" 
+  class="d-flex flex-wrap" 
+  style="gap: 20px"
+>
+  <v-card 
+    v-for="(item, index) in produtosFiltrados" 
+    :key="item.id || index"
+    width="330"
+    class="mx-auto"
+    hover
+    rounded="lg"
+    elevation="2"
+  >
               <v-img
-                :src="previewImage || produto.imagem || placeholderImage"
-                class="image-preview mb-2"
-                :contain="fitContain"
-              ></v-img>
-
-              <v-row
-                class="image-actions mb-2"
-                align="center"
-                justify="space-between"
+                :src="getProdutoImage(item.imagem)"
+                height="200"
+                cover
+                class="bg-grey-lighten-2"
               >
-                <v-row style="margin: 12px; display: flex; gap: 18px" dense>
-                  <v-btn class="btn" small @click="imageInput.click()">
-                    📁 Escolher imagem
-                  </v-btn>
+                <template #error>
+                  <v-img
+                    src="/png-triste-erro.png"
+                    alt="Imagem não disponível"
+                    height="200"
+                    contain
+                  ></v-img>
+                </template>
+              </v-img>
 
-                  <v-btn class="btn" small @click="removerImagemProduto">
-                    ✖ Remover
-                  </v-btn>
-                </v-row>
-              </v-row>
+              <v-card-title class="text-h6 text-truncate pt-3 pb-1">
+                <v-tooltip :text="item.nome" location="top">
+                  <template #activator="{ props }">
+                    <span class="text-h6" v-bind="props">{{ item.nome }}</span>
+                  </template>
+                </v-tooltip>
+              </v-card-title>
 
-              <input
-                ref="imageInput"
-                type="file"
-                accept="image/png"
-                class="d-none"
-                @change="carregarImagemProduto"
-              />
+              <v-card-subtitle class="pb-2 ">
+                <v-chip
+                  size="small"
+                  :color="item.status == 'ativo' ? 'success' : 'red-lighten-1'"
+                  class="font-weight-bold text-subtitle-1"
+                >
+                  {{ item.status == "ativo" ? "Ativo" : "Inativo" }}
+                </v-chip>
+              </v-card-subtitle>
 
-              <v-row justify="space-between" class="text-caption">
-                <div class="small">Formato aceito: PNG • Max 1MB</div>
-              </v-row>
-            </v-card>
-            <v-divider></v-divider>
-
-            <v-card-text class="pt-4">
-              <v-text-field
-                v-model="produto.nome"
-                label="Nome do produto"
-                variant="outlined"
-                class="mb-3"
-              />
-
-              <v-text-field
-                v-model.number="produto.preco"
-                label="Preço (R$)"
-                type="number"
-                variant="outlined"
-                class="mb-3"
-                min="0"
-                :rules="[rules.preco]"
-              />
-
-              <v-select
-                v-model="produto.categoria_id"
-                :items="categorias"
-                item-title="nome"
-                item-value="id"
-                label="Categoria"
-                variant="outlined"
-                class="mb-3"
-              />
-
-              <v-text-field
-                v-model="produto.estoque"
-                label="Quantidade em estoque"
-                type="number"
-                variant="outlined"
-                class="mb-3"
-                min="0"
-                :rules="[rules.estoque]"
-              />
-
-              <v-textarea
-                v-model="produto.descricao"
-                label="Descrição"
-                rows="4"
-                variant="outlined"
-                class="mb-3"
-              />
-            </v-card-text>
-
-            <v-divider></v-divider>
-
-            <v-card-actions class="justify-end pa-4">
-              <v-btn variant="outlined" color="grey" @click="Cancelar">
-                Cancelar
-              </v-btn>
-              <v-btn variant="outlined" color="orange" @click="resetForm">
-                Limpar
-              </v-btn>
-              <v-btn color="primary" @click="validarAntesDeCriar">
-                Salvar
-              </v-btn>
-            </v-card-actions>
-          </v-form>
-        </v-card>
-      </v-dialog>
-
-      <v-dialog v-model="modal" max-width="700">
-        <v-card class="card">
-          <v-card-title class="headline"
-            >Confirmar edição do produto</v-card-title
-          >
-          <v-card-subtitle
-            >Revise as informações antes de confirmar.</v-card-subtitle
-          >
-
-          <v-card-text>
-            <v-row>
-              <v-col cols="4">
-                <v-img
-                  :src="previewImage || placeholderImage"
-                  height="120"
-                ></v-img>
-              </v-col>
-              <v-col cols="8">
-                <div class="d-flex justify-space-between">
-                  <strong>{{ produto.nome }}</strong>
-                  <span class="price">R$ {{ produto.preco }}</span>
+              <v-card-text class="pt-1 pb-0">
+                <div class="d-flex justify-space-between align-center">
+                  <div class="text-h5 font-weight-bold text-success">
+                    R$ {{ (item.preco / 100).toFixed(2) }}
+                  </div>
+                  <v-chip size="large" variant="tonal" color="info">
+                    Estoque: {{ item.estoque }}
+                  </v-chip>
                 </div>
-                <v-row class="mt-2" dense>
-                  <v-chip class="chip ma-1" outlined
-                    >Categoria: {{ categoriasNome }}</v-chip
-                  >
-                  <v-chip class="chip ma-1" outlined
-                    >Estoque: {{ produto.estoque }}</v-chip
-                  >
-                </v-row>
-                <div class="mt-2">
-                  <div class="small">Descrição</div>
-                  <div>{{ produto.descricao }}</div>
-                </div>
-              </v-col>
-            </v-row>
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn class="secondary" text @click="modal = false"
-              >Cancelar</v-btn
-            >
-            <v-btn
-              class="btn primary"
-              :loading="loadingConfirmar"
-              @click="confirmarEdicao"
-              >Confirmar</v-btn
-            >
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <v-dialog
-        max-width="500"
-        v-model="buttonSairClicado"
-        v-if="buttonSairClicado"
-      >
-        <v-card class="pa-4" elevation="8" rounded="xl">
-          <v-card-title class="text-center font-weight-bold text-h4">
-            <v-icon color="error" size="32" class="mr-2"
-              >mdi-alert-circle-outline</v-icon
-            >
-            Confirmar saída
-          </v-card-title>
-
-          <v-card-text class="text-center text-h5 text-medium-emphasis">
-            Tem certeza de que deseja sair da sua conta?
-          </v-card-text>
-
-          <v-card-actions class="justify-center mt-2">
-            <v-btn
-              color="grey"
-              variant="outlined"
-              rounded="xl"
-              @click="buttonSairClicado = false"
-              width="120"
-            >
-              Cancelar
-            </v-btn>
-
-            <v-btn
-              color="error"
-              variant="flat"
-              rounded="xl"
-              width="120"
-              :loading="loadingLogout"
-              @click="FazerLogout"
-            >
-              Sair
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <v-dialog max-width="500" v-model="modalDesativarOpen">
-        <v-card class="pa-4" elevation="8" rounded="xl">
-          <v-card-title class="text-center font-weight-bold text-h4">
-            <v-icon color="error" size="32" class="mr-2"
-              >mdi-alert-circle-outline</v-icon
-            >
-            Confirmar Desativação
-          </v-card-title>
-
-          <v-card-text class="text-center text-h5 text-medium-emphasis">
-            Deseja realmente desativar esse item? Você poderá ativar novamente
-            depois, porém enquanto estiver desativado, ninguém poderá comprá-lo
-          </v-card-text>
-
-          <v-card-actions class="justify-center mt-2">
-            <v-btn
-              color="grey"
-              variant="outlined"
-              rounded="xl"
-              @click="modalDesativarOpen = false"
-              width="120"
-            >
-              Cancelar
-            </v-btn>
-
-            <v-btn
-              color="error"
-              variant="flat"
-              rounded="xl"
-              width="120"
-              :loading="loadingDesativar"
-              @click="Desativar"
-            >
-              DESATIVAR
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <v-dialog max-width="500" v-model="confirmacaoSair">
-        <v-card class="pa-4" elevation="8" rounded="xl">
-          <v-card-title class="text-center font-weight-bold text-h4">
-            <v-icon color="error" size="32" class="mr-2"
-              >mdi-alert-circle-outline</v-icon
-            >
-            Confirmar Exclusão
-          </v-card-title>
-
-          <v-card-text class="text-center text-h5 text-medium-emphasis">
-            Deseja realmente excluir sua conta?
-          </v-card-text>
-
-          <v-card-actions class="justify-center mt-2">
-            <v-btn
-              color="grey"
-              variant="outlined"
-              rounded="xl"
-              @click="confirmacaoSair = false"
-              width="120"
-            >
-              Cancelar
-            </v-btn>
-
-            <v-btn
-              color="error"
-              variant="flat"
-              rounded="xl"
-              width="120"
-              :loading="loadingExclusao"
-              @click="ExcluirConta"
-            >
-              EXCLUIR
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <v-divider thickness="10" class="mt-10" v-if="!loadingInit"> </v-divider>
-      <div
-        v-if="produtos.length > 0 || !loadingInit"
-        style="width: 100%; display: flex; flex-direction: column"
-      >
-      <v-row>
- 
-  <v-col cols="12">
-    <h1 class="mt-10 mb-2">Meus anúncios</h1>
-  </v-col>
-
-  
-  <v-col cols="12" sm="4">
-    <v-text-field
-      prepend-inner-icon="mdi-magnify"
-      label="Buscar um produto pelo nome"
-      v-model="filtroProduto"
-      density="comfortable"
-      variant="outlined"
-      clearable
-    />
-  </v-col>
-</v-row>
-        <div v-if="produtos.length > 0" class="divItens">
-          <v-card
-            width="330"
-            min-height="300"
-            class="cardItem"
-            v-for="(item, index) in produtosFiltrados"
-            :key="item + '-' + index"
-          >
-            <v-img
-              :src="getProdutoImage(item.imagem)"
-              width="330"
-              position="center"
-              height="330"
-              cover
-              class="imgItem"
-            >
-              <template #error>
-                <img src="/png-triste-erro.png" alt="Imagem não disponível" />
-              </template>
-            </v-img>
-
-            <v-card-title class="ellipses mb-2 rounded font-weight-bold">
-              <v-tooltip top>
-                <template #activator="{ props }">
-                  <p v-bind="props">
-                    {{ item.nome }}
-                  </p>
-                </template>
-                <span style="max-width: 150px; display: block">
-                  {{ item.nome }}
-                </span>
-              </v-tooltip>
-            </v-card-title>
-            <v-card-subtitle
-              style="width: 50%"
-              class="mb-2 rounded font-weight-bold"
-            >
-              <v-tooltip top>
-                <template #activator="{ props }">
-                  <p
-                    v-bind="props"
-                    class="text-subtitle-1 ellipses bg-green text-white rounded px-2 py-1 d-inline-block"
-                  >
-                    R$ {{ item.preco / 100 }}
-                  </p>
-                </template>
-                <span style="max-width: 150px; display: block">
-                  R$ {{ item.preco / 100 }}
-                </span>
-              </v-tooltip>
-            </v-card-subtitle>
-            <v-card-subtitle
-              class="ellipses text-subtitle-1 mb-2 rounded font-weight-bold"
-            >
-              <v-tooltip top>
-                <template #activator="{ props }">
-                  <p style="width: 50%" class="ellipses" v-bind="props">
-                    Em estoque: {{ item.estoque }}
-                  </p>
-                </template>
-                <span style="max-width: 150px; display: block">
-                  Estoque : {{ item.estoque }}
-                </span>
-              </v-tooltip>
-            </v-card-subtitle>
-            <v-chip
-              class="text-subtitle-1 mb-2 ml-3 rounded font-weight-bold elevation-1"
-              size="small"
-              text-color="white"
-              :color="
-                categorias.find((c) => c.id == item.categoria_id)?.cor ||
-                '#808080'
-              "
-              pill
-              outlined
-            >
-              <v-tooltip top>
-                <template #activator="{ props }">
-                  <p
-                    class="ellipses"
-                    v-bind="props"
-                    v-if="categorias.length > 0"
-                  >
-                    <v-icon left small class="mr-2">mdi-tag</v-icon>
-                    {{
-                      categorias.find((c) => c.id == item.categoria_id)?.nome ||
-                      "Sem categoria"
-                    }}
-                  </p>
-                  <p v-else>Carregando categoria...</p>
-                </template>
-                <span style="max-width: 150px; display: block">
-                  Categoria :
+                <v-chip
+                  size="x-small"
+                  class="mt-2 text-subtitle-1"
+                  text-color="white"
+                  :color="
+                    categorias.find((c) => c.id == item.categoria_id)?.cor ||
+                    '#808080'
+                  "
+                >
+                  <v-icon left size="16" class="mr-1">mdi-tag</v-icon>
                   {{
                     categorias.find((c) => c.id == item.categoria_id)?.nome ||
                     "Sem categoria"
                   }}
-                </span>
-              </v-tooltip>
-            </v-chip>
+                </v-chip>
+              </v-card-text>
 
-            <div class="divBtnAdicionar">
-              <v-card-actions class="divBtnsAcoes">
+              <v-card-actions class="d-flex flex-column pt-3 pb-4">
                 <v-btn
                   variant="flat"
-                  color="#FFD700"
-                  class="btnDetalhes"
-                  width="250"
+                  color="amber-darken-1"
+                  prepend-icon="mdi-pencil"
                   @click="AbrirModalEditar(item.id)"
-                  density="comfortable"
                   :disabled="carregandoInformacoes"
+                  block
+                  class="mb-2"
                 >
                   Editar
                 </v-btn>
 
                 <v-btn
-                  variant="flat"
-                  color="red"
-                  density="comfortable"
-                  class="btnAdicionar"
-                  width="250"
-                  @click="modalDesativarOpen = !modalDesativarOpen"
-                  :disabled="carregandoInformacoes"
                   v-if="item.status == 'ativo'"
+                  variant="tonal"
+                  color="red"
+                  prepend-icon="mdi-close-circle"
+                  @click="
+                    modalDesativarOpen = true;
+                    itemId = item.id
+                  "
+                  :disabled="carregandoInformacoes"
+                  block
                 >
                   Desativar
                 </v-btn>
                 <v-btn
-                  variant="flat"
+                  v-else
+                  variant="tonal"
                   color="green"
-                  width="250"
-                  density="comfortable"
-                  class="btnAdicionar"
+                  prepend-icon="mdi-check-circle"
                   @click="Ativar(item.id)"
-                  :disabled="carregandoInformacoes"
                   :loading="loadingAtivar"
-                  v-if="item.status == 'inativo'"
+                  :disabled="carregandoInformacoes"
+                  block
                 >
                   Ativar
                 </v-btn>
               </v-card-actions>
-            </div>
-          </v-card>
-        </div>
-        <div v-else>
-          <v-expand-transition>
-            <v-alert variant="tonal" type="warning">
-              <p class="font-weight-bold text-h5">Sem produtos!</p>
-              <p class="text-h5">
-                Você não tem nenhum produto anunciado ainda, tente anunciar um
-                <span class="font-weight-bold"
-                  ><a href="/anunciar">aqui.</a></span
-                >
-              </p>
-            </v-alert>
-          </v-expand-transition>
-        </div>
-      </div>
-      <v-divider thickness="10" class="mt-10" v-if="!loadingInit"> </v-divider>
-      <div v-if="!loadingInit">
-      <v-row class="mb-4">
+            </v-card>
+          </div>
 
-  
-  <v-col cols="12" class="mt-10">
-    <h1 class="mb-4">Meus pagamentos</h1>
-  </v-col>
+          <v-alert
+            v-else
+            variant="tonal"
+            type="warning"
+            class="mt-4"
+            rounded="lg"
+          >
+            <p class="font-weight-bold text-h5">Sem produtos anunciados!</p>
+            <p class="text-h6 mt-2">
+              Você não tem nenhum produto anunciado ainda.
+              <span class="font-weight-bold"
+                ><a href="/anunciar" class="text-primary"
+                  >Anuncie um aqui.</a
+                ></span
+              >
+            </p>
+          </v-alert>
+        </v-window-item>
 
-  
-  <v-col cols="12" sm="4">
-    <v-select
-      v-model="filtroStatus"
-      :items="statusPagamento"
-      item-title="descricao"
-      item-value="id"
-      label="Filtrar por Status"
-      clearable
-    />
-  </v-col>
+        <v-window-item value="pagamentos">
+          <h2 class="text-h4 mb-4 mt-2">
+            Meus Pagamentos <v-icon color="primary">mdi-cash</v-icon>
+          </h2>
 
+          <v-row class="mb-4">
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="filtroStatus"
+                :items="statusPagamento"
+                item-title="descricao"
+                item-value="id"
+                label="Filtrar por Status"
+                clearable
+                variant="outlined"
+                hide-details
+              />
+            </v-col>
 
-  <v-col cols="12" sm="4">
-    <v-select
-      v-model="filtroForma"
-      :items="formasPagamento"
-      item-title="forma"
-      item-value="id"
-      label="Filtrar por Forma de Pagamento"
-      clearable
-    />
-  </v-col>
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="filtroForma"
+                :items="formasPagamento"
+                item-title="forma"
+                item-value="id"
+                label="Filtrar por Forma de Pagamento"
+                clearable
+                variant="outlined"
+                hide-details
+              />
+            </v-col>
 
+            <v-col cols="12" sm="4">
+              <v-menu
+                v-model="menuData"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                offset-y
+              >
+                <template #activator="{ props }">
+                  <v-text-field
+                    v-model="filtroData"
+                    label="Filtrar por Data"
+                    v-bind="props"
+                    @input="aplicarMascaraData"
+                    clearable
+                    placeholder="DD/MM/YYYY"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-calendar"
+                    hide-details
+                  />
+                </template>
 
-  <v-col cols="12" sm="4">
-    <v-menu
-  v-model="menuData"
-  :close-on-content-click="false"
-  transition="scale-transition"
-  offset-y
->
-  <template #activator="{ props }">
-    <v-text-field
-      v-model="filtroData"
-      label="Filtrar por Data"
-      v-bind="props"
-      @input="aplicarMascaraData"
-      clearable
-      placeholder="DD/MM/YYYY"
-    />
-  </template>
+                <v-date-picker
+                  v-model="filtroDataTemp"
+                  @update:model-value="aplicarFiltroData"
+                  color="primary"
+                />
+              </v-menu>
+            </v-col>
+          </v-row>
 
-  <v-date-picker
-    v-model="filtroDataTemp"
-    @update:model-value="aplicarFiltroData"
-  />
-</v-menu>
-
-  </v-col>
-
-</v-row>
-
-
-
-        <v-container>
           <v-data-table
             :headers="headers"
             :items="pagamentosFiltrados"
             :items-per-page="5"
-            class="border-md text-subtitle-1"
+            class="elevation-2"
+            rounded="lg"
           >
             <template #item.valor="{ item }">
-              {{
-                item?.valor != null
-                  ? `R$ ${Number(item.valor).toFixed(2) / 100}`
-                  : "-"
-              }}
+              <span class="font-weight-medium text-subtitle-1">
+                {{
+                  item?.valor != null
+                    ? `R$ ${(Number(item.valor) / 100)
+                        .toFixed(2)
+                        .replace(".", ",")}`
+                    : "-"
+                }}
+              </span>
             </template>
 
             <template #item.valor_pago="{ item }">
-              {{
-                item?.valor_pago != null
-                  ? `R$ ${Number(item.valor_pago).toFixed(2) / 100}`
-                  : "-"
-              }}
+              <span class="font-weight-medium text-success text-subtitle-1">
+                {{
+                  item?.valor_pago != null
+                    ? `R$ ${(Number(item.valor_pago) / 100)
+                        .toFixed(2)
+                        .replace(".", ",")}`
+                    : "-"
+                }}
+              </span>
             </template>
 
             <template #item.uuid="{ item }">
-              {{ item?.pagamento_uuid || "-" }}
+              <v-chip
+                size="small"
+                color="grey-darken-1"
+                variant="tonal"
+                class="text-subtitle-2"
+              >
+                {{ item?.pagamento_uuid || "-" }}
+              </v-chip>
             </template>
 
             <template #item.data="{ item }">
-              {{ item?.createdAt ? formatarDataISO(item.createdAt) : "-" }}
+              <span class="text-subtitle-2">
+                {{ item?.createdAt ? formatarDataISO(item.createdAt) : "-" }}
+              </span>
             </template>
-            <template #item.forma="{ item }">
-              {{ pegarForma(item?.forma_pagamento_id) }}
-            </template>
-            <template #item.status="{ item }">
-              {{ pegarStatus(item?.status_pagamento_id) }}
-            </template>
-            <template #item.acoes="{ item }">
-  <v-btn
-    v-if="pegarStatus(item.status_pagamento_id) === 'pendente'"
-    color="primary"
-    size="small"
-    variant="flat"
-    @click="verPagamento(item.pagamento_uuid)"
-  >
-    Ver pagamento
-  </v-btn>
-</template>
 
+            <template #item.forma="{ item }">
+              <v-chip
+                size="small"
+                color="info"
+                variant="flat"
+                class="text-subtitle-1"
+              >
+                {{ pegarForma(item?.forma_pagamento_id) }}
+              </v-chip>
+            </template>
+
+            <template #item.status="{ item }">
+              <v-chip
+                size="small"
+                :color="pegarStatusCor(item?.status_pagamento_id)"
+                variant="flat"
+                class="text-subtitle-1"
+              >
+                {{ pegarStatus(item?.status_pagamento_id) }}
+              </v-chip>
+            </template>
+
+            <template #item.acoes="{ item }">
+              <v-btn
+                v-if="pegarStatus(item.status_pagamento_id) === 'Pendente'"
+                color="primary"
+                size="small"
+                variant="tonal"
+                @click="verPagamento(item.pagamento_uuid)"
+                prepend-icon="mdi-eye"
+              >
+                Ver
+              </v-btn>
+            </template>
           </v-data-table>
-        </v-container>
-      </div>
-    </v-container>
-  </v-layout>
+        </v-window-item>
+      </v-window>
+    </div>
+  </v-container>
+
+  <v-dialog v-model="modalEditarOpen" max-width="700" persistent>
+    <v-card rounded="lg" elevation="6">
+      <v-form ref="form">
+        <v-card-title class="text-h5 font-weight-bold bg-primary text-white">
+          Editar Produto
+        </v-card-title>
+
+        <v-card-text class="pt-4">
+          <v-card class="pa-4 mb-4" variant="outlined">
+            <v-img
+              :src="previewImage || produto.imagem || placeholderImage"
+              height="250"
+              cover
+              class="mb-3 rounded"
+            ></v-img>
+
+            <v-row align="center" justify="start" dense class="px-3">
+              <v-btn
+                variant="tonal"
+                color="primary"
+                @click="$refs.imageInput.click()"
+                prepend-icon="mdi-upload"
+              >
+                Escolher imagem
+              </v-btn>
+
+              <v-btn
+                variant="outlined"
+                color="red"
+                class="ml-3"
+                @click="removerImagemProduto"
+                prepend-icon="mdi-delete"
+              >
+                Remover
+              </v-btn>
+            </v-row>
+
+            <input
+              ref="imageInput"
+              type="file"
+              accept="image/png, image/jpeg"
+              class="d-none"
+              @change="carregarImagemProduto"
+            />
+            <div class="text-caption mt-2 ml-1 text-medium-emphasis">
+              Formato aceito: PNG/JPEG • Max 1MB
+            </div>
+          </v-card>
+
+          <v-text-field
+            v-model="produto.nome"
+            label="Nome do produto"
+            variant="outlined"
+            prepend-inner-icon="mdi-label"
+            class="mb-3"
+          />
+
+          <v-text-field
+            v-model.number="produto.preco"
+            label="Preço (R$)"
+            type="number"
+            variant="outlined"
+            prepend-inner-icon="mdi-currency-usd"
+            class="mb-3"
+            min="0"
+            :rules="[rules.preco]"
+          />
+
+          <v-select
+            v-model="produto.categoria_id"
+            :items="categorias"
+            item-title="nome"
+            item-value="id"
+            label="Categoria"
+            variant="outlined"
+            prepend-inner-icon="mdi-shape"
+            class="mb-3"
+          />
+
+          <v-text-field
+            v-model="produto.estoque"
+            label="Quantidade em estoque"
+            type="number"
+            variant="outlined"
+            prepend-inner-icon="mdi-warehouse"
+            class="mb-3"
+            min="0"
+            :rules="[rules.estoque]"
+          />
+
+          <v-textarea
+            v-model="produto.descricao"
+            label="Descrição"
+            rows="4"
+            variant="outlined"
+            prepend-inner-icon="mdi-text-box"
+            class="mb-3"
+          />
+        </v-card-text>
+
+        <v-card-actions class="justify-end pa-4 bg-grey-lighten-3">
+          <v-btn variant="outlined" color="grey-darken-2" @click="Cancelar">
+            Cancelar
+          </v-btn>
+          <v-btn variant="outlined" color="orange" @click="resetForm">
+            Limpar
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            @click="validarAntesDeCriar"
+            prepend-icon="mdi-content-save"
+          >
+            Salvar
+          </v-btn>
+        </v-card-actions>
+      </v-form>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="modal" max-width="500">
+    <v-card rounded="lg" elevation="6">
+      <v-card-title class="text-h6 font-weight-bold bg-info text-white">
+        Confirmar Edição do Produto
+      </v-card-title>
+      <v-card-subtitle class="pt-2"
+        >Revise as informações antes de confirmar.</v-card-subtitle
+      >
+
+      <v-card-text>
+        <v-row class="align-center">
+          <v-col cols="4">
+            <v-img
+              :src="previewImage || placeholderImage"
+              height="100"
+              cover
+              class="rounded"
+            ></v-img>
+          </v-col>
+          <v-col cols="8">
+            <div class="text-h6 font-weight-bold text-truncate">
+              {{ produto.nome }}
+            </div>
+            <div class="text-subtitle-1 text-success font-weight-medium">
+              R$ {{ (produto.preco).toFixed(2) }}
+            </div>
+
+            <v-chip-group class="mt-2">
+              <v-chip size="small" color="primary" variant="tonal">
+                Categoria: {{ categoriasNome }}
+              </v-chip>
+              <v-chip size="small" color="info" variant="tonal">
+                Estoque: {{ produto.estoque }}
+              </v-chip>
+            </v-chip-group>
+
+            <div class="mt-3 text-caption text-medium-emphasis">Descrição:</div>
+            <p class="text-body-2">{{ produto.descricao }}</p>
+          </v-col>
+        </v-row>
+      </v-card-text>
+
+      <v-card-actions class="justify-end pa-4">
+        <v-btn variant="outlined" color="grey" @click="modal = false">
+          Cancelar
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          :loading="loadingConfirmar"
+          @click="confirmarEdicao"
+        >
+          Confirmar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog max-width="400" v-model="buttonSairClicado">
+    <v-card class="pa-4 text-center" rounded="xl" elevation="8">
+      <v-icon color="warning" size="64" class="mb-4"
+        >mdi-alert-octagon-outline</v-icon
+      >
+      <v-card-title class="font-weight-bold text-h5">
+        Confirmar Saída
+      </v-card-title>
+
+      <v-card-text class="text-h6 text-medium-emphasis">
+        Tem certeza de que deseja sair da sua conta?
+      </v-card-text>
+
+      <v-card-actions class="justify-center mt-2">
+        <v-btn
+          color="grey"
+          variant="outlined"
+          rounded="xl"
+          @click="buttonSairClicado = false"
+          width="120"
+        >
+          Cancelar
+        </v-btn>
+
+        <v-btn
+          color="error"
+          variant="flat"
+          rounded="xl"
+          width="120"
+          :loading="loadingLogout"
+          @click="FazerLogout"
+        >
+          Sair
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog max-width="400" v-model="modalDesativarOpen">
+    <v-card class="pa-4 text-center" rounded="xl" elevation="8">
+      <v-icon color="red" size="64" class="mb-4"
+        >mdi-alert-circle-outline</v-icon
+      >
+      <v-card-title class="font-weight-bold text-h5">
+        Desativar Item
+      </v-card-title>
+
+      <v-card-text class="text-h6 text-medium-emphasis">
+        Deseja realmente DESATIVAR este item? Ele não estará disponível para
+        compra enquanto estiver inativo.
+      </v-card-text>
+
+      <v-card-actions class="justify-center mt-2">
+        <v-btn
+          color="grey"
+          variant="outlined"
+          rounded="xl"
+          @click="modalDesativarOpen = false"
+          width="120"
+        >
+          Cancelar
+        </v-btn>
+
+        <v-btn
+          color="error"
+          variant="flat"
+          rounded="xl"
+          width="120"
+          :loading="loadingDesativar"
+          @click="Desativar"
+        >
+          DESATIVAR
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog max-width="400" v-model="confirmacaoSair">
+    <v-card class="pa-4 text-center" rounded="xl" elevation="8">
+      <v-icon color="error" size="64" class="mb-4"
+        >mdi-alert-decagram-outline</v-icon
+      >
+      <v-card-title class="font-weight-bold text-h5 text-red-darken-4">
+        Excluir Conta Permanentemente
+      </v-card-title>
+
+      <v-card-text class="text-h6 text-medium-emphasis">
+        **Atenção!** Deseja realmente excluir sua conta? Esta ação é
+        **irreversível**.
+      </v-card-text>
+
+      <v-card-actions class="justify-center mt-2">
+        <v-btn
+          color="grey"
+          variant="outlined"
+          rounded="xl"
+          @click="confirmacaoSair = false"
+          width="120"
+        >
+          Cancelar
+        </v-btn>
+
+        <v-btn
+          color="red-darken-4"
+          variant="flat"
+          rounded="xl"
+          width="120"
+          :loading="loadingExclusao"
+          @click="ExcluirConta"
+        >
+          EXCLUIR
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -1024,76 +1064,87 @@ const headers = ref([
   { title: "Valor Pago", key: "valor_pago" },
   { title: "Data", key: "data" },
   { title: "Identificação", key: "uuid" },
-  { title: "Ações", key: "acoes", sortable: false}
+  { title: "Ações", key: "acoes", sortable: false },
 ]);
 
 function formatarData(date) {
-  const d = new Date(date)
-  const dia = String(d.getDate()).padStart(2, '0')
-  const mes = String(d.getMonth() + 1).padStart(2, '0')
-  const ano = d.getFullYear()
-  return `${dia}/${mes}/${ano}`
+  const d = new Date(date);
+  const dia = String(d.getDate()).padStart(2, "0");
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
 }
 
-const menuData = ref(false)
+const menuData = ref(false);
 const filtroStatus = ref(null);
 const filtroForma = ref(null);
 const filtroData = ref(null);
-const filtroDataTemp = ref(null)
-const filtroProduto = ref(null)
+const filtroDataTemp = ref(null);
+const filtroProduto = ref('');
+const tab = ref("perfil");
 
 const produtosFiltrados = computed(() => {
-  return produtos.value.filter((p) => p.nome.toLowerCase().includes(filtroProduto.value.toLowerCase() || ""))
-})
+  if (!produtos.value) {
+    return [];
+  }
+  
+ 
+  const filtroValor = filtroProduto.value || ''; 
+  const filtro = filtroValor.toLowerCase(); 
+  
+  return produtos.value.filter((p) => {
+    const nomeDoProduto = p.nome || "";
+    return nomeDoProduto.toLowerCase().includes(filtro);
+  });
+});
 
 function aplicarFiltroData(value) {
-  filtroData.value = formatarData(value) 
-  menuData.value = false
+  filtroData.value = formatarData(value);
+  menuData.value = false;
 }
 
 function aplicarMascaraData(event) {
-  let v = event.target.value.replace(/\D/g, "") 
+  let v = event.target.value.replace(/\D/g, "");
 
-  if (v.length > 2) v = v.replace(/(\d{2})(\d)/, "$1/$2")
-  if (v.length > 5) v = v.replace(/(\d{2})\/(\d{2})(\d)/, "$1/$2/$3")
+  if (v.length > 2) v = v.replace(/(\d{2})(\d)/, "$1/$2");
+  if (v.length > 5) v = v.replace(/(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
 
-  filtroData.value = v
+  filtroData.value = v;
 }
 
 const pagamentosFiltrados = computed(() => {
-  return pagamentos.value.filter(p => {
-    const dataRegistro = formatarData(p.createdAt)
-    
-    const condStatus = !filtroStatus.value || p.status_pagamento_id == filtroStatus.value
-    const condForma  = !filtroForma.value  || p.forma_pagamento_id == filtroForma.value
-    const condData   = !filtroData.value   || dataRegistro === filtroData.value
-    
-    return condStatus && condForma && condData
-  })
-})
+  return pagamentos.value.filter((p) => {
+    const dataRegistro = formatarData(p.createdAt);
 
+    const condStatus =
+      !filtroStatus.value || p.status_pagamento_id == filtroStatus.value;
+    const condForma =
+      !filtroForma.value || p.forma_pagamento_id == filtroForma.value;
+    const condData = !filtroData.value || dataRegistro === filtroData.value;
+
+    return condStatus && condForma && condData;
+  });
+});
 
 watch(filtroData, (novaData) => {
   if (!novaData) {
-    filtroDataTemp.value = null
-    return
+    filtroDataTemp.value = null;
+    return;
   }
 
-  const partes = novaData.split("/")
+  const partes = novaData.split("/");
   if (partes.length === 3) {
-    const [dia, mes, ano] = partes.map(n => Number(n))
+    const [dia, mes, ano] = partes.map((n) => Number(n));
 
-    
     if (dia > 0 && dia <= 31 && mes > 0 && mes <= 12 && ano > 1900) {
-      filtroDataTemp.value = new Date(ano, mes - 1, dia)
+      filtroDataTemp.value = new Date(ano, mes - 1, dia);
     }
   }
-})
+});
 function verPagamento(uuid) {
-  if (!uuid) return toast.error("UUID inválido")
-  router.push(`/pagamento/${uuid}`)
+  if (!uuid) return toast.error("UUID inválido");
+  router.push(`/pagamento/${uuid}`);
 }
-
 
 const produto = ref({
   nome: "",
@@ -1169,10 +1220,10 @@ const menu = ref(false);
 const buttonSairClicado = ref(false);
 const loadingLogout = ref(false);
 
-function FazerLogout(){
-  if(tokenExiste){
-    localStorage.removeItem("token")
-    router.push("/login")
+function FazerLogout() {
+  if (tokenExiste) {
+    localStorage.removeItem("token");
+    router.push("/login");
   }
 }
 
@@ -1218,7 +1269,13 @@ function debounce(func, delay) {
 }
 
 const buscarEnderecoViaCep = async () => {
-  const cepNumeros = endereco.value.Cep.replace(/\D/g, "");
+  let cepNumeros = "";
+
+  if (endereco?.value?.Cep) {
+    cepNumeros = endereco?.value?.Cep?.replace(/\D/g, "");
+  } else {
+    return;
+  }
 
   if (cepNumeros.length === 0) return;
 
@@ -1652,7 +1709,7 @@ async function getProdutos() {
 
       if (res.status == 200) {
         produtos.value = res.data;
-
+        console.log(res.data, "produtos user");
         erroGetProduto.value = false;
       } else {
         toast.error("Erro ao buscar o produto");
@@ -1810,6 +1867,26 @@ function apenasPositivo(e) {
 }
 function Cancelar() {
   modalEditarOpen.value = false;
+}
+
+function pegarStatusCor(statusId) {
+  if (statusId && statusId == 1) {
+    return "#FFB300";
+  }
+  if (statusId && statusId == 2) {
+    return "#4CAF50";
+  }
+  if (statusId && statusId == 3) {
+    return "#F44336";
+  }
+  if (statusId && statusId == 4) {
+    return "#512DA8";
+  }
+  if (statusId && statusId == 5) {
+    return "#9E9E9E";
+  } else {
+    return "#424242";
+  }
 }
 
 const form = ref(null);
