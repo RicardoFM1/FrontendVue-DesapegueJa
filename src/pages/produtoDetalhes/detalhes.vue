@@ -49,8 +49,8 @@
               color="error" 
               :content="carrinho.length" 
               v-if="carrinho.length > 0"
-              offset-x="5" 
-              offset-y="5"
+              offset-x="-1" 
+              offset-y="-1"
             >
               <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
             </v-badge>
