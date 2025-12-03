@@ -26,6 +26,8 @@
               <th>Nome</th>
               <th>Email</th>
               <th>CPF</th>
+              <th>Telefone</th>
+              <th>Nascimento</th>
               <th>Admin</th>
               <th>Ações</th>
             </tr>
@@ -36,7 +38,9 @@
               <td>{{ u.nome }}</td>
               <td>{{ u.email }}</td>
               <td>{{ u.cpf }}</td>
-              <td>{{ u.isAdmin ? 'Sim' : 'Não' }}</td>
+              <td>{{ u.telefone }}</td>
+              <td>{{ u.dataNascimento ? new Date(u.dataNascimento).toLocaleDateString('pt-BR') : 'N/A' }}</td>
+              <td><span :class="u.isAdmin ? 'badge-ativo' : 'badge-inativo'">{{ u.isAdmin ? 'Sim' : 'Não' }}</span></td>
               <td class="td-actions">
                 <button @click="openModal('usuario', u)" class="edit">Editar</button>
                 <button @click="deleteData(u.id, 'usuario')" class="delete">Excluir</button>
@@ -57,6 +61,8 @@
             <tr>
               <th>ID</th>
               <th>Nome</th>
+              <th>Status</th>
+              <th>Cor</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -64,6 +70,8 @@
             <tr v-for="c in categorias" :key="c.id">
               <td>{{ c.id }}</td>
               <td>{{ c.nome }}</td>
+              <td><span :class="c.status === 'Ativo' ? 'badge-ativo' : 'badge-inativo'">{{ c.status }}</span></td>
+              <td><div class="color-badge" :style="{ backgroundColor: c.cor || '#ccc' }"></div></td>
               <td class="td-actions">
                 <button @click="openModal('categoria', c)" class="edit">Editar</button>
                 <button @click="deleteData(c.id, 'categoria')" class="delete">Excluir</button>
@@ -85,6 +93,9 @@
               <th>ID</th>
               <th>Nome</th>
               <th>Preço</th>
+              <th>Estoque</th>
+              <th>Status</th>
+              <th>Data Post</th>
               <th>Categoria</th>
               <th>Ações</th>
             </tr>
@@ -94,6 +105,9 @@
               <td>{{ p.id }}</td>
               <td>{{ p.nome }}</td>
               <td>R$ {{ p.preco }}</td>
+              <td>{{ p.estoque }}</td>
+              <td><span :class="p.status === 'Ativo' ? 'badge-ativo' : 'badge-inativo'">{{ p.status }}</span></td>
+              <td>{{ p.dataPost ? new Date(p.dataPost).toLocaleDateString('pt-BR') : 'N/A' }}</td>
               <td>{{ p.categoriaId }}</td>
               <td class="td-actions">
                 <button @click="openModal('produto', p)" class="edit">Editar</button>
@@ -158,35 +172,119 @@
           {{ modalData.id ? "Editar Endereço" : "Adicionar Endereço" }}
         </h3>
 
-        <div v-if="modalType === 'usuario'">
-          <input v-model="modalData.nome" placeholder="Nome" />
-          <input v-model="modalData.email" placeholder="Email" />
-          <input v-model="modalData.cpf" placeholder="CPF" maxlength="14" />
-          <input v-model="modalData.senha" placeholder="Senha" type="password" :required="!modalData.id" />
+        <div v-if="modalType === 'usuario'" class="modal-grid">
+          <div class="form-row">
+            <label>Nome</label>
+            <input v-model="modalData.nome" placeholder="Nome" />
+          </div>
+          <div class="form-row">
+            <label>Email</label>
+            <input v-model="modalData.email" placeholder="Email" />
+          </div>
+          <div class="form-row">
+            <label>CPF</label>
+            <input v-model="modalData.cpf" placeholder="CPF" maxlength="14" />
+          </div>
+          <div class="form-row">
+            <label>Telefone</label>
+            <input v-model="modalData.telefone" placeholder="Telefone (DD) 99999-9999" maxlength="15" />
+          </div>
+          <div class="form-row">
+            <label>Data de Nascimento</label>
+            <input v-model="modalData.dataNascimento" type="date" />
+          </div>
+          <div class="form-row">
+            <label>Senha</label>
+            <input v-model="modalData.senha" placeholder="Senha" type="password" :required="!modalData.id" />
+          </div>
           
-          <div class="checkbox-container">
+          <div class="checkbox-container full-row">
             <input type="checkbox" id="isAdmin" v-model="modalData.isAdmin" />
             <label for="isAdmin">É Administrador</label>
           </div>
         </div>
 
-        <div v-if="modalType === 'categoria'">
-          <input v-model="modalData.nome" placeholder="Nome da Categoria" />
+        <div v-if="modalType === 'categoria'" class="modal-grid">
+          <div class="form-row">
+            <label>Nome da Categoria</label>
+            <input v-model="modalData.nome" placeholder="Nome da Categoria" />
+          </div>
+          <div class="form-row">
+            <label>Cor de Destaque</label>
+            <input v-model="modalData.cor" type="color" />
+          </div>
+          <div class="form-row">
+            <label>Status</label>
+            <select v-model="modalData.status">
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+          </div>
         </div>
 
-        <div v-if="modalType === 'produto'">
-          <input v-model="modalData.nome" placeholder="Nome" />
-          <input v-model="modalData.preco" placeholder="Preço" type="number" />
-          <input v-model="modalData.categoriaId" placeholder="Categoria ID" />
+        <div v-if="modalType === 'produto'" class="modal-grid">
+          <div class="form-row full-row">
+            <label>Nome</label>
+            <input v-model="modalData.nome" placeholder="Nome do Produto" />
+          </div>
+          <div class="form-row">
+            <label>Preço</label>
+            <input v-model="modalData.preco" placeholder="Preço" type="number" />
+          </div>
+          <div class="form-row">
+            <label>Categoria ID</label>
+            <input v-model="modalData.categoriaId" placeholder="Categoria ID" />
+          </div>
+          <div class="form-row">
+            <label>Estoque</label>
+            <input v-model="modalData.estoque" placeholder="Quantidade em Estoque" type="number" />
+          </div>
+          <div class="form-row">
+            <label>Status</label>
+            <select v-model="modalData.status">
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Data de Publicação</label>
+            <input v-model="modalData.dataPost" type="date" />
+          </div>
+          <div class="form-row full-row">
+            <label>URL da Imagem</label>
+            <input v-model="modalData.imagem" placeholder="URL da imagem principal" />
+          </div>
+          <div class="form-row full-row">
+            <label>Descrição</label>
+            <textarea v-model="modalData.descricao" placeholder="Descrição detalhada do produto" rows="4"></textarea>
+          </div>
         </div>
 
-        <div v-if="modalType === 'endereco'">
-          <input v-model="modalData.cep" placeholder="CEP (ex: 88888-888)" @blur="fetchCep" maxlength="9" />
-          <input v-model="modalData.rua" placeholder="Rua" :disabled="cepLoading" />
-          <input v-model="modalData.numero" placeholder="Número" />
-          <input v-model="modalData.bairro" placeholder="Bairro" :disabled="cepLoading" />
-          <input v-model="modalData.cidade" placeholder="Cidade" :disabled="cepLoading" />
-          <input v-model="modalData.estado" placeholder="Estado (UF)" maxlength="2" :disabled="cepLoading" />
+        <div v-if="modalType === 'endereco'" class="modal-grid">
+          <div class="form-row">
+            <label>CEP</label>
+            <input v-model="modalData.cep" placeholder="CEP (ex: 88888-888)" @blur="fetchCep" maxlength="9" />
+          </div>
+          <div class="form-row">
+            <label>Número</label>
+            <input v-model="modalData.numero" placeholder="Número" />
+          </div>
+          <div class="form-row full-row">
+            <label>Rua</label>
+            <input v-model="modalData.rua" placeholder="Rua" :disabled="cepLoading" />
+          </div>
+          <div class="form-row">
+            <label>Bairro</label>
+            <input v-model="modalData.bairro" placeholder="Bairro" :disabled="cepLoading" />
+          </div>
+          <div class="form-row">
+            <label>Cidade</label>
+            <input v-model="modalData.cidade" placeholder="Cidade" :disabled="cepLoading" />
+          </div>
+          <div class="form-row">
+            <label>Estado (UF)</label>
+            <input v-model="modalData.estado" placeholder="Estado (UF)" maxlength="2" :disabled="cepLoading" />
+          </div>
         </div>
 
         <div class="modal-actions">
@@ -200,6 +298,7 @@
 
 <script>
 // NOTE: Você precisa garantir que 'connection' (seu axios customizado) e 'axios' (para ViaCEP) estejam disponíveis.
+// Se você não tem esses imports ou os caminhos estão errados, o código falhará.
 import { connection } from "@/connection/axiosConnection.js";
 import axios from 'axios'; 
 
@@ -255,6 +354,25 @@ export default {
 
     // ========================= MODAL =========================
 
+    // Função auxiliar para formatar datas para o input type="date" (AAAA-MM-DD)
+    formatToDateInput(dateString) {
+      if (!dateString) return "";
+      // Se já estiver no formato AAAA-MM-DD, retorna
+      if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
+
+      try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return ""; // Verifica se é uma data válida
+
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+      } catch (e) {
+          return "";
+      }
+    },
+
     openModal(type, item = {}) {
       this.modalType = type;
       this.cepLoading = false; 
@@ -264,7 +382,9 @@ export default {
           id: item.id || null,
           nome: item.nome || "",
           email: item.email || "",
-          cpf: item.cpf || "", // Adicionado CPF
+          cpf: item.cpf || "", 
+          telefone: item.telefone || "",
+          dataNascimento: this.formatToDateInput(item.dataNascimento), 
           senha: "", 
           isAdmin: item.isAdmin || false 
         };
@@ -273,7 +393,9 @@ export default {
       if (type === "categoria") {
         this.modalData = {
           id: item.id || null,
-          nome: item.nome || ""
+          nome: item.nome || "",
+          status: item.status || "Ativo", 
+          cor: item.cor || "#6366f1"     
         };
       }
 
@@ -281,8 +403,15 @@ export default {
         this.modalData = {
           id: item.id || null,
           nome: item.nome || "",
-          preco: item.preco || "",
-          categoriaId: item.categoriaId || ""
+          preco: item.preco || 0,
+          categoriaId: item.categoriaId || "",
+          descricao: item.descricao || "",
+          // CORREÇÃO: Inicializa estoque como número
+          estoque: item.estoque !== undefined && item.estoque !== null ? Number(item.estoque) : 0, 
+          // CORREÇÃO: Garante o formato da data para o input
+          dataPost: this.formatToDateInput(item.dataPost || new Date()),
+          status: item.status || "Ativo",
+          imagem: item.imagem || ""
         };
       }
 
@@ -310,6 +439,7 @@ export default {
 
     async loadUsuarios() {
       try {
+        // Assume que a API pode aceitar status como filtro
         const res = await connection.get("/usuarios?status=1");
         this.usuarios = res.data;
       } catch (error) {
@@ -319,7 +449,7 @@ export default {
 
     async loadCategorias() {
       try {
-        const res = await connection.get("/categorias?status=1");
+        const res = await connection.get("/categorias"); 
         this.categorias = res.data;
       } catch (error) {
         console.error("Erro ao carregar categorias:", error);
@@ -329,7 +459,8 @@ export default {
     async loadProdutos() {
       try {
         const res = await connection.get("/produtos?page=1&pageSize=200");
-        this.produtos = res.data.produtos || res.data; 
+        // Lógica de manipulação de resposta para garantir que 'produtos' é um array
+        this.produtos = Array.isArray(res.data) ? res.data : res.data.produtos || [];
       } catch (error) {
         console.error("Erro ao carregar produtos:", error);
       }
@@ -357,15 +488,17 @@ export default {
 
       try {
         if (item.id) {
+          // Usa PATCH para atualizar
           await connection.patch(`${endpoint}/${item.id}`, item);
         } else {
+          // Usa POST para criar
           await connection.post(endpoint, item);
         }
 
         this.closeModal();
         this.reloadTab(); 
       } catch (error) {
-        console.error(`Erro ao salvar ${type}:`, error);
+        console.error(`Erro ao salvar ${type}:`, error.response ? error.response.data : error.message);
         alert(`Falha ao salvar. Verifique o console para detalhes.`);
       }
     },
@@ -412,201 +545,316 @@ export default {
 </script>
 
 <style>
-/* ====== Layout base (Retornado ao estilo moderno) ====== */
+/* ========================================================= */
+/* RESET E LAYOUT BASE                     */
+/* ========================================================= */
 .admin-container {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
-    padding: 22px;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #111827;
-    background: #f7f8fb;
+    padding: 30px;
+    font-family: 'Inter', sans-serif;
+    color: #1f2937;
+    background: #f4f6f9;
     min-height: 100vh;
-    box-sizing: border-box; 
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
 }
 
 /* Header */
-.admin-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 18px;
-}
 .admin-header h1 {
-    margin: 0;
-    font-size: 24px; 
-    font-weight: 700;
-    color: #0f172a;
+    margin: 0 0 30px 0;
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 15px;
 }
 
-/* Tabs */
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 24px; 
-}
-.tabs button {
-    background: transparent;
-    border: 1px solid transparent;
-    padding: 10px 16px; 
-    border-radius: 12px; 
-    cursor: pointer;
-    font-weight: 600;
-    transition: all .2s ease;
-    color: #374151;
-}
-.tabs button:hover {
-    transform: translateY(-1px); 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-.tabs .active {
-    background: linear-gradient(90deg, #334155, #1e293b);
-    color: #fff;
-    box-shadow: 0 8px 20px rgba(30, 41, 59, 0.2); 
-    border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Main grid */
-.admin-main {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px; 
-}
-
-/* Section header */
+/* Section Header */
 .section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
 }
 .section-header h2 {
+    font-size: 22px;
+    color: #1f2937;
+    font-weight: 700;
     margin: 0;
-    font-size: 20px;
-    color: #0b1220;
 }
 
-/* Buttons Base */
+
+/* ========================================================= */
+/* NAVEGAÇÃO (TABS)                  */
+/* ========================================================= */
+.tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 6px;
+}
+
+.tabs button {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all .3s ease;
+    color: #4b5563;
+    font-size: 15px;
+    outline: none;
+}
+
+.tabs button:hover:not(.active) {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.tabs .active {
+    background: linear-gradient(135deg, #0d9488, #059669); /* Teal/Emerald Gradient */
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+    font-weight: 700;
+}
+
+
+/* ========================================================= */
+/* BOTÕES                          */
+/* ========================================================= */
+
+/* Botão principal de Adicionar */
 .add-btn, .edit, .delete, .save, .cancel {
     display: inline-flex;
     align-items: center;
-    justify-content: center; 
+    justify-content: center;
     gap: 8px;
     border: 0;
     cursor: pointer;
     border-radius: 10px;
-    padding: 8px 14px;
     font-weight: 600;
     transition: all .2s ease;
 }
 
-/* Specific buttons */
 .add-btn {
-    background: linear-gradient(90deg, #06b6d4, #3b82f6);
+    background: linear-gradient(45deg, #2563eb, #3b82f6); /* Blue Gradient */
     color: #fff;
-    box-shadow: 0 6px 14px rgba(59, 130, 246, 0.18);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    padding: 10px 18px;
 }
 .add-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    opacity: 0.95;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
 }
+
+/* Botões de Ação na Tabela */
 .edit {
-    background: linear-gradient(90deg, #f59e0b, #f97316); 
+    background: #f59e0b; /* Amber */
     color: #fff;
-    padding: 6px 10px;
+    padding: 7px 12px;
     border-radius: 8px;
 }
-.delete { 
-    background: #ef4444; 
+.delete {
+    background: #ef4444; /* Red */
     color: #fff;
-    padding: 6px 10px;
+    padding: 7px 12px;
     border-radius: 8px;
 }
+.edit:hover, .delete:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* Botões do Modal */
 .save {
-    background: #10b981; 
+    background: #10b981; /* Emerald */
     color: #fff;
+    padding: 10px 20px;
 }
 .cancel {
-    background: #6b7280; 
+    background: #6b7280; /* Gray */
     color: #fff;
+    padding: 10px 20px;
 }
-.edit:hover, .delete:hover, .save:hover, .cancel:hover {
+.save:hover, .cancel:hover {
     opacity: 0.9;
 }
 
-/* Table styling */
+
+/* ========================================================= */
+/* TABELAS                         */
+/* ========================================================= */
 table {
     width: 100%;
     border-radius: 12px;
     background: #fff;
-    border: 1px solid #e6edf3;
-    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04);
-    border-collapse: separate; 
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); 
+    border-collapse: separate;
     border-spacing: 0;
+    overflow: hidden; 
 }
+
 thead {
-    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    background: #f9fafb; 
 }
+
 th, td {
-    padding: 14px 16px; 
+    padding: 15px 18px;
     text-align: left;
     color: #374151;
     font-size: 14px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f3f4f6;
 }
+
+th {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 15px;
+}
+
 tbody tr:last-child td {
     border-bottom: none;
 }
+
 tbody tr:hover {
-    background: #fbfdff;
+    background: #fdfefe;
+    transform: translateY(-1px);
+    transition: transform 0.1s ease, background 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 1; 
 }
 
-/* Modal */
+.td-actions {
+    width: 180px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Badges de Status/Admin */
+.badge-ativo {
+    background: #0d9488; /* Teal */
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-block;
+}
+.badge-inativo {
+    background: #ef4444; /* Red */
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-block;
+}
+
+/* Badge de Cor para Categoria */
+.color-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid #f3f4f6; 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+
+/* ========================================================= */
+/* MODAL E FORM                     */
+/* ========================================================= */
 .modal {
     position: fixed;
     inset: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(180deg, rgba(2, 6, 23, 0.35), rgba(2, 6, 23, 0.45));
+    background: rgba(17, 24, 39, 0.65); 
+    backdrop-filter: blur(5px);
     z-index: 1200;
     padding: 10px;
 }
 .modal-content {
-    width: 880px;
-    max-width: 100%; 
+    width: 900px;
+    max-width: 95%;
     background: #fff;
-    border-radius: 14px;
-    padding: 24px; 
-    box-shadow: 0 20px 60px rgba(2, 6, 23, 0.4); 
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     display: flex;
-    gap: 20px;
     flex-direction: column;
+    gap: 20px;
 }
 
-/* Input styles */
+.modal-content h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 15px;
+}
+
+.modal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; 
+    align-items: start;
+}
+
+.full-row {
+    grid-column: 1 / -1;
+}
+
+/* Inputs, Selects, Textareas */
 input:not([type="checkbox"]):not([type="radio"]), select, textarea {
     width: 100%;
-    padding: 12px 14px; 
+    padding: 12px 14px;
     border-radius: 10px;
-    border: 1px solid #e6edf3;
-    background: #fff;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
     outline: none;
-    font-size: 14px;
-    color: #0b1220;
+    font-size: 15px;
+    color: #1f2937;
     box-sizing: border-box;
-    transition: box-shadow .15s ease, border-color .15s ease;
-}
-input:focus:not([type="checkbox"]):not([type="radio"]), select:focus, textarea:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); 
-}
-button:focus, input:focus, select:focus {
-    outline: none; 
+    transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
 
-/* Checkbox/Admin specific styles */
+input[type="color"] {
+    height: 40px; 
+    padding: 4px; 
+}
+
+input:focus:not([type="checkbox"]):not([type="radio"]), select:focus, textarea:focus {
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); 
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.form-row label {
+    font-size: 14px;
+    color: #4b5563;
+    font-weight: 600;
+}
+
+/* Checkbox */
 .checkbox-container {
     display: flex;
     align-items: center;
@@ -616,38 +864,87 @@ button:focus, input:focus, select:focus {
     color: #374151;
 }
 .checkbox-container input[type="checkbox"] {
-    width: auto; 
-    height: 18px;
     width: 18px;
+    height: 18px;
     margin: 0;
     accent-color: #3b82f6; 
 }
 
-/* Footer actions in modal */
+/* Modal Actions */
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 8px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f3f4f6;
 }
 
-/* Helpers */
-.td-actions {
-    width: 160px; 
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-}
-
-/* Responsive */
-@media (max-width: 960px) {
-    .modal-content {
-        width: 92%;
-        padding: 20px;
+/* ========================================================= */
+/* RESPONSIVIDADE (MOBILE-FIRST)                      */
+/* ========================================================= */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 15px;
+    }
+    
+    .tabs {
+        flex-direction: column;
+        padding: 0;
+        gap: 0;
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+    }
+    .tabs button {
+        border-radius: 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .tabs button:last-child { border-bottom: none; }
+    .tabs .active {
+        box-shadow: none;
+        border-bottom: 2px solid #0d9488;
+    }
+    
+    .modal-grid {
+        grid-template-columns: 1fr; 
+    }
+    
+    /* Transformação da Tabela em Cartões */
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    tr {
+        margin-bottom: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+    }
+    td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-left: 15px;
+        font-weight: 700;
+        text-align: left;
+        color: #1f2937;
     }
     .td-actions {
-        width: auto; 
-        justify-content: flex-start; 
+        width: 100%;
+        justify-content: center;
+        padding: 10px 0;
+        border-top: 1px solid #f3f4f6;
     }
 }
 </style>
