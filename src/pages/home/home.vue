@@ -523,15 +523,7 @@ isto?
           >
             Anunciar
           </v-btn>
-          <v-btn
-            prepend-icon="mdi-check"
-            variant="flat"
-            color="#5865f2"
-            @click="toAnunciar"
-            :disabled="carregandoProdutos"
-          >
-            Anunciar
-          </v-btn>
+          
 
           <v-btn
             class="ml-4"
