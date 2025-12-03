@@ -24,7 +24,7 @@ const routes = [
   {path: "/anunciar", name: 'Anunciar', component: Anunciar},
   {path: "/pagamento/:uuid", name: 'Pagamento', component: Pagamento},
   {path: "/completar-cadastro", name: 'CompletarCadastro', component: CompletarCadastro},
-  {path: "/perfilsocial/:id", name: 'Social', component: Perfilsocial}
+  {path: "/perfilsocial/:id", name: 'Social', component: Perfilsocial},
 ]
 
 const router = createRouter({
