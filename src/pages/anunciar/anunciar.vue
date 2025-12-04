@@ -105,9 +105,7 @@
                     ✖ Remover
                   </v-btn>
 
-                  <v-btn class="btn" small @click="toggleFit">
-                    🔍 Ajustar
-                  </v-btn>
+                
                 </v-row>
               </v-row>
 

@@ -335,6 +335,7 @@
                 v-model="modalData.telefone" 
                 label="Telefone (Sem DDI)" 
                 variant="outlined" 
+                
                 density="comfortable" 
                 :rules="rules.rulesTelefone"
                 prepend-inner-icon="mdi-phone"
@@ -385,34 +386,126 @@
                   </v-row>
                 </v-form>
 
-                <v-form v-if="modalType === 'produto'" ref="formProduto">
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field v-model="modalData.nome" label="Nome do Produto" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="4">
-                      <v-text-field v-model.number="modalData.preco" label="Preço (Centavos)" type="number" variant="outlined" density="comfortable" :rules="[rules.required]" hint="Ex: 1000 = R$ 10,00"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="4">
-                      <v-text-field v-model.number="modalData.estoque" label="Estoque" type="number" variant="outlined" density="comfortable"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="4">
-                      <v-text-field v-model.number="modalData.categoria_id" label="ID da Categoria" type="number" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-text-field v-model.number="modalData.usuario_id" label="ID do Vendedor" type="number" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-select v-model="modalData.status" :items="['ativo', 'inativo', 'vendido']" label="Status" variant="outlined" density="comfortable"></v-select>
-                    </v-col>
-                    <v-col cols="12">
-                      <v-text-field v-model="modalData.imagem" label="URL da Imagem Principal" variant="outlined" density="comfortable"></v-text-field>
-                    </v-col>
-                    <v-col cols="12">
-                      <v-textarea v-model="modalData.descricao" label="Descrição" variant="outlined" density="comfortable" rows="3"></v-textarea>
-                    </v-col>
-                  </v-row>
-                </v-form>
+               <v-form  v-if="modalType === 'produto'" ref="formProduto">
+    <v-container>
+        <v-row>
+            <v-col cols="12" sm="8">
+                <v-text-field
+                    v-model="modalData.Nome"
+                    label="Título do Produto"
+                    :rules="modalData.id 
+                        ? [rules.min3] 
+                        : [rules.required, rules.min3]"
+                    prepend-icon="mdi-tag"
+                    clearable
+                />
+            </v-col>
+
+            <v-col cols="12" sm="4">
+                <v-text-field
+                    v-model.number="modalData.Estoque"
+                    label="Estoque"
+                    type="number"
+                    step="1"
+                    min="1"
+                    :rules="modalData.id
+                        ? [rules.estoque]
+                        : [rules.required, rules.estoque]"
+                    prepend-icon="mdi-package-variant-closed"
+                    clearable
+                    @input="apenasPositivoEstoque"
+                />
+            </v-col>
+        </v-row>
+
+        <v-row>
+            <v-col cols="12" sm="6">
+                <v-text-field
+                    v-model.number="modalData.Preco"
+                    label="Preço (R$)"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    prefix="R$"
+                    :rules="modalData.id 
+                        ? [rules.preco] 
+                        : [rules.required, rules.preco]"
+                    prepend-icon="mdi-cash"
+                    clearable
+                    @input="apenasPositivoPreco"
+                />
+            </v-col>
+
+            <v-col cols="12" sm="6">
+                <v-select
+                    v-model="modalData.CategoriaId"
+                    :items="categoriasP" 
+                    item-title="nome" 
+                    item-value="id" 
+                    label="Categoria"
+                    :rules="modalData.id 
+                        ? [] 
+                        : [rules.required]"
+                    prepend-icon="mdi-shape"
+                >
+                    <template #item="{ props, item }">
+                        <v-list-item v-bind="props">
+                            <template #prepend>
+                                <v-icon :color="item.raw.cor">mdi-square</v-icon> 
+                            </template>
+                        </v-list-item>
+                    </template>
+                </v-select>
+            </v-col>
+        </v-row>
+
+        <v-row>
+            <v-col cols="12">
+                <v-textarea
+                    v-model="modalData.Descricao"
+                    label="Descrição Detalhada"
+                    rows="3"
+                    :rules="modalData.id
+                        ? [rules.min10]
+                        : [rules.required, rules.min10]"
+                    prepend-icon="mdi-comment-text"
+                    clearable
+                    hint="Mínimo de 10 caracteres."
+                    persistent-hint
+                />
+            </v-col>
+        </v-row>
+
+        <v-row align="center">
+            <v-col cols="12" sm="4">
+                <v-img
+                    :src="previewImage || placeholderImage"
+                    class="image-preview mb-2"
+                    :contain="fitContain"
+                ></v-img>
+            </v-col>
+            <v-col cols="12" sm="8">
+                <v-btn class="btn ml-4 mr-4" small @click="imageInput.click()">
+                    📁 Escolher imagem
+                </v-btn>
+                <input
+                    ref="imageInput"
+                    type="file"
+                    accept="image/png"
+                    class="d-none"
+                    @change="carregarImagemProduto"
+                />
+                <v-btn class="btn" small @click="removerImagemProduto">
+                    ✖ Remover
+                </v-btn>
+                <div class="text-caption text-medium-emphasis">
+                    {{ modalData.id ? 'Deixe o campo acima vazio para manter a imagem atual.' : 'A imagem é obrigatória para um novo produto.' }}
+                </div>
+            </v-col>
+        </v-row>
+
+    </v-container>
+</v-form>
 
                 <v-form v-if="modalType === 'endereco'" ref="formEndereco">
                   <v-row>
@@ -496,8 +589,12 @@ import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 
 const formUsuario = ref(null);
+const formProduto = ref(null);
 const inputArquivo = ref(null);
 const mostrarSenha = ref(false);
+const previewImage = ref("");
+const imageInput = ref(null);
+const arquivoImagem = ref(null);
 
 const activeTab = ref("usuarios");
 const loading = ref(false);
@@ -510,7 +607,10 @@ const cepLoading = ref(false);
 
 const usuarios = ref([]);
 const categorias = ref([]);
+const categoriasP = ref([]);
 const formCategoria = ref();
+const token = ref(localStorage.getItem("token") ? localStorage.getItem("token") : "")
+const retrieve = ref(null);
 const produtos = ref([]);
 const enderecos = ref([]);
 
@@ -522,6 +622,7 @@ const confirmDialog = ref({
     type: '',
     isActivate: false
 });
+
 
 const usuarioHeaders = [
     { title: 'ID', key: 'id', sortable: true },
@@ -564,6 +665,101 @@ const ddiOptions = ref([
     { text: '+44 (Reino Unido)', value: '44' },
     { text: '+351 (Portugal)', value: '351' },
 ]);
+
+const arquivoSelecionado = ref(null);
+const imagemProdutoBase64 = ref(null);  
+const placeholderImage =
+    "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='900'%3E%3Crect width='100%25' height='100%25' fill='%23090f13'/%3E%3Ctext x='50%25' y='50%25' fill='%2399aab3' font-family='Arial, sans-serif' font-size='28' dominant-baseline='middle' text-anchor='middle'%3EPreview da imagem%3C/text%3E%3C/svg%3E";
+watch(arquivoSelecionado, (novoValor) => {
+   
+    const arquivo = novoValor?.[0]; 
+
+    if (!arquivo) {
+      
+        imagemProdutoBase64.value = null;
+        modalData.value.ImagemUrl = placeholderImage; 
+        return; 
+    }
+
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      
+        modalData.value.ImagemUrl = e.target.result;
+        imagemProdutoBase64.value = e.target.result;
+    };
+    reader.readAsDataURL(arquivo);
+}, { deep: true });
+
+
+async function getCategorias() {
+    try {
+       
+        const res = await connection.get("/desapega/categorias"); 
+        if (res.status == 200) {
+           
+            categoriasP.value = res.data; 
+        } else {
+           
+            console.error("Erro ao buscar categorias:", res.status);
+        }
+    } catch (error) {
+        console.error("Erro na requisição de categorias:", error);
+    }
+}
+
+function apenasPositivoEstoque(e) {
+    let valor = Number(e.target.value);
+    if (valor < 1) {
+        e.target.value = 1; 
+        valor = 1;
+    }
+   
+    if (valor % 1 !== 0) {
+        e.target.value = Math.floor(valor);
+        valor = Math.floor(valor);
+    }
+    modalData.value.Estoque = valor;
+}
+
+function apenasPositivoPreco(e) {
+    let valor = Number(e.target.value);
+    if (valor < 0) {
+        e.target.value = 0;
+        valor = 0;
+    }
+    modalData.value.Preco = valor;
+}
+
+
+function carregarImagemProduto(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+
+  if (!arquivo.type.includes("png")) {
+    toast.error("Apenas imagens PNG são permitidas.");
+    event.target.value = "";
+    return;
+  }
+
+  if (arquivo.size > 1024 * 1024) {
+    toast.error("A imagem deve ter no máximo 1MB.");
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImage.value = e.target.result;
+    imagem.value = e.target.result;
+  };
+  reader.readAsDataURL(arquivo);
+}
+
+function removerImagemProduto() {
+  previewImage.value = null;
+  arquivoImagem.value = null;
+}
 
 function isValidCpf(cpf) {
     if (!cpf) return true;
@@ -643,6 +839,17 @@ function convertToDisplayDate(dateString) {
 const rules = {
     required: value => !!value || 'Campo obrigatório.',
     email: value => /.+@.+\..+/.test(value) || 'E-mail inválido.',
+    min3: (v) => (v?.length || 0) >= 3 || "Mínimo de 3 caracteres",
+    min10: (v) => (v?.length || 0) >= 10 || "Mínimo de 10 caracteres",
+    preco: (v) => (typeof v === 'number' && v > 0) || "Preço inválido (deve ser > R$ 0,00)", 
+    estoque: (v) => (typeof v === 'number' && v > 0) || "Estoque deve ser maior que 0",
+    requiredFile: (v) => 
+    (Array.isArray(v) && v.length > 0) || 
+    "Imagem é obrigatória (PNG, Max 1MB)",
+    fileType: (v) =>
+        !v || v.length === 0 || v[0].type === "image/png" || "Apenas PNG é permitido",
+    fileSize: (v) =>
+        !v || v.length === 0 || v[0].size <= 1024 * 1024 || "A imagem deve ter no máximo 1MB",
     
     rulesEmail: [
         value => !!value || 'E-mail é obrigatório.',
@@ -705,9 +912,9 @@ function getEmptyModel(type) {
         case 'usuario': 
             return { id: null, nome: '', email: '', cpf: '', telefone: '', senha: '', admin: false, data_de_nascimento: '', ddi: '55', imagem: null, fotoDePerfilUrl: null, status: 'ativo' };
         case 'categoria': 
-            return { id: null, nome: '', status: 'Ativo', cor: '#6366f1' };
+            return { id: null, nome: '', status: 'ativo', cor: '#6366f1' };
         case 'produto': 
-            return { id: null, nome: '', preco: 0, categoriaId: '', descricao: '', estoque: 0, dataPost: formatDateToInput(new Date()), status: 'Ativo', imagem: '' };
+            return { id: null, nome: '', preco: 0, categoria_id: '', descricao: '', estoque: 0, data_post: formatDateToInput(new Date()), status: 'ativo', imagem: '' };
         case 'endereco': 
             return { id: null, cep: '', rua: '', numero: '', cidade: '', bairro: '', estado: '' };
         default: return {};
@@ -758,9 +965,30 @@ function closeModal() {
 }
 
 
+async function getRetrieve() {
+  try {
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+
+    if (res && res.status === 200 && res.data) {
+      retrieve.value = res.data;
+     
+      console.log("RETRIEVE API:", res.data);
+      
+    } 
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    
+  }
+}
+
 
 async function saveData() {
     let formValid = true;
+    let response;
+    
+    
     if (modalType.value === 'usuario' && formUsuario.value) {
         const { valid } = await formUsuario.value.validate();
         formValid = valid;
@@ -770,7 +998,18 @@ async function saveData() {
         const { valid } = await formCategoria.value.validate();
         formValid = valid;
     }
-  
+    
+    
+    else if (modalType.value === 'produto' && formProduto.value) {
+        const { valid } = await formProduto.value.validate();
+        formValid = valid;
+    }
+
+   
+    if (formValid && modalType.value === 'produto' && !modalData.value.id && !previewImage.value) {
+        toast.error("É necessário selecionar uma imagem para o novo produto.");
+        formValid = false;
+    }
 
     if (!formValid) {
         toast.error("Por favor, preencha todos os campos obrigatórios corretamente.");
@@ -780,25 +1019,26 @@ async function saveData() {
     saving.value = true;
     
     try {
-        let response;
-        const dataToSend = { ...modalData.value };
+        const entityId = modalData.value.id;
+        const dataToSend = { ...modalData.value }; 
         
+      
         switch (modalType.value) {
             case 'usuario':
                 
                 dataToSend.telefone = `+${dataToSend.ddi}${dataToSend.telefone.replace(/\D/g, '')}`;
                 
                 if (dataToSend.id) {
-                   
-                    response = await connection.put(`/usuarios/${dataToSend.id}`, dataToSend);
-                } else {
                     
-                    response = await connection.post('/usuarios', dataToSend);
+                    response = await connection.patch(`/desapega/usuarios/${dataToSend.id}`, dataToSend);
+                } else {
+                   
+                    response = await connection.post('/desapega/usuarios', dataToSend);
                 }
                 break;
 
             case 'categoria':
-                
+            
                 const categoriaToSend = { 
                     nome: dataToSend.Nome, 
                     cor: dataToSend.Cor, 
@@ -806,30 +1046,71 @@ async function saveData() {
                 };
                 
                 if (dataToSend.id) {
-                    
+                   
                     response = await connection.patch(`/desapega/categorias/${dataToSend.id}`, categoriaToSend);
                 } else {
-                   
+                 
                     response = await connection.post('/desapega/categorias', categoriaToSend);
                 }
                 break;
                 
-         
+           case 'produto':
+    
+    const precoEmCentavos = Math.round(modalData.value.Preco * 100); 
 
+    const produtoToSend = {
+     
+        usuario_id: retrieve?.value.id,
+
+        nome: modalData.value.Nome, 
+        
+        
+        preco: precoEmCentavos, 
+
+       
+        descricao: modalData.value.Descricao, 
+
+      
+        categoria_id: modalData.value.CategoriaId, 
+
+       
+        estoque: modalData.value.Estoque, 
+
+        status: modalData.value.Status || 'ativo', 
+        
+        
+        imagem: previewImage.value, 
+    };
+
+    if (entityId) {
+       
+        response = await connection.patch(`/desapega/produtos/${entityId}`, produtoToSend);
+    } else {
+     
+        response = await connection.post('/desapega/produtos', produtoToSend);
+    }
+    break;
+        
             default:
                 throw new Error("Tipo de modal desconhecido.");
         }
 
+        
         toast.success(`${modalType.value.charAt(0).toUpperCase() + modalType.value.slice(1)} salvo com sucesso!`);
         closeModal();
-       await loadDataForTab(modalType.value + 's');
-        
+        await loadDataForTab(modalType.value + 's');
         
     } catch (error) {
+       
         console.error(`Erro ao salvar ${modalType.value}:`, error);
-        toast.error(`Erro ao salvar ${modalType.value}: ${error.response?.data?.message || 'Verifique a API.'}`);
+        toast.error(`Erro ao salvar ${modalType.value}: ${error.response?.data?.message || 'Verifique a conexão ou os dados.'}`);
     } finally {
+    
         saving.value = false;
+      
+        if (modalType.value === 'produto') {
+            imagemProdutoBase64.value = null; 
+        }
     }
 }
 
@@ -1013,7 +1294,9 @@ watch(modalData, (newVal) => {
     }
 }, { deep: true });
 
-onMounted(() => {
+onMounted(async() => {
+  await getRetrieve();
     loadDataForTab(activeTab.value); 
+    await getCategorias();
 });
 </script>
