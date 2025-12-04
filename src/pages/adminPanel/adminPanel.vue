@@ -1,143 +1,191 @@
 <template>
   <v-app>
-    <v-main>
-      <v-container fluid class="pa-4">
+    <v-main class="bg-grey-lighten-4">
+      <v-container fluid class="pa-6">
         
         <v-row>
           <v-col cols="12">
-            <v-card class="pa-4" color="primary" dark>
-              <v-card-title class="text-h4">
-                Painel Administrativo 🛠️
-              </v-card-title>
+            <v-card class="pa-6 rounded-xl" color="primary" elevation="4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <h1 class="text-h4 font-weight-bold white--text mb-1">Painel Administrativo 🛠️</h1>
+                  <p class="text-subtitle-1 white--text opacity-80">Gerencie todo o sistema em um só lugar.</p>
+                </div>
+                <v-btn variant="tonal" color="white" prepend-icon="mdi-home" to="/">Voltar para Loja</v-btn>
+              </div>
             </v-card>
           </v-col>
         </v-row>
         
-        <v-divider class="my-4"></v-divider>
+        <v-card class="mt-6 rounded-xl" elevation="2">
+          <v-tabs
+            v-model="activeTab"
+            bg-color="primary"
+            align-tabs="center"
+            slider-color="white"
+          >
+            <v-tab value="usuarios" prepend-icon="mdi-account-group">Usuários</v-tab>
+            <v-tab value="categorias" prepend-icon="mdi-shape">Categorias</v-tab>
+            <v-tab value="produtos" prepend-icon="mdi-package-variant">Produtos</v-tab>
+            <v-tab value="enderecos" prepend-icon="mdi-map-marker">Endereços</v-tab>
+          </v-tabs>
 
-        <v-tabs
-          v-model="activeTab"
-          background-color="transparent"
-          color="primary"
-          show-arrows
-        >
-          <v-tab value="usuarios">Usuários</v-tab>
-          <v-tab value="categorias">Categorias</v-tab>
-          <v-tab value="produtos">Produtos</v-tab>
-          <v-tab value="enderecos">Endereços</v-tab>
-        </v-tabs>
-
-        <v-card class="mt-4" elevation="4">
-          <v-card-text>
+          <v-card-text class="pa-6">
             <v-window v-model="activeTab">
               
               <v-window-item value="usuarios">
-                <div class="d-flex justify-space-between align-center mb-4">
-                  <h2 class="text-h5">Usuários</h2>
-                  <v-btn color="success" @click="openModal('usuario')">
-                    <v-icon left>mdi-plus</v-icon>
-                    + Usuário
+                <div class="d-flex justify-space-between align-center mb-6">
+                  <h2 class="text-h5 font-weight-bold text-grey-darken-3">Gerenciar Usuários</h2>
+                  <v-btn color="primary" prepend-icon="mdi-plus" class="text-capitalize" @click="openModal('usuario')">
+                    Novo Usuário
                   </v-btn>
                 </div>
                 <v-data-table
                   :headers="usuarioHeaders"
                   :items="usuarios"
-                  :items-per-page="10"
-                  class="elevation-1"
+                  :loading="loading"
+                  class="elevation-0 border rounded-lg"
+                  hover
                 >
-                  <template v-slot:item.isAdmin="{ item }">
-                    <v-chip :color="item.isAdmin ? 'green' : 'red'" dark small>
-                      {{ item.isAdmin ? 'Sim' : 'Não' }}
+                  <template v-slot:item.Admin="{ item }">
+                    <v-chip :color="item.Admin ? 'info' : 'grey'" size="small" variant="flat">
+                      {{ item.Admin ? 'Admin' : 'Cliente' }}
                     </v-chip>
                   </template>
-                  <template v-slot:item.dataNascimento="{ item }">
-                    {{ item.dataNascimento ? new Date(item.dataNascimento).toLocaleDateString('pt-BR') : 'N/A' }}
+                  <template v-slot:item.status="{ item }">
+                    <v-chip :color="item.status === 'ativo' ? 'success' : 'error'" size="small" variant="flat">
+                      {{ item.status }}
+                    </v-chip>
                   </template>
                   <template v-slot:item.actions="{ item }">
-                    <v-btn small color="primary" class="mr-2" @click="openModal('usuario', item)">Editar</v-btn>
-                    <v-btn small color="error" @click="deleteData(item.id, 'usuario')">Excluir</v-btn>
+                    <div class="d-flex gap-2">
+                      <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="openModal('usuario', item)"></v-btn>
+                      <v-btn 
+                        :icon="item.status === 'ativo' ? 'mdi-block-helper' : 'mdi-check-circle'" 
+                        size="small" 
+                        :color="item.status === 'ativo' ? 'error' : 'success'" 
+                        variant="text" 
+                        @click="openConfirmDialog('usuario', item)"
+                      >
+                        <v-tooltip activator="parent" location="top">{{ item.status === 'ativo' ? 'Desativar' : 'Ativar' }}</v-tooltip>
+                      </v-btn>
+                    </div>
                   </template>
                 </v-data-table>
               </v-window-item>
 
               <v-window-item value="categorias">
-                <div class="d-flex justify-space-between align-center mb-4">
-                  <h2 class="text-h5">Categorias</h2>
-                  <v-btn color="success" @click="openModal('categoria')">
-                    <v-icon left>mdi-plus</v-icon>
-                    + Categoria
+                <div class="d-flex justify-space-between align-center mb-6">
+                  <h2 class="text-h5 font-weight-bold text-grey-darken-3">Gerenciar Categorias</h2>
+                  <v-btn color="primary" prepend-icon="mdi-plus" class="text-capitalize" @click="openModal('categoria')">
+                    Nova Categoria
                   </v-btn>
                 </div>
                 <v-data-table
                   :headers="categoriaHeaders"
                   :items="categorias"
-                  :items-per-page="10"
-                  class="elevation-1"
+                  :loading="loading"
+                  class="elevation-0 border rounded-lg"
+                  hover
                 >
+                  <template v-slot:item.Cor="{ item }">
+                    <div class="d-flex align-center">
+                      <v-sheet :color="item.Cor" width="24" height="24" class="rounded-circle mr-2 border"></v-sheet>
+                      {{ item.Cor }}
+                    </div>
+                  </template>
                   <template v-slot:item.status="{ item }">
-                    <v-chip :color="item.status === 'Ativo' ? 'green' : 'red'" dark small>
+                    <v-chip :color="item.status === 'ativo' ? 'success' : 'error'" size="small" variant="flat">
                       {{ item.status }}
                     </v-chip>
                   </template>
-                  <template v-slot:item.cor="{ item }">
-                    <v-chip :color="item.cor || '#ccc'" dark small>Cor</v-chip>
-                  </template>
                   <template v-slot:item.actions="{ item }">
-                    <v-btn small color="primary" class="mr-2" @click="openModal('categoria', item)">Editar</v-btn>
-                    <v-btn small color="error" @click="deleteData(item.id, 'categoria')">Excluir</v-btn>
+                    <div class="d-flex gap-2">
+                      <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="openModal('categoria', item)"></v-btn>
+                      <v-btn 
+                        :icon="item.status === 'ativo' ? 'mdi-block-helper' : 'mdi-check-circle'" 
+                        size="small" 
+                        :color="item.status === 'ativo' ? 'error' : 'success'" 
+                        variant="text" 
+                        @click="openConfirmDialog('categoria', item)"
+                      ></v-btn>
+                    </div>
                   </template>
                 </v-data-table>
               </v-window-item>
 
               <v-window-item value="produtos">
-                <div class="d-flex justify-space-between align-center mb-4">
-                  <h2 class="text-h5">Produtos</h2>
-                  <v-btn color="success" @click="openModal('produto')">
-                    <v-icon left>mdi-plus</v-icon>
-                    + Produto
+                <div class="d-flex justify-space-between align-center mb-6">
+                  <h2 class="text-h5 font-weight-bold text-grey-darken-3">Gerenciar Produtos</h2>
+                  <v-btn color="primary" prepend-icon="mdi-plus" class="text-capitalize" @click="openModal('produto')">
+                    Novo Produto
                   </v-btn>
                 </div>
                 <v-data-table
                   :headers="produtoHeaders"
                   :items="produtos"
-                  :items-per-page="10"
-                  class="elevation-1"
+                  :loading="loading"
+                  class="elevation-0 border rounded-lg"
+                  hover
                 >
+                  <template v-slot:item.imagem="{ item }">
+                    <v-avatar rounded size="40">
+                      <v-img :src="item.imagem || 'https://via.placeholder.com/50'" cover></v-img>
+                    </v-avatar>
+                  </template>
                   <template v-slot:item.preco="{ item }">
-                    R$ {{ item.preco.toFixed(2) }}
+                    R$ {{ (item.preco / 100).toFixed(2).replace('.', ',') }}
                   </template>
                   <template v-slot:item.status="{ item }">
-                    <v-chip :color="item.status === 'Ativo' ? 'green' : 'red'" dark small>
+                    <v-chip :color="item.status === 'ativo' ? 'success' : 'error'" size="small" variant="flat">
                       {{ item.status }}
                     </v-chip>
                   </template>
-                  <template v-slot:item.dataPost="{ item }">
-                    {{ item.dataPost ? new Date(item.dataPost).toLocaleDateString('pt-BR') : 'N/A' }}
-                  </template>
                   <template v-slot:item.actions="{ item }">
-                    <v-btn small color="primary" class="mr-2" @click="openModal('produto', item)">Editar</v-btn>
-                    <v-btn small color="error" @click="deleteData(item.id, 'produto')">Excluir</v-btn>
+                    <div class="d-flex gap-2">
+                      <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="openModal('produto', item)"></v-btn>
+                      <v-btn 
+                        :icon="item.status === 'ativo' ? 'mdi-block-helper' : 'mdi-check-circle'" 
+                        size="small" 
+                        :color="item.status === 'ativo' ? 'error' : 'success'" 
+                        variant="text" 
+                        @click="openConfirmDialog('produto', item)"
+                      ></v-btn>
+                    </div>
                   </template>
                 </v-data-table>
               </v-window-item>
 
               <v-window-item value="enderecos">
-                <div class="d-flex justify-space-between align-center mb-4">
-                  <h2 class="text-h5">Endereços</h2>
-                  <v-btn color="success" @click="openModal('endereco')">
-                    <v-icon left>mdi-plus</v-icon>
-                    + Endereço
+                <div class="d-flex justify-space-between align-center mb-6">
+                  <h2 class="text-h5 font-weight-bold text-grey-darken-3">Gerenciar Endereços</h2>
+                  <v-btn color="primary" prepend-icon="mdi-plus" class="text-capitalize" @click="openModal('endereco')">
+                    Novo Endereço
                   </v-btn>
                 </div>
                 <v-data-table
                   :headers="enderecoHeaders"
                   :items="enderecos"
-                  :items-per-page="10"
-                  class="elevation-1"
+                  :loading="loading"
+                  class="elevation-0 border rounded-lg"
+                  hover
                 >
+                  <template v-slot:item.status="{ item }">
+                    <v-chip :color="item.status === 'ativo' ? 'success' : 'error'" size="small" variant="flat">
+                      {{ item.status }}
+                    </v-chip>
+                  </template>
                   <template v-slot:item.actions="{ item }">
-                    <v-btn small color="primary" class="mr-2" @click="openModal('endereco', item)">Editar</v-btn>
-                    <v-btn small color="error" @click="deleteData(item.id, 'endereco')">Excluir</v-btn>
+                    <div class="d-flex gap-2">
+                      <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="openModal('endereco', item)"></v-btn>
+                      <v-btn 
+                        :icon="item.status === 'ativo' ? 'mdi-block-helper' : 'mdi-check-circle'" 
+                        size="small" 
+                        :color="item.status === 'ativo' ? 'error' : 'success'" 
+                        variant="text" 
+                        @click="openConfirmDialog('endereco', item)"
+                      ></v-btn>
+                    </div>
                   </template>
                 </v-data-table>
               </v-window-item>
@@ -146,83 +194,178 @@
           </v-card-text>
         </v-card>
 
-        <v-dialog v-model="modalOpen" max-width="600px">
-          <v-card>
-            <v-card-title class="text-h5 primary white--text">
-              {{ modalData.id ? 'Editar' : 'Adicionar' }} {{ modalType.charAt(0).toUpperCase() + modalType.slice(1) }}
+        <v-dialog v-model="modalOpen" max-width="700px" scrollable>
+          <v-card class="rounded-xl">
+            <v-card-title class="text-h5 font-weight-bold pa-4 bg-primary text-white d-flex justify-space-between align-center">
+              {{ modalData.id || modalData.Id ? 'Editar' : 'Novo' }} {{ modalType.charAt(0).toUpperCase() + modalType.slice(1) }}
+              <v-btn icon="mdi-close" variant="text" color="white" @click="closeModal"></v-btn>
             </v-card-title>
-            <v-card-text class="pt-4">
+            
+            <v-card-text class="pt-6 pb-4">
               <v-container>
                 
-                <v-form v-if="modalType === 'usuario'">
+                <v-form v-if="modalType === 'usuario'" ref="formUsuario">
                   <v-row>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.nome" label="Nome" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.email" label="Email" outlined dense type="email"></v-text-field></v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.cpf" label="CPF" outlined dense maxlength="14" hint="Apenas números"></v-text-field></v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.telefone" label="Telefone" outlined dense maxlength="15" hint="(DD) 99999-9999"></v-text-field></v-col>
-                    <v-col cols="12" sm="6">
-                      <v-text-field v-model="modalData.dataNascimento" label="Data de Nascimento" type="date" outlined dense></v-text-field>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.Nome" label="Nome de usuário" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
                     </v-col>
-                    <v-col cols="12" sm="6">
-                      <v-text-field v-model="modalData.senha" label="Senha" outlined dense type="password" :rules="[v => !!modalData.id || !!v || 'Campo obrigatório para novo usuário']"></v-text-field>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.Email" label="E-mail" variant="outlined" density="comfortable" :rules="[rules.required, rules.email]"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.Cpf" label="CPF" variant="outlined" density="comfortable" hint="Apenas números"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.Telefone" label="Telefone" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.data_de_nascimento" label="Data de Nascimento" type="date" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field 
+                        v-if="!modalData.id && !modalData.Id" 
+                        v-model="modalData.Senha" 
+                        label="Senha" 
+                        type="password" 
+                        variant="outlined" 
+                        density="comfortable"
+                        :rules="[rules.required]"
+                      ></v-text-field>
+                      <v-text-field 
+                        v-else 
+                        v-model="modalData.Senha" 
+                        label="Nova Senha (Opcional)" 
+                        type="password" 
+                        variant="outlined" 
+                        density="comfortable"
+                        hint="Deixe em branco para manter a atual"
+                      ></v-text-field>
                     </v-col>
                     <v-col cols="12">
-                      <v-checkbox v-model="modalData.isAdmin" label="É Administrador" color="primary"></v-checkbox>
+                      <v-text-field v-model="modalData.Foto_De_Perfil" label="URL da Foto de Perfil" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" class="d-flex">
+                      <v-checkbox v-model="modalData.Admin" label="Acesso Administrativo" color="primary"></v-checkbox>
+                      <v-select 
+                        v-model="modalData.status" 
+                        :items="['ativo', 'inativo']" 
+                        label="Status" 
+                        variant="outlined" 
+                        density="compact"
+                        class="ml-4 mt-2"
+                        style="max-width: 150px;"
+                      ></v-select>
                     </v-col>
                   </v-row>
                 </v-form>
 
-                <v-form v-if="modalType === 'categoria'">
+                <v-form v-if="modalType === 'categoria'" ref="formCategoria">
                   <v-row>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.nome" label="Nome da Categoria" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="6">
-                      <v-select v-model="modalData.status" :items="['Ativo', 'Inativo']" label="Status" outlined dense></v-select>
-                    </v-col>
                     <v-col cols="12">
-                      <v-text-field v-model="modalData.cor" label="Cor de Destaque" type="color" outlined dense></v-text-field>
+                      <v-text-field v-model="modalData.Nome" label="Nome da Categoria" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.Cor" label="Cor (Hex ou Nome)" type="color" variant="outlined" density="comfortable" style="height: 60px;"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-select v-model="modalData.status" :items="['ativo', 'inativo']" label="Status" variant="outlined" density="comfortable"></v-select>
                     </v-col>
                   </v-row>
                 </v-form>
 
-                <v-form v-if="modalType === 'produto'">
+                <v-form v-if="modalType === 'produto'" ref="formProduto">
                   <v-row>
-                    <v-col cols="12"><v-text-field v-model="modalData.nome" label="Nome do Produto" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.preco" label="Preço" type="number" prefix="R$" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.categoriaId" label="Categoria ID" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.estoque" label="Quantidade em Estoque" type="number" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="6">
-                      <v-select v-model="modalData.status" :items="['Ativo', 'Inativo']" label="Status" outlined dense></v-select>
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <v-text-field v-model="modalData.dataPost" label="Data de Publicação" type="date" outlined dense></v-text-field>
-                    </v-col>
-                    <v-col cols="12"><v-text-field v-model="modalData.imagem" label="URL da Imagem" outlined dense></v-text-field></v-col>
                     <v-col cols="12">
-                      <v-textarea v-model="modalData.descricao" label="Descrição detalhada do produto" rows="4" outlined dense></v-textarea>
+                      <v-text-field v-model="modalData.nome" label="Nome do Produto" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field v-model.number="modalData.preco" label="Preço (Centavos)" type="number" variant="outlined" density="comfortable" :rules="[rules.required]" hint="Ex: 1000 = R$ 10,00"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field v-model.number="modalData.estoque" label="Estoque" type="number" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field v-model.number="modalData.categoria_id" label="ID da Categoria" type="number" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model.number="modalData.usuario_id" label="ID do Vendedor" type="number" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-select v-model="modalData.status" :items="['ativo', 'inativo', 'vendido']" label="Status" variant="outlined" density="comfortable"></v-select>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field v-model="modalData.imagem" label="URL da Imagem Principal" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-textarea v-model="modalData.descricao" label="Descrição" variant="outlined" density="comfortable" rows="3"></v-textarea>
                     </v-col>
                   </v-row>
                 </v-form>
 
-                <v-form v-if="modalType === 'endereco'">
+                <v-form v-if="modalType === 'endereco'" ref="formEndereco">
                   <v-row>
-                    <v-col cols="12" sm="6">
-                      <v-text-field v-model="modalData.cep" label="CEP" outlined dense maxlength="9" @blur="fetchCep" :loading="cepLoading"></v-text-field>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model.number="modalData.usuario_id" label="ID do Usuário" type="number" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
                     </v-col>
-                    <v-col cols="12" sm="6"><v-text-field v-model="modalData.numero" label="Número" outlined dense></v-text-field></v-col>
-                    <v-col cols="12"><v-text-field v-model="modalData.rua" label="Rua" :disabled="cepLoading" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="4"><v-text-field v-model="modalData.bairro" label="Bairro" :disabled="cepLoading" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="4"><v-text-field v-model="modalData.cidade" label="Cidade" :disabled="cepLoading" outlined dense></v-text-field></v-col>
-                    <v-col cols="12" sm="4"><v-text-field v-model="modalData.estado" label="Estado (UF)" maxlength="2" :disabled="cepLoading" outlined dense></v-text-field></v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.Cep" label="CEP" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="9">
+                      <v-text-field v-model="modalData.rua" label="Rua / Logradouro" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                      <v-text-field v-model="modalData.numero" label="Número" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.bairro" label="Bairro" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field v-model="modalData.cidade" label="Cidade" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="2">
+                      <v-text-field v-model="modalData.estado" label="UF" variant="outlined" density="comfortable" maxlength="2"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field v-model="modalData.complemento" label="Complemento" variant="outlined" density="comfortable"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-select v-model="modalData.status" :items="['ativo', 'inativo']" label="Status" variant="outlined" density="comfortable"></v-select>
+                    </v-col>
                   </v-row>
                 </v-form>
 
               </v-container>
             </v-card-text>
 
-            <v-card-actions>
+            <v-divider></v-divider>
+
+            <v-card-actions class="pa-4">
               <v-spacer></v-spacer>
-              <v-btn color="error" text @click="closeModal">Cancelar</v-btn>
-              <v-btn color="success" @click="saveData">Salvar</v-btn>
+              <v-btn variant="outlined" color="grey" @click="closeModal" class="px-4">Cancelar</v-btn>
+              <v-btn color="primary" variant="flat" @click="saveData" :loading="saving" class="px-6">Salvar Dados</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="confirmDialog.show" max-width="400">
+          <v-card class="rounded-lg pa-4">
+            <div class="text-center pt-2">
+              <v-icon size="48" :color="confirmDialog.isActivate ? 'success' : 'warning'" class="mb-2">
+                {{ confirmDialog.isActivate ? 'mdi-check-circle' : 'mdi-alert-circle' }}
+              </v-icon>
+              <div class="text-h6 font-weight-bold">{{ confirmDialog.title }}</div>
+              <div class="text-body-2 text-grey mt-2">{{ confirmDialog.message }}</div>
+            </div>
+            <v-card-actions class="justify-center mt-4">
+              <v-btn variant="text" color="grey" @click="confirmDialog.show = false">Cancelar</v-btn>
+              <v-btn 
+                :color="confirmDialog.isActivate ? 'success' : 'warning'" 
+                variant="flat" 
+                @click="confirmStatusChange"
+                :loading="loadingStatus"
+              >
+                Confirmar
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -232,266 +375,272 @@
   </v-app>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, onMounted } from 'vue';
 import { connection } from "@/connection/axiosConnection.js";
 import axios from 'axios';
 
-export default {
-  data() {
-    return {
-      activeTab: "usuarios",
-      
-      usuarioHeaders: [
-        { text: 'ID', value: 'id' },
-        { text: 'Nome', value: 'nome' },
-        { text: 'Email', value: 'email' },
-        { text: 'CPF', value: 'cpf' },
-        { text: 'Telefone', value: 'telefone' },
-        { text: 'Nascimento', value: 'dataNascimento' },
-        { text: 'Admin', value: 'isAdmin' },
-        { text: 'Ações', value: 'actions', sortable: false },
-      ],
-      categoriaHeaders: [
-        { text: 'ID', value: 'id' },
-        { text: 'Nome', value: 'nome' },
-        { text: 'Status', value: 'status' },
-        { text: 'Cor', value: 'cor', sortable: false },
-        { text: 'Ações', value: 'actions', sortable: false },
-      ],
-      produtoHeaders: [
-        { text: 'ID', value: 'id' },
-        { text: 'Nome', value: 'nome' },
-        { text: 'Preço', value: 'preco' },
-        { text: 'Estoque', value: 'estoque' },
-        { text: 'Status', value: 'status' },
-        { text: 'Data Post', value: 'dataPost' },
-        { text: 'Categoria ID', value: 'categoriaId' },
-        { text: 'Ações', value: 'actions', sortable: false },
-      ],
-      enderecoHeaders: [
-        { text: 'ID', value: 'id' },
-        { text: 'CEP', value: 'cep' },
-        { text: 'Rua', value: 'rua' },
-        { text: 'Número', value: 'numero' },
-        { text: 'Cidade', value: 'cidade' },
-        { text: 'Ações', value: 'actions', sortable: false },
-      ],
+const activeTab = ref("usuarios");
+const loading = ref(false);
+const saving = ref(false);
+const loadingStatus = ref(false);
+const modalOpen = ref(false);
+const modalType = ref("");
+const modalData = ref({});
+const cepLoading = ref(false);
 
-      usuarios: [],
-      categorias: [],
-      produtos: [],
-      enderecos: [],
+const usuarios = ref([]);
+const categorias = ref([]);
+const produtos = ref([]);
+const enderecos = ref([]);
 
-      modalOpen: false,
-      modalType: "",
-      modalData: {},
-      cepLoading: false
-    };
-  },
+const confirmDialog = ref({
+    show: false,
+    title: '',
+    message: '',
+    item: null,
+    type: '',
+    isActivate: false
+});
 
-  methods: {
-    async fetchCep() {
-      const cep = this.modalData.cep.replace(/\D/g, '');
+const usuarioHeaders = [
+    { title: 'ID', key: 'id', sortable: true },
+    { title: 'Nome', key: 'nome' },
+    { title: 'Email', key: 'email' },
+    { title: 'CPF', key: 'cpf' },
+    { title: 'Telefone', key: 'telefone' },
+    { title: 'Admin', key: 'isAdmin' },
+    { title: 'Status', key: 'status' },
+    { title: 'Ações', key: 'actions', sortable: false, align: 'end' },
+];
+const categoriaHeaders = [
+    { title: 'ID', key: 'id', sortable: true },
+    { title: 'Nome', key: 'nome' },
+    { title: 'Cor', key: 'cor', sortable: false },
+    { title: 'Status', key: 'status' },
+    { title: 'Ações', key: 'actions', sortable: false, align: 'end' },
+];
+const produtoHeaders = [
+    { title: 'ID', key: 'id', sortable: true },
+    { title: 'Nome', key: 'nome' },
+    { title: 'Preço', key: 'preco' },
+    { title: 'Estoque', key: 'estoque' },
+    { title: 'Status', key: 'status' },
+    { title: 'Data Post', key: 'dataPost' },
+    { title: 'Ações', key: 'actions', sortable: false, align: 'end' },
+];
+const enderecoHeaders = [
+    { title: 'ID', key: 'id', sortable: true },
+    { title: 'CEP', key: 'cep' },
+    { title: 'Rua', key: 'rua' },
+    { title: 'Número', key: 'numero' },
+    { title: 'Cidade', key: 'cidade' },
+    { title: 'Ações', key: 'actions', sortable: false, align: 'end' },
+];
 
-      if (cep.length !== 8) return;
+const rules = {
+    required: value => !!value || 'Campo obrigatório.',
+    email: value => /.+@.+\..+/.test(value) || 'E-mail inválido.',
+};
 
-      this.cepLoading = true;
+function formatDateToInput(dateString) {
+    if (!dateString) return "";
+    if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return ""; 
+        return date.toISOString().split('T')[0];
+    } catch {
+        return "";
+    }
+}
 
-      try {
+function getEmptyModel(type) {
+    switch(type) {
+        case 'usuario': 
+            return { id: null, nome: '', email: '', cpf: '', telefone: '', senha: '', isAdmin: false, dataNascimento: '' };
+        case 'categoria': 
+            return { id: null, nome: '', status: 'Ativo', cor: '#6366f1' };
+        case 'produto': 
+            return { id: null, nome: '', preco: 0, categoriaId: '', descricao: '', estoque: 0, dataPost: formatDateToInput(new Date()), status: 'Ativo', imagem: '' };
+        case 'endereco': 
+            return { id: null, cep: '', rua: '', numero: '', cidade: '', bairro: '', estado: '' };
+        default: return {};
+    }
+}
+
+function openModal(type, item = null) {
+    modalType.value = type;
+    cepLoading.value = false;
+
+    if (item && item.id) {
+        modalData.value = { ...item };
+        if (type === 'usuario') {
+            modalData.value.dataNascimento = formatDateToInput(item.dataNascimento);
+        }
+        if (type === 'produto') {
+            modalData.value.dataPost = formatDateToInput(item.dataPost);
+        }
+    } else {
+        modalData.value = getEmptyModel(type);
+    }
+    modalOpen.value = true;
+}
+
+function closeModal() {
+    modalOpen.value = false;
+    modalData.value = {};
+}
+
+async function fetchCep() {
+    const cep = modalData.value.cep ? modalData.value.cep.replace(/\D/g, '') : '';
+    if (cep.length !== 8) return;
+
+    cepLoading.value = true;
+    try {
         const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
         const data = response.data;
 
         if (!data.erro) {
-          this.modalData.rua = data.logradouro;
-          this.modalData.cidade = data.localidade;
-          this.modalData.estado = data.uf;
-          this.modalData.bairro = data.bairro;
+            modalData.value.rua = data.logradouro;
+            modalData.value.cidade = data.localidade;
+            modalData.value.estado = data.uf;
+            modalData.value.bairro = data.bairro;
         } else {
-          alert('CEP não encontrado.'); 
-          this.modalData.rua = '';
-          this.modalData.cidade = '';
-          this.modalData.estado = '';
-          this.modalData.bairro = '';
+            alert('CEP não encontrado.');
+            modalData.value.rua = '';
+            modalData.value.cidade = '';
+            modalData.value.estado = '';
+            modalData.value.bairro = '';
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Erro ao buscar CEP:', error);
-      } finally {
-        this.cepLoading = false;
-      }
-    },
+    } finally {
+        cepLoading.value = false;
+    }
+}
 
+async function loadDataForTab(tab) {
+    loading.value = true;
+    try {
+        let endpoint = '';
+        let targetRef;
 
-    formatToDateInput(dateString) {
-      if (!dateString) return "";
-      if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
+        if (tab === "usuarios") { endpoint = "/usuarios"; targetRef = usuarios; }
+        else if (tab === "categorias") { endpoint = "/categorias"; targetRef = categorias; }
+        else if (tab === "produtos") { endpoint = "/produtos?page=1&pageSize=200"; targetRef = produtos; }
+        else if (tab === "enderecos") { endpoint = "/enderecos"; targetRef = enderecos; }
 
-      try {
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return ""; 
-
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-      } catch (e) {
-          return "";
-      }
-    },
-
-    openModal(type, item = {}) {
-      this.modalType = type;
-      this.cepLoading = false;
-
-      if (type === "usuario") {
-        this.modalData = {
-          id: item.id || null,
-          nome: item.nome || "",
-          email: item.email || "",
-          cpf: item.cpf || "",
-          telefone: item.telefone || "",
-          dataNascimento: this.formatToDateInput(item.dataNascimento),
-          senha: "",
-          isAdmin: item.isAdmin || false
-        };
-      } else if (type === "categoria") {
-        this.modalData = {
-          id: item.id || null,
-          nome: item.nome || "",
-          status: item.status || "Ativo",
-          cor: item.cor || "#6366f1"
-        };
-      } else if (type === "produto") {
-        this.modalData = {
-          id: item.id || null,
-          nome: item.nome || "",
-          preco: item.preco !== undefined && item.preco !== null ? Number(item.preco) : 0,
-          categoriaId: item.categoriaId || "",
-          descricao: item.descricao || "",
-          estoque: item.estoque !== undefined && item.estoque !== null ? Number(item.estoque) : 0,
-          dataPost: this.formatToDateInput(item.dataPost || new Date()),
-          status: item.status || "Ativo",
-          imagem: item.imagem || ""
-        };
-      } else if (type === "endereco") {
-        this.modalData = {
-          id: item.id || null,
-          cep: item.cep || "",
-          rua: item.rua || "",
-          numero: item.numero || "",
-          cidade: item.cidade || "",
-          bairro: item.bairro || "",
-          estado: item.estado || ""
-        };
-      }
-
-      this.modalOpen = true;
-    },
-
-    closeModal() {
-      this.modalOpen = false;
-      this.modalData = {};
-    },
-
-    async loadUsuarios() {
-      try {
-        const res = await connection.get("/usuarios?status=1");
-        this.usuarios = res.data;
-      } catch (error) {
-        console.error("Erro ao carregar usuários:", error);
-      }
-    },
-
-    async loadCategorias() {
-      try {
-        const res = await connection.get("/categorias");
-        this.categorias = res.data;
-      } catch (error) {
-        console.error("Erro ao carregar categorias:", error);
-      }
-    },
-
-    async loadProdutos() {
-      try {
-        const res = await connection.get("/produtos?page=1&pageSize=200");
-        this.produtos = Array.isArray(res.data) ? res.data : res.data.produtos || [];
-      } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
-      }
-    },
-
-    async loadEnderecos() {
-      try {
-        const res = await connection.get("/enderecos?status=1");
-        this.enderecos = res.data;
-      } catch (error) {
-        console.error("Erro ao carregar endereços:", error);
-      }
-    },
-
-    reloadTab() {
-      if (this.activeTab === "usuarios") this.loadUsuarios();
-      else if (this.activeTab === "categorias") this.loadCategorias();
-      else if (this.activeTab === "produtos") this.loadProdutos();
-      else if (this.activeTab === "enderecos") this.loadEnderecos();
-    },
-
-    changeTab(tab) {
-      this.activeTab = tab;
-      this.reloadTab();
-    },
-    
-    async saveData() {
-      const item = this.modalData;
-      const type = this.modalType;
-
-      let endpoint = "";
-      if (type === "usuario") endpoint = "/usuarios";
-      else if (type === "categoria") endpoint = "/categorias";
-      else if (type === "produto") endpoint = "/produtos";
-      else if (type === "endereco") endpoint = "/enderecos";
-
-      try {
-        if (item.id) {
-          await connection.patch(`${endpoint}/${item.id}`, item);
-        } else {
-          await connection.post(endpoint, item);
+        if (endpoint) {
+            const res = await connection.get(endpoint);
+            targetRef.value = Array.isArray(res.data) ? res.data : (res.data.produtos || res.data);
         }
 
-        this.closeModal();
-        this.reloadTab();
-      } catch (error) {
-        console.error(`Erro ao salvar ${type}:`, error.response ? error.response.data : error.message);
-        alert(`Falha ao salvar. Verifique o console para detalhes.`);
-      }
-    },
-    
-    async deleteData(id, type) {
-      if (!confirm(`Tem certeza que deseja excluir este(a) ${type} (ID: ${id})?`)) {
-        return;
-      }
-
-      let endpoint = "";
-      if (type === "usuario") endpoint = "/usuarios";
-      else if (type === "categoria") endpoint = "/categorias";
-      else if (type === "produto") endpoint = "/produtos";
-      else if (type === "endereco") endpoint = "/enderecos";
-
-      try {
-        await connection.delete(`${endpoint}/${id}`);
-        alert(`${type} excluído(a) com sucesso.`);
-        this.reloadTab();
-      } catch (error) {
-        console.error(`Erro ao excluir ${type}:`, error);
-        alert(`Falha ao excluir. Verifique o console para detalhes.`);
-      }
+    } catch (error) {
+        console.error(`Erro ao carregar dados da aba ${tab}:`, error);
+    } finally {
+        loading.value = false;
     }
-  },
+}
 
-  mounted() {
-    this.loadUsuarios();
-    this.loadCategorias();
-    this.loadProdutos();
-    this.loadEnderecos();
-  }
-};
+async function saveData() {
+    saving.value = true;
+    const item = modalData.value;
+    const type = modalType.value;
+    const id = item.id; 
+    const isEdit = !!id;
+
+    let endpoint = "";
+    if (type === "usuario") endpoint = "/usuarios";
+    else if (type === "categoria") endpoint = "/categorias";
+    else if (type === "produto") endpoint = "/produtos";
+    else if (type === "endereco") endpoint = "/enderecos";
+
+    try {
+        if (isEdit) {
+            await connection.patch(`${endpoint}/${id}`, item);
+        } else {
+            await connection.post(endpoint, item);
+        }
+
+        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} salvo com sucesso!`);
+        closeModal();
+        loadDataForTab(activeTab.value); 
+    } catch (error) {
+        const msg = error.response?.data?.message || error.message;
+        console.error(`Erro ao salvar ${type}:`, msg);
+        alert(`Erro ao salvar: ${msg}`);
+    } finally {
+        saving.value = false;
+    }
+}
+
+function openConfirmDialog(type, item) {
+    const isCurrentlyActive = item.status?.toLowerCase() === 'ativo';
+    confirmDialog.value = {
+        show: true,
+        type: type,
+        item: item,
+        isActivate: !isCurrentlyActive,
+        title: isCurrentlyActive ? `Desativar ${type}?` : `Reativar ${type}?`,
+        message: isCurrentlyActive 
+          ? `O registro será marcado como inativo.` 
+          : `O registro ficará visível novamente.`
+    };
+}
+
+async function confirmStatusChange() {
+    loadingStatus.value = true;
+    const { type, item, isActivate } = confirmDialog.value;
+    const newStatus = isActivate ? 'Ativo' : 'Inativo';
+    const id = item.id;
+
+    let endpoint = "";
+    if (type === "usuario") endpoint = "/usuarios";
+    else if (type === "categoria") endpoint = "/categorias";
+    else if (type === "produto") endpoint = "/produtos";
+    else if (type === "endereco") endpoint = "/enderecos";
+
+    try {
+        await connection.patch(`${endpoint}/${id}`, { status: newStatus });
+        
+        item.status = newStatus;
+        
+        confirmDialog.value.show = false;
+    } catch (error) {
+        console.error("Erro ao alterar status", error);
+        alert("Erro ao alterar status.");
+    } finally {
+        loadingStatus.value = false;
+    }
+}
+
+async function deleteData(id, type) {
+    if (!confirm(`ATENÇÃO: Isso excluirá permanentemente o ${type} (ID: ${id}). Continuar?`)) return;
+
+    let endpoint = "";
+    if (type === "usuario") endpoint = "/usuarios";
+    else if (type === "categoria") endpoint = "/categorias";
+    else if (type === "produto") endpoint = "/produtos";
+    else if (type === "endereco") endpoint = "/enderecos";
+
+    try {
+        await connection.delete(`${endpoint}/${id}`);
+        alert("Registro excluído.");
+        loadDataForTab(activeTab.value);
+    } catch (error) {
+        console.error("Erro ao excluir:", error);
+        alert("Erro ao excluir registro.");
+    }
+}
+
+watch(activeTab, (newTab) => {
+    loadDataForTab(newTab);
+});
+
+onMounted(() => {
+    
+});
+
 </script>

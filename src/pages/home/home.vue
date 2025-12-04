@@ -43,6 +43,20 @@
             <v-icon v-else color="grey-darken-2">mdi-cart-outline</v-icon>
           </v-btn>
 
+           <v-btn
+           v-if="retrieve?.admin === true"
+            prepend-icon="mdi-plus"
+            variant="flat"
+            color="deep-purple-accent-4"
+            class="text-capitalize font-weight-bold ml-2 hidden-xs"
+            rounded="lg"
+            elevation="2"
+            @click="toAdmin"
+            :disabled="carregandoProdutos"
+          >
+            Admin
+          </v-btn>
+
           <v-btn
             prepend-icon="mdi-plus"
             variant="flat"
@@ -880,6 +894,13 @@ function FazerLogout() {
 function toDetalhes(id) {
   router.push(`/produto/${id}`);
 }
+function toAdmin(){
+  if (tokenExiste.value == false) {
+    modalAlertShow.value = !modalAlertShow.value;
+    return;
+  }
+  router.push("/admin");
+}
 function toAnunciar() {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
@@ -887,6 +908,7 @@ function toAnunciar() {
   }
   router.push("/anunciar");
 }
+
 function toCarrinho() {
   if (tokenExiste.value == false) {
     modalAlertShow.value = !modalAlertShow.value;
