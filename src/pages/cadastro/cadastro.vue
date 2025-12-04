@@ -288,10 +288,27 @@ const rulesSenhasIguais = [
 ];
 
 const rulesDataNascimento = [
-  (value) => !!value || "Obrigatório preencher",
-  (value) =>
-    /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(value) ||
-    "Data inválida",
+    (value) => !!value || "Obrigatório preencher",
+    (value) =>
+        /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(value) ||
+        "Formato de data inválido (DD/MM/AAAA).",
+
+   
+    (value) => {
+        if (!value) return true;
+        
+     
+        const parts = value.split('/');
+        
+        const dataNascimento = new Date(parts[2], parts[1] - 1, parts[0]);
+        
+       
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0); 
+
+       
+        return dataNascimento <= hoje || "A data de nascimento não pode ser futura.";
+    }
 ];
 
 const rulesDDI = [
