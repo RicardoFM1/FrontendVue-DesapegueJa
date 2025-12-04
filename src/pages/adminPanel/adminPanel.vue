@@ -58,19 +58,24 @@
                     </v-chip>
                   </template>
                   <template v-slot:item.actions="{ item }">
-                    <div class="d-flex gap-2">
-                      <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="openModal('usuario', item)"></v-btn>
-                      <v-btn 
-                        :icon="item.status === 'ativo' ? 'mdi-block-helper' : 'mdi-check-circle'" 
-                        size="small" 
-                        :color="item.status === 'ativo' ? 'error' : 'success'" 
-                        variant="text" 
-                        @click="openConfirmDialog('usuario', item)"
-                      >
-                        <v-tooltip activator="parent" location="top">{{ item.status === 'ativo' ? 'Desativar' : 'Ativar' }}</v-tooltip>
-                      </v-btn>
-                    </div>
-                  </template>
+    <div class="d-flex gap-2">
+        <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="openModal('usuario', item)"></v-btn>
+        
+        <v-btn 
+            size="small" 
+            :color="item.status === 'ativo' ? 'error' : 'success'" 
+            variant="plain" @click="openConfirmDialog('usuario', item)"
+        >
+            <v-icon 
+                size="large" :icon="item.status === 'ativo' ? 'mdi-block-helper' : 'mdi-check-circle'"
+            ></v-icon>
+            
+            <v-tooltip activator="parent" location="top">
+                {{ item.status === 'ativo' ? 'Desativar' : 'Ativar' }}
+            </v-tooltip>
+        </v-btn>
+    </div>
+</template>
                 </v-data-table>
               </v-window-item>
 
@@ -505,6 +510,7 @@ const cepLoading = ref(false);
 
 const usuarios = ref([]);
 const categorias = ref([]);
+const formCategoria = ref();
 const produtos = ref([]);
 const enderecos = ref([]);
 
@@ -751,118 +757,149 @@ function closeModal() {
     }
 }
 
+
+
 async function saveData() {
     let formValid = true;
     if (modalType.value === 'usuario' && formUsuario.value) {
         const { valid } = await formUsuario.value.validate();
         formValid = valid;
+    } 
+    
+    else if (modalType.value === 'categoria' && formCategoria.value) {
+        const { valid } = await formCategoria.value.validate();
+        formValid = valid;
     }
+  
 
     if (!formValid) {
-        toast.error("Por favor, corrija os erros no formulário.");
+        toast.error("Por favor, preencha todos os campos obrigatórios corretamente.");
         return;
     }
 
     saving.value = true;
     
-    
-    const dadosBrutos = modalData.value;
-    
-    if (modalType.value === 'usuario') {
+    try {
+        let response;
+        const dataToSend = { ...modalData.value };
         
-        
-        const telefoneLimpo = dadosBrutos.telefone.replace(/\D/g, ''); 
-        const telefoneCompleto = dadosBrutos.ddi + telefoneLimpo;
+        switch (modalType.value) {
+            case 'usuario':
+                
+                dataToSend.telefone = `+${dataToSend.ddi}${dataToSend.telefone.replace(/\D/g, '')}`;
+                
+                if (dataToSend.id) {
+                   
+                    response = await connection.put(`/usuarios/${dataToSend.id}`, dataToSend);
+                } else {
+                    
+                    response = await connection.post('/usuarios', dataToSend);
+                }
+                break;
 
-        
-        const parts = dadosBrutos.data_de_nascimento.split('/');
-        const dataNascimentoFormatada = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dadosBrutos.data_de_nascimento; 
-
-        
-        const finalPayload = {
-           
-            ...(dadosBrutos.id && { Id: dadosBrutos.id }), 
-            
-            Email: dadosBrutos.email,
-
-            ...(dadosBrutos.senha && { Senha: dadosBrutos.senha }),
-            Cpf: dadosBrutos.cpf.replace(/\D/g, ''),
-            Telefone: telefoneCompleto,
-            Admin: dadosBrutos.admin ? true : false, 
-            Nome: dadosBrutos.nome,
-            Data_de_nascimento: dataNascimentoFormatada, 
-            Status: dadosBrutos.status,
-            Foto_de_perfil: dadosBrutos.fotoDePerfilUrl === 'Sem imagem' ? null : dadosBrutos.fotoDePerfilUrl,
-        };
-
-
-        let method;
-        let url;
-        
-        if (dadosBrutos.id) {
+            case 'categoria':
+                
+                const categoriaToSend = { 
+                    nome: dataToSend.Nome, 
+                    cor: dataToSend.Cor, 
+                    status: dataToSend.status 
+                };
+                
+                if (dataToSend.id) {
+                    
+                    response = await connection.patch(`/desapega/categorias/${dataToSend.id}`, categoriaToSend);
+                } else {
+                   
+                    response = await connection.post('/desapega/categorias', categoriaToSend);
+                }
+                break;
+                
          
-            method = 'patch';
-            url = `/desapega/usuarios/${dadosBrutos.id}`;
-        } else {
-     
-            method = 'post';
-            url = '/desapega/usuarios';
+
+            default:
+                throw new Error("Tipo de modal desconhecido.");
         }
 
-      
-        const requestBody = finalPayload; 
+        toast.success(`${modalType.value.charAt(0).toUpperCase() + modalType.value.slice(1)} salvo com sucesso!`);
+        closeModal();
+       await loadDataForTab(modalType.value + 's');
         
-    
-        try {
-            const response = await connection[method](url, requestBody); 
-            
-            toast.success(`Usuário ${dadosBrutos.id ? 'atualizado (PATCH)' : 'criado (POST)'} com sucesso!`);
-            closeModal();
-            await fetchData(activeTab.value); 
-        } catch (error) {
-            console.error('Erro ao salvar usuário:', error);
-            
-          
-            const errors = error.response?.data?.errors;
-            let errorMessage = '';
-
-            if (errors) {
-          
-                const allErrorMessages = Object.values(errors).flat();
-                errorMessage = allErrorMessages.join(' | ');
-            } else {
-                errorMessage = error.response?.data?.title || 'Erro desconhecido ao salvar usuário.';
-            }
-
-            toast.error(errorMessage || 'Erro de rede ou servidor.');
-        } finally {
-            saving.value = false;
-        }
-
-    } 
+        
+    } catch (error) {
+        console.error(`Erro ao salvar ${modalType.value}:`, error);
+        toast.error(`Erro ao salvar ${modalType.value}: ${error.response?.data?.message || 'Verifique a API.'}`);
+    } finally {
+        saving.value = false;
+    }
 }
+
 async function loadDataForTab(tab) {
-    loadingStatus.value = true;
+    loading.value = true;
     let endpoint = "";
     let dataRef = null;
+    let tabName = "";
 
-    if (tab === "usuarios") { endpoint = "/desapega/usuarios"; dataRef = usuarios; }
-    else if (tab === "categorias") { endpoint = "/desapega/categorias"; dataRef = categorias; }
-    else if (tab === "produtos") { endpoint = "/desapega/produtos"; dataRef = produtos; }
-    else if (tab === "enderecos") { endpoint = "/desapega/enderecos"; dataRef = enderecos; }
+   
+    if (tab === "usuarios") { endpoint = "/desapega/usuarios"; dataRef = usuarios; tabName = "usuarios"; }
+    else if (tab === "categorias") { endpoint = "/desapega/categorias"; dataRef = categorias; tabName = "categorias"; }
+    else if (tab === "produtos") { endpoint = "/desapega/produtos"; dataRef = produtos; tabName = "produtos"; } // dataRef aqui é 'produtos'
+    else if (tab === "enderecos") { endpoint = "/desapega/enderecos"; dataRef = enderecos; tabName = "enderecos"; }
+    
+   
+    if (dataRef) {
+        dataRef.value = []; 
+    }
 
     if (endpoint) {
         try {
             const response = await connection.get(endpoint);
-            dataRef.value = response.data;
+            const data = response.data; 
+
+           
+            if (tabName === "produtos") {
+             
+                if (data && Array.isArray(data.produtos)) {
+                    dataRef.value = data.produtos.map(item => ({
+                       
+                        ...item,
+                     
+                        dataPost: item.dataPost || item.data_post 
+                    }));
+                } else {
+                  
+                    console.warn(`A API de ${tabName} não retornou um array esperado na chave 'produtos'.`);
+                    dataRef.value = [];
+                }
+            } 
+          
+            
+            else { 
+               
+                if (Array.isArray(data)) {
+                    dataRef.value = data;
+                } else {
+                    console.warn(`A API de ${tabName} não retornou um array esperado. Dados recebidos:`, data);
+                    dataRef.value = [];
+                }
+            }
+            
+            
+            if (tabName === "categorias" && Array.isArray(dataRef.value)) {
+                 dataRef.value = dataRef.value.map(item => ({
+                    ...item,
+                    Cor: item.cor, 
+                    Nome: item.nome, 
+                }));
+            }
+            
         } catch (error) {
             console.error(`Erro ao carregar dados de ${tab}:`, error);
+            dataRef.value = []; 
         } finally {
-            loadingStatus.value = false;
+            loading.value = false;
         }
     }
 }
-
 async function fetchCep() {
     const cep = modalData.value.cep ? modalData.value.cep.replace(/\D/g, '') : '';
     if (cep.length !== 8) return;
@@ -886,11 +923,25 @@ async function fetchCep() {
 }
 
 
-function openConfirmDialog(item, type, isActivate, message) {
+function openConfirmDialog(type, item) {
+   
+    const isCurrentlyActive = item.status === 'ativo'; 
+    const isActivateAction = !isCurrentlyActive; 
+
+   
+    const entityName = type.charAt(0).toUpperCase() + type.slice(1); 
+    const actionVerb = isActivateAction ? 'ativar' : 'desativar';
+    
+    
+    const title = `Confirmar ${isActivateAction ? 'Ativação' : 'Desativação'}`;
+    const message = `Tem certeza que deseja ${actionVerb} este ${entityName}?`;
+
+
+   
     confirmDialog.value.item = item;
     confirmDialog.value.type = type;
-    confirmDialog.value.isActivate = isActivate;
-    confirmDialog.value.title = isActivate ? 'Confirmar Ativação' : 'Confirmar Desativação';
+    confirmDialog.value.isActivate = isActivateAction; 
+    confirmDialog.value.title = title;
     confirmDialog.value.message = message;
     confirmDialog.value.show = true;
 }
@@ -899,27 +950,58 @@ async function confirmStatusChange() {
     loading.value = true;
     const item = confirmDialog.value.item;
     const type = confirmDialog.value.type;
-    const newStatus = confirmDialog.value.isActivate ? 'ativo' : 'inativo';
+    const isActivating = confirmDialog.value.isActivate; 
+    const newStatus = isActivating ? 'ativo' : 'inativo';
     const id = item.id;
     
     let endpoint = "";
-    if (type === "usuario") endpoint = "/usuarios";
-    else if (type === "categoria") endpoint = "/categorias";
-    else if (type === "produto") endpoint = "/produtos";
-
+    
+   
+    if (type === "usuario") endpoint = "/desapega/usuarios";
+    else if (type === "categoria") endpoint = "/desapega/categorias";
+    else if (type === "produto") endpoint = "/desapega/produtos";
+    
+   
+    if (!id || !endpoint) {
+        toast.error("ID ou endpoint inválido para a alteração de status.");
+        loading.value = false;
+        return;
+    }
+    
+    
+    const statusPayload = { Status: newStatus };
+    const requestBody = statusPayload;
+    
     try {
-        await connection.patch(`${endpoint}/${id}`, { status: newStatus });
-        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} ${newStatus} com sucesso!`);
-        confirmDialog.value.show = false;
-        loadDataForTab(activeTab.value);
+        const url = `${endpoint}/${id}`;
+       
+        const res = await connection.patch(url, requestBody);
+        
+      
+        if(res.status === 200 || res.status === 204){ 
+            const action = isActivating ? 'ativado' : 'desativado';
+            const entityName = type.charAt(0).toUpperCase() + type.slice(1);
+            
+            toast.success(`${entityName} ${action} com sucesso!`);
+            confirmDialog.value.show = false;
+           
+            await loadDataForTab(activeTab.value); 
+        } else {
+             
+             toast.warning(`Alteração de status falhou com status: ${res.status}.`);
+        }
+        
     } catch (error) {
-        const msg = error.response?.data?.message || error.message;
-        alert(`Erro ao alterar status: ${msg}`);
+        console.error('Erro no status change:', error);
+        
+        
+        const msg = error.response?.data?.title || error.response?.data?.message || 'Erro de conexão com o servidor.';
+        toast.error(`Erro ao alterar status: ${msg}`);
+        
     } finally {
         loading.value = false;
     }
 }
-
 
 watch(activeTab, (newTab) => {
     loadDataForTab(newTab);
