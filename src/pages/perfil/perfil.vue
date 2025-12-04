@@ -32,22 +32,23 @@
       >
         Anunciar
       </v-btn>
-      <v-btn
-        icon
-        class="mr-2"
-        @click="toCarrinho"
-        :disabled="carregandoProdutos"
-      >
-        <v-badge
-          color="error"
-          :content="carrinho.length"
-          :model-value="carrinho.length > 0"
-          offset-x="-1"
-          offset-y="-1"
-        >
-          <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
-        </v-badge>
-      </v-btn>
+      <v-btn 
+            icon 
+            class="mr-2" 
+            @click="toCarrinho"
+            :disabled="carregandoProdutos"
+          >
+            <v-badge 
+              color="error" 
+              :content="carrinho.length" 
+              v-if="carrinho.length > 0"
+              offset-x="-1" 
+              offset-y="-1"
+            >
+              <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
+            </v-badge>
+            <v-icon v-else color="grey-darken-2">mdi-cart-outline</v-icon>
+          </v-btn>
       <v-menu v-model="menu" offset-y location="bottom end">
         <template #activator="{ props }">
           <v-tooltip text="Mais opções" location="top">
