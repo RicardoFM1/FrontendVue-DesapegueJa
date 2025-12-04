@@ -205,59 +205,166 @@
               <v-container>
                 
                 <v-form v-if="modalType === 'usuario'" ref="formUsuario">
-                  <v-row>
-                    <v-col cols="12" md="6">
-                      <v-text-field v-model="modalData.Nome" label="Nome de usuário" variant="outlined" density="comfortable" :rules="[rules.required]"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-text-field v-model="modalData.Email" label="E-mail" variant="outlined" density="comfortable" :rules="[rules.required, rules.email]"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-text-field v-model="modalData.Cpf" label="CPF" variant="outlined" density="comfortable" hint="Apenas números"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-text-field v-model="modalData.Telefone" label="Telefone" variant="outlined" density="comfortable"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-text-field v-model="modalData.data_de_nascimento" label="Data de Nascimento" type="date" variant="outlined" density="comfortable"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-text-field 
-                        v-if="!modalData.id && !modalData.Id" 
-                        v-model="modalData.Senha" 
-                        label="Senha" 
-                        type="password" 
-                        variant="outlined" 
+    <v-row class="justify-center mb-6">
+        <v-col cols="12" class="text-center">
+            <v-avatar class="mb-3" size="120" color="grey-lighten-3">
+                <template v-if="!modalData.fotoDePerfilUrl || modalData.fotoDePerfilUrl == 'Sem imagem'">
+                    <v-icon size="80" color="grey-darken-1">mdi-account-circle</v-icon>
+                </template>
+                <template v-else>
+                    <v-img :src="modalData.fotoDePerfilUrl" alt="Foto de Perfil" cover />
+                </template>
+            </v-avatar>
+
+            <div class="mt-3">
+                <v-btn
+                    variant="tonal"
+                    color="primary"
+                    class="mr-3"
+                    @click="abrirExplorador"
+                    prepend-icon="mdi-camera"
+                    :disabled="saving"
+                >
+                    Alterar Foto
+                </v-btn>
+                <v-btn
+                    variant="outlined"
+                    color="red"
+                    @click="removerImagem"
+                    prepend-icon="mdi-delete"
+                    :disabled="saving || !modalData.fotoDePerfilUrl || modalData.fotoDePerfilUrl == 'Sem imagem'"
+                >
+                    Remover
+                </v-btn>
+            </div>
+
+            <input
+                type="file"
+                ref="inputArquivo"
+                accept="image/png, image/jpeg"
+                @change="carregarImagem"
+                style="display: none"
+            />
+        </v-col>
+    </v-row>
+
+    <v-row>
+        <v-col cols="12" md="6">
+            <v-text-field 
+                v-model="modalData.nome" 
+                label="Nome de Usuário" 
+                variant="outlined" 
+                density="comfortable" 
+                :rules="[rules.required]"
+                prepend-inner-icon="mdi-account"
+            ></v-text-field>
+        </v-col>
+        <v-col cols="12" md="6">
+            <v-text-field 
+                v-model="modalData.email" 
+                label="E-mail" 
+                variant="outlined" 
+                density="comfortable" 
+                :rules="rules.rulesEmail"
+                prepend-inner-icon="mdi-email"
+            ></v-text-field>
+        </v-col>
+        
+        <v-col cols="12" md="6">
+            <v-text-field 
+                v-model="modalData.cpf" 
+                label="CPF" 
+                variant="outlined" 
+                density="comfortable" 
+                placeholder="000.000.000-00"
+                :rules="rules.rulesCpf"
+                @input="modalData.cpf = formatCPF(modalData.cpf)"
+                maxlength="14"
+                prepend-inner-icon="mdi-card-account-details"
+            ></v-text-field>
+        </v-col>
+        
+        <v-col cols="12" md="6">
+            <v-menu
+                :close-on-content-click="false"
+                offset-y
+                min-width="auto"
+            >
+                <template v-slot:activator="{ props }">
+                    <v-text-field
+                        v-bind="props"
+                        v-model="modalData.data_de_nascimento" label="Data de Nascimento"
+                        variant="outlined"
                         density="comfortable"
-                        :rules="[rules.required]"
-                      ></v-text-field>
-                      <v-text-field 
-                        v-else 
-                        v-model="modalData.Senha" 
-                        label="Nova Senha (Opcional)" 
-                        type="password" 
-                        variant="outlined" 
-                        density="comfortable"
-                        hint="Deixe em branco para manter a atual"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12">
-                      <v-text-field v-model="modalData.Foto_De_Perfil" label="URL da Foto de Perfil" variant="outlined" density="comfortable"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" class="d-flex">
-                      <v-checkbox v-model="modalData.Admin" label="Acesso Administrativo" color="primary"></v-checkbox>
-                      <v-select 
-                        v-model="modalData.status" 
-                        :items="['ativo', 'inativo']" 
-                        label="Status" 
-                        variant="outlined" 
-                        density="compact"
-                        class="ml-4 mt-2"
-                        style="max-width: 150px;"
-                      ></v-select>
-                    </v-col>
-                  </v-row>
-                </v-form>
+                        placeholder="DD/MM/AAAA"
+                        :rules="rules.rulesDataNascimento"
+                        @input="modalData.data_de_nascimento = formatData(modalData.data_de_nascimento)"
+                        maxlength="10"
+                        prepend-inner-icon="mdi-calendar"
+                    ></v-text-field>
+                </template>
+                <v-date-picker
+                    :model-value="convertToInputDate(modalData.data_de_nascimento)" @update:model-value="(date) => modalData.data_de_nascimento = convertToDisplayDate(date)" hide-actions
+                    show-adjacent-months
+                    title="Selecione a Data"
+                    :max="new Date().toISOString().substr(0, 10)" 
+                ></v-date-picker>
+            </v-menu>
+        </v-col>
+
+        <v-col cols="12" md="4">
+            <v-select
+                :items="ddiOptions"
+                v-model="modalData.ddi"
+                item-title="text"
+                item-value="value"
+                label="DDI"
+                variant="outlined"
+                density="comfortable"
+                :rules="rules.rulesDDI"
+            ></v-select>
+        </v-col>
+
+        <v-col cols="12" md="8">
+            <v-text-field 
+                v-model="modalData.telefone" 
+                label="Telefone (Sem DDI)" 
+                variant="outlined" 
+                density="comfortable" 
+                :rules="rules.rulesTelefone"
+                prepend-inner-icon="mdi-phone"
+            ></v-text-field>
+        </v-col>
+
+        <v-col cols="12">
+            <v-text-field 
+                v-model="modalData.senha" 
+                :type="mostrarSenha ? 'text' : 'password'"
+                :label="modalData.id ? 'Nova Senha (opcional)' : 'Senha'" 
+                variant="outlined" 
+                density="comfortable"
+                :rules="modalData.id ? rules.rulesSenha : [rules.required, ...rules.rulesSenha]"
+                prepend-inner-icon="mdi-lock"
+                :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
+                @click:append-inner="mostrarSenha = !mostrarSenha"
+                :hint="modalData.id ? 'Deixe em branco para não alterar.' : ''"
+                persistent-hint
+            ></v-text-field>
+        </v-col>
+
+        <v-col cols="12" class="d-flex">
+            <v-checkbox v-model="modalData.admin" label="Acesso Administrativo" color="primary"></v-checkbox> <v-select 
+                v-model="modalData.status" 
+                :items="['ativo', 'inativo']" 
+                label="Status" 
+                variant="outlined" 
+                density="compact"
+                class="ml-4 mt-2"
+                style="max-width: 150px;"
+            ></v-select>
+        </v-col>
+    </v-row>
+</v-form>
 
                 <v-form v-if="modalType === 'categoria'" ref="formCategoria">
                   <v-row>
@@ -379,6 +486,13 @@
 import { ref, watch, onMounted } from 'vue';
 import { connection } from "@/connection/axiosConnection.js";
 import axios from 'axios';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+import "@mdi/font/css/materialdesignicons.css";
+
+const formUsuario = ref(null);
+const inputArquivo = ref(null);
+const mostrarSenha = ref(false);
 
 const activeTab = ref("usuarios");
 const loading = ref(false);
@@ -438,10 +552,134 @@ const enderecoHeaders = [
     { title: 'Ações', key: 'actions', sortable: false, align: 'end' },
 ];
 
+const ddiOptions = ref([
+    { text: '+55 (Brasil)', value: '55' },
+    { text: '+1 (EUA/Canadá)', value: '1' },
+    { text: '+44 (Reino Unido)', value: '44' },
+    { text: '+351 (Portugal)', value: '351' },
+]);
+
+function isValidCpf(cpf) {
+    if (!cpf) return true;
+    cpf = cpf.replace(/[^\d]+/g, '');
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; 
+    let sum = 0;
+    let remainder;
+    for (let i = 1; i <= 9; i++) sum = sum + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+    remainder = (sum * 10) % 11;
+    if ((remainder === 10) || (remainder === 11)) remainder = 0;
+    if (remainder !== parseInt(cpf.substring(9, 10))) return false;
+    sum = 0;
+    for (let i = 1; i <= 10; i++) sum = sum + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+    remainder = (sum * 10) % 11;
+    if ((remainder === 10) || (remainder === 11)) remainder = 0;
+    if (remainder !== parseInt(cpf.substring(10, 11))) return false;
+    return true;
+}
+
+function formatCPF(value) {
+    if (!value) return '';
+    value = value.replace(/\D/g, '');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    return value;
+}
+
+function formatData(value) {
+    if (!value) return '';
+    value = value.replace(/\D/g, ''); 
+    value = value.replace(/(\d{2})(\d)/, '$1/$2');
+    value = value.replace(/(\d{2})(\d)/, '$1/$2');
+    return value.substring(0, 10);
+}
+
+function isValidDateOfBirth(dateString) {
+    if (!dateString) return true;
+    const parts = dateString.split('/');
+    if (parts.length !== 3) return "Formato deve ser DD/MM/AAAA.";
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return "Data inválida.";
+    if (month < 1 || month > 12) return "Mês inválido (1 a 12)."; 
+    
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+        return "Dia inválido para o mês/ano.";
+    }
+
+    if (date > new Date()) return "Data não pode ser futura.";
+    
+    return true;
+}
+
+function convertToInputDate(dateString) {
+    if (!dateString || dateString.length !== 10) return '';
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return '';
+}
+
+function convertToDisplayDate(dateString) {
+    if (!dateString || dateString.length !== 10) return '';
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return '';
+}
+
+
 const rules = {
     required: value => !!value || 'Campo obrigatório.',
     email: value => /.+@.+\..+/.test(value) || 'E-mail inválido.',
+    
+    rulesEmail: [
+        value => !!value || 'E-mail é obrigatório.',
+        value => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(value) || "E-mail inválido",
+    ],
+    rulesSenha: [
+        value => !modalData.value.id || !!value || true,
+        value => !value || value.length >= 8 || 'Mínimo de 8 caracteres.',
+        value => !value || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(value) || "1 maiúscula, 1 minúscula, 1 número e 1 símbolo.",
+    ],
+    rulesCpf: [
+        value => !!value || 'CPF é obrigatório.',
+        value => value.length === 14 || 'CPF incompleto.',
+        value => isValidCpf(value) || 'CPF inválido.'
+    ],
+    rulesDataNascimento: [
+        value => !!value || 'Data de Nascimento é obrigatória.',
+        value => isValidDateOfBirth(value) === true || isValidDateOfBirth(value)
+    ],
+    rulesDDI: [
+        value => !!value || 'DDI é obrigatório.'
+    ],
+    rulesTelefone: [
+        value => !!value || 'Telefone é obrigatório.'
+    ]
 };
+
+function abrirExplorador() {
+    inputArquivo.value.click();
+}
+
+function carregarImagem(event) {
+    const file = event.target.files[0];
+    if (file) {
+        modalData.value.fotoDePerfilUrl = URL.createObjectURL(file);
+    }
+}
+
+function removerImagem() {
+    modalData.value.fotoDePerfilUrl = null;
+    modalData.value.imagem = 'Sem imagem'; 
+    inputArquivo.value.value = null;
+}
 
 function formatDateToInput(dateString) {
     if (!dateString) return "";
@@ -459,7 +697,7 @@ function formatDateToInput(dateString) {
 function getEmptyModel(type) {
     switch(type) {
         case 'usuario': 
-            return { id: null, nome: '', email: '', cpf: '', telefone: '', senha: '', isAdmin: false, dataNascimento: '' };
+            return { id: null, nome: '', email: '', cpf: '', telefone: '', senha: '', admin: false, data_de_nascimento: '', ddi: '55', imagem: null, fotoDePerfilUrl: null, status: 'ativo' };
         case 'categoria': 
             return { id: null, nome: '', status: 'Ativo', cor: '#6366f1' };
         case 'produto': 
@@ -477,7 +715,24 @@ function openModal(type, item = null) {
     if (item && item.id) {
         modalData.value = { ...item };
         if (type === 'usuario') {
-            modalData.value.dataNascimento = formatDateToInput(item.dataNascimento);
+           
+            let fullPhone = item.telefone || '';
+            let ddiMatch = fullPhone.match(/^\+(\d+)/);
+            
+            if (ddiMatch) {
+                modalData.value.ddi = ddiMatch[1];
+                modalData.value.telefone = fullPhone.replace(ddiMatch[0], '').trim();
+            } else {
+      
+                modalData.value.ddi = fullPhone.substring(0, 2) || '55';
+                modalData.value.telefone = fullPhone.substring(2);
+            }
+
+            modalData.value.cpf = formatCPF(item.cpf);
+            modalData.value.fotoDePerfilUrl = item.foto_de_perfil; 
+            modalData.value.data_de_nascimento = convertToDisplayDate(item.data_de_nascimento);
+            
+            modalData.value.admin = item.admin ? true : false; 
         }
         if (type === 'produto') {
             modalData.value.dataPost = formatDateToInput(item.dataPost);
@@ -491,6 +746,121 @@ function openModal(type, item = null) {
 function closeModal() {
     modalOpen.value = false;
     modalData.value = {};
+    if (formUsuario.value) {
+        formUsuario.value.resetValidation();
+    }
+}
+
+async function saveData() {
+    let formValid = true;
+    if (modalType.value === 'usuario' && formUsuario.value) {
+        const { valid } = await formUsuario.value.validate();
+        formValid = valid;
+    }
+
+    if (!formValid) {
+        toast.error("Por favor, corrija os erros no formulário.");
+        return;
+    }
+
+    saving.value = true;
+    
+    
+    const dadosBrutos = modalData.value;
+    
+    if (modalType.value === 'usuario') {
+        
+        
+        const telefoneLimpo = dadosBrutos.telefone.replace(/\D/g, ''); 
+        const telefoneCompleto = dadosBrutos.ddi + telefoneLimpo;
+
+        
+        const parts = dadosBrutos.data_de_nascimento.split('/');
+        const dataNascimentoFormatada = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dadosBrutos.data_de_nascimento; 
+
+        
+        const finalPayload = {
+           
+            ...(dadosBrutos.id && { Id: dadosBrutos.id }), 
+            
+            Email: dadosBrutos.email,
+
+            ...(dadosBrutos.senha && { Senha: dadosBrutos.senha }),
+            Cpf: dadosBrutos.cpf.replace(/\D/g, ''),
+            Telefone: telefoneCompleto,
+            Admin: dadosBrutos.admin ? true : false, 
+            Nome: dadosBrutos.nome,
+            Data_de_nascimento: dataNascimentoFormatada, 
+            Status: dadosBrutos.status,
+            Foto_de_perfil: dadosBrutos.fotoDePerfilUrl === 'Sem imagem' ? null : dadosBrutos.fotoDePerfilUrl,
+        };
+
+
+        let method;
+        let url;
+        
+        if (dadosBrutos.id) {
+         
+            method = 'patch';
+            url = `/desapega/usuarios/${dadosBrutos.id}`;
+        } else {
+     
+            method = 'post';
+            url = '/desapega/usuarios';
+        }
+
+      
+        const requestBody = finalPayload; 
+        
+    
+        try {
+            const response = await connection[method](url, requestBody); 
+            
+            toast.success(`Usuário ${dadosBrutos.id ? 'atualizado (PATCH)' : 'criado (POST)'} com sucesso!`);
+            closeModal();
+            await fetchData(activeTab.value); 
+        } catch (error) {
+            console.error('Erro ao salvar usuário:', error);
+            
+          
+            const errors = error.response?.data?.errors;
+            let errorMessage = '';
+
+            if (errors) {
+          
+                const allErrorMessages = Object.values(errors).flat();
+                errorMessage = allErrorMessages.join(' | ');
+            } else {
+                errorMessage = error.response?.data?.title || 'Erro desconhecido ao salvar usuário.';
+            }
+
+            toast.error(errorMessage || 'Erro de rede ou servidor.');
+        } finally {
+            saving.value = false;
+        }
+
+    } 
+}
+async function loadDataForTab(tab) {
+    loadingStatus.value = true;
+    let endpoint = "";
+    let dataRef = null;
+
+    if (tab === "usuarios") { endpoint = "/desapega/usuarios"; dataRef = usuarios; }
+    else if (tab === "categorias") { endpoint = "/desapega/categorias"; dataRef = categorias; }
+    else if (tab === "produtos") { endpoint = "/desapega/produtos"; dataRef = produtos; }
+    else if (tab === "enderecos") { endpoint = "/desapega/enderecos"; dataRef = enderecos; }
+
+    if (endpoint) {
+        try {
+            const response = await connection.get(endpoint);
+            dataRef.value = response.data;
+        } catch (error) {
+            console.error(`Erro ao carregar dados de ${tab}:`, error);
+        } finally {
+            loadingStatus.value = false;
+        }
+    }
 }
 
 async function fetchCep() {
@@ -500,147 +870,68 @@ async function fetchCep() {
     cepLoading.value = true;
     try {
         const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-        const data = response.data;
-
-        if (!data.erro) {
-            modalData.value.rua = data.logradouro;
-            modalData.value.cidade = data.localidade;
-            modalData.value.estado = data.uf;
-            modalData.value.bairro = data.bairro;
-        } else {
+        if (response.data.erro) {
             alert('CEP não encontrado.');
-            modalData.value.rua = '';
-            modalData.value.cidade = '';
-            modalData.value.estado = '';
-            modalData.value.bairro = '';
+            return;
         }
+        modalData.value.rua = response.data.logradouro;
+        modalData.value.bairro = response.data.bairro;
+        modalData.value.cidade = response.data.localidade;
+        modalData.value.estado = response.data.uf;
     } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
+        alert('Erro ao buscar CEP. Tente novamente.');
     } finally {
         cepLoading.value = false;
     }
 }
 
-async function loadDataForTab(tab) {
+
+function openConfirmDialog(item, type, isActivate, message) {
+    confirmDialog.value.item = item;
+    confirmDialog.value.type = type;
+    confirmDialog.value.isActivate = isActivate;
+    confirmDialog.value.title = isActivate ? 'Confirmar Ativação' : 'Confirmar Desativação';
+    confirmDialog.value.message = message;
+    confirmDialog.value.show = true;
+}
+
+async function confirmStatusChange() {
     loading.value = true;
+    const item = confirmDialog.value.item;
+    const type = confirmDialog.value.type;
+    const newStatus = confirmDialog.value.isActivate ? 'ativo' : 'inativo';
+    const id = item.id;
+    
+    let endpoint = "";
+    if (type === "usuario") endpoint = "/usuarios";
+    else if (type === "categoria") endpoint = "/categorias";
+    else if (type === "produto") endpoint = "/produtos";
+
     try {
-        let endpoint = '';
-        let targetRef;
-
-        if (tab === "usuarios") { endpoint = "/usuarios"; targetRef = usuarios; }
-        else if (tab === "categorias") { endpoint = "/categorias"; targetRef = categorias; }
-        else if (tab === "produtos") { endpoint = "/produtos?page=1&pageSize=200"; targetRef = produtos; }
-        else if (tab === "enderecos") { endpoint = "/enderecos"; targetRef = enderecos; }
-
-        if (endpoint) {
-            const res = await connection.get(endpoint);
-            targetRef.value = Array.isArray(res.data) ? res.data : (res.data.produtos || res.data);
-        }
-
+        await connection.patch(`${endpoint}/${id}`, { status: newStatus });
+        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} ${newStatus} com sucesso!`);
+        confirmDialog.value.show = false;
+        loadDataForTab(activeTab.value);
     } catch (error) {
-        console.error(`Erro ao carregar dados da aba ${tab}:`, error);
+        const msg = error.response?.data?.message || error.message;
+        alert(`Erro ao alterar status: ${msg}`);
     } finally {
         loading.value = false;
     }
 }
 
-async function saveData() {
-    saving.value = true;
-    const item = modalData.value;
-    const type = modalType.value;
-    const id = item.id; 
-    const isEdit = !!id;
-
-    let endpoint = "";
-    if (type === "usuario") endpoint = "/usuarios";
-    else if (type === "categoria") endpoint = "/categorias";
-    else if (type === "produto") endpoint = "/produtos";
-    else if (type === "endereco") endpoint = "/enderecos";
-
-    try {
-        if (isEdit) {
-            await connection.patch(`${endpoint}/${id}`, item);
-        } else {
-            await connection.post(endpoint, item);
-        }
-
-        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} salvo com sucesso!`);
-        closeModal();
-        loadDataForTab(activeTab.value); 
-    } catch (error) {
-        const msg = error.response?.data?.message || error.message;
-        console.error(`Erro ao salvar ${type}:`, msg);
-        alert(`Erro ao salvar: ${msg}`);
-    } finally {
-        saving.value = false;
-    }
-}
-
-function openConfirmDialog(type, item) {
-    const isCurrentlyActive = item.status?.toLowerCase() === 'ativo';
-    confirmDialog.value = {
-        show: true,
-        type: type,
-        item: item,
-        isActivate: !isCurrentlyActive,
-        title: isCurrentlyActive ? `Desativar ${type}?` : `Reativar ${type}?`,
-        message: isCurrentlyActive 
-          ? `O registro será marcado como inativo.` 
-          : `O registro ficará visível novamente.`
-    };
-}
-
-async function confirmStatusChange() {
-    loadingStatus.value = true;
-    const { type, item, isActivate } = confirmDialog.value;
-    const newStatus = isActivate ? 'Ativo' : 'Inativo';
-    const id = item.id;
-
-    let endpoint = "";
-    if (type === "usuario") endpoint = "/usuarios";
-    else if (type === "categoria") endpoint = "/categorias";
-    else if (type === "produto") endpoint = "/produtos";
-    else if (type === "endereco") endpoint = "/enderecos";
-
-    try {
-        await connection.patch(`${endpoint}/${id}`, { status: newStatus });
-        
-        item.status = newStatus;
-        
-        confirmDialog.value.show = false;
-    } catch (error) {
-        console.error("Erro ao alterar status", error);
-        alert("Erro ao alterar status.");
-    } finally {
-        loadingStatus.value = false;
-    }
-}
-
-async function deleteData(id, type) {
-    if (!confirm(`ATENÇÃO: Isso excluirá permanentemente o ${type} (ID: ${id}). Continuar?`)) return;
-
-    let endpoint = "";
-    if (type === "usuario") endpoint = "/usuarios";
-    else if (type === "categoria") endpoint = "/categorias";
-    else if (type === "produto") endpoint = "/produtos";
-    else if (type === "endereco") endpoint = "/enderecos";
-
-    try {
-        await connection.delete(`${endpoint}/${id}`);
-        alert("Registro excluído.");
-        loadDataForTab(activeTab.value);
-    } catch (error) {
-        console.error("Erro ao excluir:", error);
-        alert("Erro ao excluir registro.");
-    }
-}
 
 watch(activeTab, (newTab) => {
     loadDataForTab(newTab);
 });
 
-onMounted(() => {
-    
-});
+watch(modalData, (newVal) => {
+    if (modalType.value === 'usuario' && !newVal.ddi) {
+        modalData.value.ddi = ddiOptions.value[0].value;
+    }
+}, { deep: true });
 
+onMounted(() => {
+    loadDataForTab(activeTab.value); 
+});
 </script>
