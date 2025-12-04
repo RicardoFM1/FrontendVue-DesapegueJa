@@ -202,6 +202,7 @@
               <v-col
                 v-for="(item, index) in itensFiltrados"
                 :key="item.id + '-' + index"
+                
                 cols="12"
                 sm="6"
                 md="4"
@@ -262,7 +263,11 @@
                         <v-icon size="14" class="mr-1">mdi-account</v-icon>
                         <span class="text-truncate text-h6">{{ vendedor.find((v) => v.id == item.usuario_id)?.nome || "Vendedor" }}</span>
                      </div>
-                     <div class="d-flex align-center text-grey mt-1 text-h6">
+                     <div v-if="item.estoque <= 0" class="d-flex align-center text-red mt-1 text-h6">
+                        <v-icon size="14" class="mr-1">mdi-alert</v-icon>
+                        ESGOTADO
+                     </div>
+                     <div v-else class="d-flex align-center text-grey mt-1 text-h6">
                         <v-icon size="14" class="mr-1">mdi-package-variant</v-icon>
                         {{ item.estoque }} disponível
                      </div>
