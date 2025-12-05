@@ -18,6 +18,8 @@ export const connection = axios.create({
   },
 });
 
+
+
 connection.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
@@ -41,9 +43,9 @@ connection.interceptors.response.use(
     const status = error.response ? error.response.status : null;
     const originalRequestUrl = error.config.url;
 
-    const loginRoute = "/usuarios/login";
+   const loginRoute = "/desapega/usuarios/login";
 
-    if (status === 401 && originalRequestUrl !== loginRoute) {
+    if (status === 401 && error.config.url !== loginRoute) {
       localStorage.removeItem("token");
       localStorage.removeItem("usuario");
       window.location.href = "/login";
