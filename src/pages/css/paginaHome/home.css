@@ -94,3 +94,69 @@
   font-weight: bold;
   font-size: 22px;
 }
+.seller-item {
+  transition: all 0.2s ease-in-out;
+  border: 1px solid rgba(0,0,0,0.05); 
+  background-color: white;
+  cursor: pointer;
+}
+
+.seller-item:hover {
+  transform: translateY(-2px);
+  background-color: #fafafa;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+
+.seller-item:hover .arrow-btn {
+  transform: translateX(4px);
+}
+
+.arrow-btn {
+  transition: transform 0.2s ease;
+}
+
+
+.v-card-text::-webkit-scrollbar {
+  width: 6px;
+}
+.v-card-text::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.v-card-text::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.v-card-text::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+.product-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background-color: white;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+  border-color: transparent !important;
+}
+
+
+.sticky-search {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.search-bar-shadow.v-field--focused {
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+}
+
+
+@media (max-width: 600px) {
+  .v-toolbar-title {
+    font-size: 1rem;
+  }
+}

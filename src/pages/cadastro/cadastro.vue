@@ -2,16 +2,10 @@
   <div class="fundoCadastro">
     <div class="divFormCadastro">
       <v-sheet
-        style="
-          display: flex;
-          border-radius: 10px;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          padding: 18px;
-          width: 30%;
-        "
-        class="sheetCadastro"
+        class="sheetCadastro pa-6 pa-sm-8 elevation-4"
+        rounded="lg"
+        width="450"
+        style="max-width: 90%;"
       >
         <v-form
           :disabled="loading"
@@ -19,113 +13,198 @@
           ref="form"
           @submit.prevent="onSubmit"
         >
-          <div class="divImageLogo">
+          <div class="divImageLogo text-center mb-4">
             <v-img
-              style="padding: 12px 0 0 12px"
-              width="100%"
-              height="auto"
+              max-width="300"
+              class="mx-auto"
               src="desapegueja-logo.svg"
             ></v-img>
           </div>
 
-          <h1 class="tituloCadastro">Cadastro</h1>
+          <h1 class="tituloCadastro text-h5 font-weight-bold text-center mb-2 text-primary">
+            Crie sua conta
+          </h1>
+          <p class="text-center text-medium-emphasis mb-6">
+            Preencha os campos para se cadastrar.
+          </p>
+
           <v-text-field
             label="Nome de usuário"
-            prepend-inner-icon="mdi-account"
+            prepend-inner-icon="mdi-account-circle-outline"
             v-model="usuario.Nome"
             type="text"
-            base-color="#293559"
-            
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-2"
+            hide-details="auto"
           ></v-text-field>
+          
           <v-text-field
             label="Email"
-            prepend-inner-icon="mdi-email"
+            prepend-inner-icon="mdi-email-outline"
             v-model="usuario.email"
             type="email"
-            base-color="#293559"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-2"
             :rules="rulesEmail"
+            hide-details="auto"
           ></v-text-field>
+
           <v-text-field
             label="Senha"
             v-model="usuario.senha"
-            prepend-inner-icon="mdi-lock"
-            :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+            prepend-inner-icon="mdi-lock-outline"
+            :append-inner-icon="show ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
             @click:append-inner="show = !show"
             @paste.prevent
             :type="show ? 'text' : 'password'"
-            base-color="#293559"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-2"
             :rules="rulesSenha"
+            hide-details="auto"
           ></v-text-field>
+          
           <v-text-field
             label="Confirmar senha"
-            prepend-inner-icon="mdi-lock"
+            prepend-inner-icon="mdi-lock-check-outline"
             v-model="usuario.confirmSenha"
-            :append-inner-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
+            :append-inner-icon="show2 ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
             @click:append-inner="show2 = !show2"
             @paste.prevent
             :type="show2 ? 'text' : 'password'"
-            base-color="#293559"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-4"
             :rules="rulesSenhasIguais"
+            hide-details="auto"
           ></v-text-field>
+          
+          <v-divider class="my-4"></v-divider>
+          <p class="text-subtitle-1 font-weight-bold text-medium-emphasis mb-4">Dados Pessoais</p>
+
           <v-text-field
             ref="inputCPF"
             label="CPF"
             v-model="usuario.CPF"
-            prepend-inner-icon="mdi-card-account-details"
-            base-color="#293559"
+            prepend-inner-icon="mdi-card-account-details-outline"
             placeholder="000.000.000-00"
             @input="usuario.CPF = usuario.CPF.slice(0, 14)"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-2"
+            hide-details="auto"
           ></v-text-field>
+          
           <v-text-field
             ref="inputData"
             label="Data de nascimento"
-            append-inner-icon="mdi-calendar"
-            base-color="#293559"
+            prepend-inner-icon="mdi-calendar"
             :rules="rulesDataNascimento"
             v-model="usuario.dataNascimento"
             placeholder="DD/MM/AAAA"
             @click:append-inner="openCalendar"
-            @input="
-              usuario.dataNascimento = usuario.dataNascimento.slice(0, 10)
-            "
-          ></v-text-field>
+            @input="usuario.dataNascimento = usuario.dataNascimento.slice(0, 10)"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-4"
+            hide-details="auto"
+          >
+          <template #append-inner>
+            <v-icon @click="openCalendar">mdi-calendar</v-icon>
+          </template>
+          </v-text-field>
+          
           <v-dialog max-width="350" v-model="calendarOpen" v-if="calendarOpen">
             <v-card>
               <v-date-picker
                 v-model="rawDate"
                 scrollable
-                @update:model-value="
-                  (val) => (usuario.dataNascimento = formatDate(val))
-                "
+                @update:model-value="(val) => (usuario.dataNascimento = formatDate(val))"
               ></v-date-picker>
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn text @click="calendarOpen = false">Cancelar</v-btn>
-                <v-btn text @click="calendarOpen = false">OK</v-btn>
+                <v-btn text color="primary" @click="calendarOpen = false">OK</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-text-field
-            label="Telefone"
-            v-model="usuario.Telefone"
-            prepend-inner-icon="mdi-cellphone"
-            placeholder="(DD) 0000-0000 ou 00000-0000"
-            :rules="rulesTelefone"
-            @input="formatTelefone"
-          ></v-text-field>
+          
+          <div class="d-flex" style="gap: 10px; width: 100%;">
+            <v-select
+              :items="ddiOptions"
+              v-model="usuario.ddi"
+              item-title="text"
+              item-value="value"
+              color="primary"
+              variant="solo-filled"
+              density="compact"
+              style="max-width: 140px;"
+              label="DDI"
+              :rules="rulesDDI"
+              required
+              
+              class="mb-4"
+            />
+            <v-text-field
+              label="Telefone"
+              v-model="usuario.Telefone"
+              prepend-inner-icon="mdi-cellphone"
+              :rules="rulesTelefone"
+              color="primary"
+              density="compact"
+              variant="solo-filled"
+              class="mb-4"
+             
+            />
+          </div>
+
           <v-btn
             :disabled="disabled"
             :loading="loading"
-            color="black"
-            class="btnCadastrar"
+            color="primary"
+            class="text-white mt-2 mb-4"
             type="submit"
             block
-            >Cadastrar</v-btn
+            size="large"
+            rounded="lg"
           >
-          <v-btn type="button" variant="flat" color="#5865f2" to="/"
-            >Página home</v-btn
-          >
-          <router-link to="/login">Já tem uma conta? Faça login</router-link>
+            Cadastrar
+          </v-btn>
+
+          <div class="text-center mt-4">
+            <p class="text-body-2 text-medium-emphasis mb-2">
+              Já tem uma conta?
+            </p>
+            <v-btn
+              variant="text"
+              color="primary"
+              to="/login"
+              size="large"
+              class="font-weight-bold"
+            >
+              Fazer login
+            </v-btn>
+          </div>
+          
+          <div class="text-center mt-4">
+            <v-btn
+              variant="text"
+              color="grey-darken-1"
+              type="button"
+              to="/"
+              size="small"
+            >
+              Voltar para a página inicial
+            </v-btn>
+          </div>
         </v-form>
       </v-sheet>
     </div>
@@ -141,6 +220,15 @@ import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
 import { useMask } from "../../utility/masks/mask";
 
+const ddiOptions = [
+  { text: "+1 EUA", value: "1" },
+  { text: "+34 Espanha", value: "34" },
+  { text: "+44 Reino Unido", value: "44" },
+  { text: "+49 Alemanha", value: "49" },
+  { text: "+52 México", value: "52" },
+  { text: "+55 Brasil", value: "55" },
+  { text: "+351 Portugal", value: "351" },
+];
 
 const router = useRouter();
 onMounted(() => {
@@ -158,8 +246,10 @@ const usuario = ref({
   confirmSenha: "",
   dataNascimento: "",
   CPF: "",
+  ddi: "55",
   Telefone: "",
 });
+
 const loading = ref(false);
 const show = ref(true);
 const show2 = ref(true);
@@ -171,43 +261,7 @@ const inputTelefone = ref(null);
 useMask(inputData, { mask: "00/00/0000" });
 useMask(inputCPF, { mask: "000.000.000-00" });
 
-const formatTelefone = (e) => {
-  let numeros = e.target.value.replace(/\D/g, "");
 
- 
-  if (numeros.length > 13) numeros = numeros.slice(0, 13);
-
-  let ddd, prefixo, resto;
-
-  
-  if (numeros.length >= 2) {
-    ddd = numeros.slice(0, 2);
-    prefixo = numeros.slice(2, 4);
-    resto = numeros.slice(4);
-  } else {
-    ddd = numeros;
-    prefixo = "";
-    resto = "";
-  }
-
-  let firstPart, lastPart;
-
-  if (resto.length > 4) {
-    firstPart = resto.slice(0, resto.length - 4);
-    lastPart = resto.slice(resto.length - 4);
-  } else {
-    firstPart = resto;
-    lastPart = "";
-  }
-
-  let formatted = "";
-  if (ddd) formatted += `(${ddd})`;
-  if (prefixo) formatted += ` ${prefixo}`;
-  if (firstPart) formatted += ` ${firstPart}`;
-  if (lastPart) formatted += `-${lastPart}`;
-
-  usuario.value.Telefone = formatted;
-};
 
 
 
@@ -237,7 +291,8 @@ const onSubmit = async () => {
   loading.value = false;
   return;
 }
-const telefoneFormatado = usuario.value.Telefone.replace(/\D/g, "");
+const telefoneFormatado = usuario.value.ddi + usuario.value.Telefone.replace(/\D/g, "");
+
 
   console.log(cpfFormatado, "FormatCPF");
   console.log(telefoneFormatado, "formatTelefone")
@@ -290,20 +345,37 @@ const rulesSenhasIguais = [
 ];
 
 const rulesDataNascimento = [
-  (value) => !!value || "Obrigatório preencher",
-  (value) =>
-    /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(value) ||
-    "Data inválida",
+    (value) => !!value || "Obrigatório preencher",
+    (value) =>
+        /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(value) ||
+        "Formato de data inválido (DD/MM/AAAA).",
+
+   
+    (value) => {
+        if (!value) return true;
+        
+     
+        const parts = value.split('/');
+        
+        const dataNascimento = new Date(parts[2], parts[1] - 1, parts[0]);
+        
+       
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0); 
+
+       
+        return dataNascimento <= hoje || "A data de nascimento não pode ser futura.";
+    }
 ];
 
+const rulesDDI = [
+  (value) => !!value || "Obrigatório selecionar um DDI",
+];
 const rulesTelefone = [
   (value) => !!value || "Obrigatório preencher",
-  (value) => {
-   
-    const regex = /^\(\d{2,3}\)\s\d{2}\s\d{4,5}-\d{4}$/;
-    return regex.test(value) || "Telefone inválido. Use o formato (DDD) DD 0000-0000 ou 00000-0000";
-  }
+  (value) => value.length >= 8 || "Telefone muito curto",
 ];
+
 
 const disabled = computed(
   () =>
@@ -311,6 +383,7 @@ const disabled = computed(
     !usuario.value.senha ||
     usuario.value.confirmSenha !== usuario.value.senha ||
     !usuario.value.CPF ||
+     !usuario.value.ddi ||
     !usuario.value.Telefone ||
     !usuario.value.dataNascimento
 );
@@ -319,3 +392,4 @@ const disabled = computed(
 <style>
 @import "../css/paginasLogineCadastro/logineCadastro.css";
 </style>
+
