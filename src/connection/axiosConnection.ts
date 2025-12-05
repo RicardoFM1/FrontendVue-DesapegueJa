@@ -15,9 +15,9 @@ export const connection = axios.create({
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`
   },
 });
-
 
 
 connection.interceptors.request.use((config) => {

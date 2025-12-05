@@ -1626,7 +1626,10 @@ async function saveData() {
         } else {
           response = await connection.post(
             "/desapega/categorias",
-            categoriaToSend
+            categoriaToSend,
+            {headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            }}
           );
         }
         break;
@@ -1678,10 +1681,17 @@ async function saveData() {
         if (entityId) {
           response = await connection.patch(
             `/desapega/enderecos/id/${entityId}`,
-            body
+            body,
+            {headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            }}
           );
         } else {
-          response = await connection.post("/desapega/enderecos", body);
+          response = await connection.post("/desapega/enderecos", body,
+            {headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            }}
+          );
         }
         break;
       default:
