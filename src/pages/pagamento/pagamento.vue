@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pagamento-container" fluid>
+  <v-container v-if="tokenExiste" class="pagamento-container" fluid>
     <v-sheet class="pa-6 mx-auto" max-width="900" elevation="3" rounded="lg">
       <h2 class="text-h4 font-weight-bold mb-6 text-center">Confirmação de Pagamento</h2>
 

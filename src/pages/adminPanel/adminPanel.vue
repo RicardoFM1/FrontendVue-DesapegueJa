@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app v-if="tokenExiste">
     <v-main class="bg-grey-lighten-4">
       <v-container fluid class="pa-6">
         <v-row>
@@ -991,6 +991,8 @@ import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 import router from "@/router";
 
+
+const tokenExiste = ref(!!token.value);
 const formUsuario = ref(null);
 const formProduto = ref(null);
 const formEndereco = ref(null);

@@ -1,5 +1,5 @@
 <template>
-  <v-layout>
+  <v-layout v-if="tokenExiste">
     <v-container class="wrapper pa-4" fluid>
       <v-app-bar>
         <v-spacer></v-spacer>

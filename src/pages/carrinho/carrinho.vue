@@ -1,5 +1,5 @@
 <template>
-  <v-layout class="bg-grey-lighten-5 d-flex flex-column">
+  <v-layout v-if="tokenExiste" class="bg-grey-lighten-5 d-flex flex-column">
     <v-container class="py-6" style="max-width: 1400px">
       <v-row align="center">
         <v-col cols="12">

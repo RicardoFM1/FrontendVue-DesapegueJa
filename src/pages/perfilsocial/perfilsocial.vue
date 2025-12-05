@@ -1,5 +1,5 @@
 <template>
-  <v-container class="perfil-social-container">
+  <v-container v-if="tokenExiste"  class="perfil-social-container">
 
     <v-btn
       variant="tonal"
@@ -216,6 +216,9 @@ import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
 const router = useRouter();
+
+const token = ref(localStorage.getItem("token") || "");
+const tokenExiste = ref(!!token.value);
 
 const mostrarMais = ref(true);
 const usuario = ref({});
