@@ -54,6 +54,23 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Usuários
                   </h2>
+                 
+                  <v-text-field
+            v-model="pesquisaUsuario"
+            placeholder="Busque por nome/email/cpf..."
+            prepend-inner-icon="mdi-magnify"
+            
+            variant="outlined"
+            max-width="300"
+            density="comfortable"
+            color="primary"
+            bg-color="grey-lighten-5"
+            clearable
+            hide-details
+            v-tooltip:bottom="'Busque um usuário por nome/email/cpf'"
+          ></v-text-field>
+     
+          
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -65,7 +82,7 @@
                 </div>
                <v-data-table
     :headers="usuarioHeaders"
-    :items="usuarios"
+    :items="usuariosFiltrados "
     :loading="loading"
     class="elevation-0 border rounded-lg"
     hover
@@ -92,16 +109,37 @@
         </v-chip>
     </template>
 
-    <template v-slot:item.Admin="{ item }">
+    <template v-slot:item.admin="{ item }">
         <v-chip
-            :color="item.Admin ? 'info' : 'grey'"
+            :color="item.admin ? 'deep-purple-accent-4' : 'grey'"
             size="small"
             variant="flat"
         >
-            {{ item.Admin ? "Admin" : "Cliente" }}
+            {{ item.admin ? "Admin" : "Cliente" }}
         </v-chip>
     </template>
     <template v-slot:item.actions="{ item }">
+       <div class="d-flex gap-2">
+                      <v-btn
+                        icon="mdi-pencil"
+                        size="small"
+                        color="primary"
+                        variant="text"
+                        @click="openModal('usuario', item)"
+                      ></v-btn>
+                      <v-btn
+                        :icon="
+                          item.status === 'ativo'
+                            ? 'mdi-block-helper'
+                            : 'mdi-check-circle'
+                        "
+                        size="small"
+                        :color="item.status === 'ativo' ? 'error' : 'success'"
+                        variant="text"
+                        @click="openConfirmDialog('usuario', item)"
+                         v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
+                      ></v-btn>
+                    </div>
         </template>
 </v-data-table>
               </v-window-item>
@@ -111,6 +149,19 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Categorias
                   </h2>
+                   <v-text-field
+            v-model="pesquisaCategoria"
+            placeholder="Busque por nome..."
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            max-width="300"
+            density="comfortable"
+            color="primary"
+            bg-color="grey-lighten-5"
+            clearable
+            hide-details
+            v-tooltip:bottom="'Busque um categoria por nome'"
+          ></v-text-field>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -119,10 +170,12 @@
                   >
                     Nova Categoria
                   </v-btn>
+                  
                 </div>
+                
                 <v-data-table
                   :headers="categoriaHeaders"
-                  :items="categorias"
+                  :items="categoriasFiltradas"
                   :loading="loading"
                   class="elevation-0 border rounded-lg"
                   hover
@@ -166,6 +219,7 @@
                         :color="item.status === 'ativo' ? 'error' : 'success'"
                         variant="text"
                         @click="openConfirmDialog('categoria', item)"
+                         v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
                       ></v-btn>
                     </div>
                   </template>
@@ -177,6 +231,19 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Produtos
                   </h2>
+                  <v-text-field
+            v-model="pesquisaProduto"
+            placeholder="Busque por nome"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            max-width="300"
+            density="comfortable"
+            color="primary"
+            bg-color="grey-lighten-5"
+            clearable
+            hide-details
+            v-tooltip:bottom="'Busque um produto por nome'"
+          ></v-text-field>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -188,7 +255,7 @@
                 </div>
                 <v-data-table
                   :headers="produtoHeaders"
-                  :items="produtos"
+                  :items="produtosFiltrados"
                   :loading="loading"
                   class="elevation-0 border rounded-lg"
                   hover
@@ -209,6 +276,7 @@
                       :color="item.status === 'ativo' ? 'success' : 'error'"
                       size="small"
                       variant="flat"
+                      
                     >
                       {{ item.status }}
                     </v-chip>
@@ -232,6 +300,7 @@
                         :color="item.status === 'ativo' ? 'error' : 'success'"
                         variant="text"
                         @click="openConfirmDialog('produto', item)"
+                        v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
                       ></v-btn>
                     </div>
                   </template>
@@ -243,6 +312,19 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Endereços
                   </h2>
+                   <v-text-field
+            v-model="pesquisaEndereco"
+            placeholder="Busque por um endereço"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            max-width="300"
+            density="comfortable"
+            color="primary"
+            bg-color="grey-lighten-5"
+            clearable
+            hide-details
+            v-tooltip:bottom="'Busque por CEP/Rua/Número/Estado/Cidade/Bairro/Logradouro/Complemento'"
+          ></v-text-field>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -254,7 +336,7 @@
                 </div>
                 <v-data-table
   :headers="enderecoHeaders"
-  :items="enderecos"
+  :items="enderecosFiltrados"
   :loading="loading"
   class="elevation-0 border rounded-lg"
   hover
@@ -288,6 +370,7 @@
         :color="item.status === 'ativo' ? 'error' : 'success'"
         variant="text"
         @click="openConfirmDialog('endereco', item)"
+         v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
       ></v-btn>
     </div>
   </template>
@@ -916,6 +999,46 @@ const mostrarSenha = ref(false);
 const previewImage = ref("");
 const imageInput = ref(null);
 const arquivoImagem = ref(null);
+const pesquisaUsuario = ref("")
+const pesquisaCategoria = ref("")
+const pesquisaProduto = ref("")
+const pesquisaEndereco = ref("")
+const usuariosFiltrados = computed(() => {
+  const termo = pesquisaUsuario?.value?.toLowerCase().trim()
+  if(!termo) return usuarios.value
+
+  return usuarios.value.filter((u) =>
+   (u.nome && u.nome.toLowerCase().includes(termo) ||
+   (u.email && u.email.toLowerCase().includes(termo)) || (u.cpf && u.cpf.includes(termo))
+))
+})
+const categoriasFiltradas = computed(() => {
+  const termo = pesquisaCategoria?.value?.toLowerCase().trim();
+  if(!termo) return categorias.value
+
+  return categorias.value.filter((c) => 
+  (c.nome && c.nome.toLowerCase().includes(termo))
+)
+})
+const produtosFiltrados = computed(() => {
+  const termo = pesquisaProduto?.value?.toLowerCase().trim();
+  if(!termo) return produtos.value
+
+  return produtos.value.filter((p) => 
+(p.nome && p.nome.toLowerCase().includes(termo))
+)
+})
+const enderecosFiltrados = computed(() => {
+  const termo = pesquisaEndereco?.value?.toLowerCase().trim();
+  if(!termo) return enderecos.value;
+
+  
+  return enderecos.value.filter((e) => 
+  (e.cep && e.cep.includes(termo)) || (e.rua && e.rua.toLowerCase().includes(termo)) || (e.numero && e.numero.includes(termo)) ||
+  (e.cidade && e.cidade.toLowerCase().includes(termo)) || (e.estado && e.estado.toLowerCase().includes(termo)) || (e.bairro && e.bairro.toLowerCase().includes(termo)) ||
+  (e.tipo_de_logradouro && e.tipo_de_logradouro.toLowerCase().includes(termo)) || (e.complemento && e.complemento.toLowerCase().includes(termo))
+)
+})
 
 const activeTab = ref("usuarios");
 const loading = ref(false);
@@ -952,7 +1075,7 @@ const usuarioHeaders = [
   { title: "Email", key: "email" },
   { title: "CPF", key: "cpf" },
   { title: "Telefone", key: "telefone" },
-  { title: "Admin", key: "isAdmin" },
+  { title: "Admin", key: "admin" },
   { title: "Status", key: "status" },
   { title: "Ações", key: "actions", sortable: false, align: "end" },
 ];
@@ -968,8 +1091,8 @@ const produtoHeaders = [
   { title: "Nome", key: "nome" },
   { title: "Preço", key: "preco" },
   { title: "Estoque", key: "estoque" },
+  { title: "Data da criação", key: "dataPost" },
   { title: "Status", key: "status" },
-  { title: "Data Post", key: "dataPost" },
   { title: "Ações", key: "actions", sortable: false, align: "end" },
 ];
 const enderecoHeaders = [
@@ -977,7 +1100,11 @@ const enderecoHeaders = [
   { title: "CEP", key: "cep" },
   { title: "Rua", key: "rua" },
   { title: "Número", key: "numero" },
+  { title: "Estado", key: "estado" },
   { title: "Cidade", key: "cidade" },
+  { title: "Bairro", key: "bairro" },
+  { title: "Logradouro", key: "logradouro" },
+  { title: "Complemento", key: "complemento" },
   { title: "Status", key: "status"},
   { title: "Ações", key: "actions", sortable: false, align: "end" },
 ];

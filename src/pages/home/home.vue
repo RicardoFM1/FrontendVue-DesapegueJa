@@ -375,10 +375,18 @@
           </v-btn>
         </v-card-title>
         <v-divider></v-divider>
-        <div class="px-5 pt-5 pb-2">
+       
+        <v-container v-if="carregandoInformacoes" class="fill-height d-flex justify-center align-center" style="min-height: 400px;">
+       <div class="text-center">
+         <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
+         <p class="mt-4 text-grey">Carregando usuários...</p>
+       </div>
+      </v-container>
+        <div class="px-5 pt-5 pb-2" v-else>
+        
           <v-text-field
             v-model="pesquisaVendedor"
-            placeholder="Busque por nome..."
+            placeholder="Busque por nome ou email..."
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
             density="comfortable"
@@ -389,7 +397,7 @@
           ></v-text-field>
         </div>
         <v-card-text class="px-5 pb-5" style="height: 400px;">
-          <div v-if="vendedoresFiltrados.length === 0" class="text-center py-10">
+          <div v-if="vendedoresFiltrados.length === 0 && !carregandoInformacoes" class="text-center py-10">
              <div class="text-grey">Nenhum vendedor encontrado.</div>
           </div>
           <v-list v-else lines="two" class="bg-transparent pa-0">
@@ -748,7 +756,7 @@
       <div class="px-5 pt-5 pb-2">
         <v-text-field
           v-model="pesquisaVendedor"
-          placeholder="Busque por nome..."
+          placeholder="Busque por nome ou email..."
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
           density="comfortable"
