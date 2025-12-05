@@ -434,7 +434,7 @@ async function getCarrinho() {
 }
 onMounted(async () => {
   if(!localStorage.getItem("token")){
-    router.push("/")
+    router.push("/:pathMatch(.*)*")
     return
   }
   await getCategorias();

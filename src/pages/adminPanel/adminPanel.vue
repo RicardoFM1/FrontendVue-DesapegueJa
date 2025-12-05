@@ -991,7 +991,9 @@ import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 import router from "@/router";
 
-
+const token = ref(
+  localStorage.getItem("token") ? localStorage.getItem("token") : ""
+);
 const tokenExiste = ref(!!token.value);
 const formUsuario = ref(null);
 const formProduto = ref(null);
@@ -1055,9 +1057,6 @@ const usuarios = ref([]);
 const categorias = ref([]);
 const categoriasP = ref([]);
 const formCategoria = ref();
-const token = ref(
-  localStorage.getItem("token") ? localStorage.getItem("token") : ""
-);
 const retrieve = ref(null);
 const produtos = ref([]);
 const enderecos = ref([]);
@@ -1889,7 +1888,7 @@ watch(
 
 onMounted(async () => {
   if(!localStorage.getItem("token")){
-    router.push("/")
+    router.push("/:pathMatch(.*)*")
     return
   }
   await getRetrieve();

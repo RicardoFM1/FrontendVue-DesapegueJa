@@ -1179,7 +1179,10 @@ async function getPagamentos() {
 }
 
 onMounted(async () => {
-  if (!tokenExiste.value) return router.push("/");
+ if(!localStorage.getItem("token")){
+    router.push("/:pathMatch(.*)*")
+    return
+  }
 
   await getRetrieve();
   if (!retrieve.value) return;

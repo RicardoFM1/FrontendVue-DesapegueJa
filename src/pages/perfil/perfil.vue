@@ -1503,9 +1503,9 @@ const retrieve = ref();
 const loadingInit = ref(true);
 
 onMounted(async () => {
-  if (!localStorage.getItem("token")) {
-    router.push("/");
-    return;
+ if(!localStorage.getItem("token")){
+    router.push("/:pathMatch(.*)*")
+    return
   }
 
   try {

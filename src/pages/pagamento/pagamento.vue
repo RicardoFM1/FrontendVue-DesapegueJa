@@ -575,10 +575,10 @@ async function copiarPix() {
 
 
 onMounted(async () => {
-  if (!localStorage.getItem("token")){
-    router.push("/");
-    return 
-  } 
+  if(!localStorage.getItem("token")){
+    router.push("/:pathMatch(.*)*")
+    return
+  }
 
   loadingPagamento.value = true;
   try {

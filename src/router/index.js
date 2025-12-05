@@ -10,7 +10,8 @@ import CompletarCadastro from '@/pages/completarCadastro/completarCadastro.vue'
 import AdminPanel from '@/pages/adminPanel/adminPanel.vue'
 import Anunciar from '@/pages/anunciar/anunciar.vue'
 import Perfilsocial from '@/pages/perfilsocial/perfilsocial.vue'
-
+import axios from "axios";
+import NotFoundPage from '@/pages/notFound/notFoundPage.vue'
 
 
 const routes = [
@@ -25,20 +26,21 @@ const routes = [
   {path: "/pagamento/:uuid", name: 'Pagamento', component: Pagamento},
   {path: "/completar-cadastro", name: 'CompletarCadastro', component: CompletarCadastro},
   {path: "/perfilsocial/:id", name: 'Social', component: Perfilsocial},
+  {path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundPage}
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
 })
-import axios from "axios";
+
 
 const api = axios.create({
   baseURL: "http://localhost:7000/desapega",
   timeout: 10000
 });
 
-// Intercepta requisição e adiciona token
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {

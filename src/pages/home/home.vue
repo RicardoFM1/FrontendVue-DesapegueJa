@@ -8,7 +8,7 @@
         
         <v-toolbar-title class="font-weight-bold text-h5 text-primary d-none d-sm-flex">
           <v-icon start icon="mdi-store" color="primary"></v-icon>
-          Desapega
+          DesapegaJa
         </v-toolbar-title>
 
         <v-spacer></v-spacer>
@@ -430,7 +430,7 @@
 
       <v-toolbar-title class="font-weight-bold text-h5 text-primary d-none d-sm-flex">
         <v-icon start icon="mdi-store" color="primary"></v-icon>
-        Desapega
+        DesapegaJá
       </v-toolbar-title>
 
       <v-spacer></v-spacer>

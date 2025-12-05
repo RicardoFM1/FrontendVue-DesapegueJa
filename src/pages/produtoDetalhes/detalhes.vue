@@ -230,7 +230,7 @@
         </div>
         <v-card-actions class="justify-center mt-4">
            <v-btn variant="outlined" color="primary" @click="toLogin" class="mx-2">Fazer Login</v-btn>
-           <v-btn variant="text" @click="usuarioNaoLogado = false" class="mx-2">Ok</v-btn>
+           <v-btn variant="text" @click="usuarioNaoLogado = false; loadingAdicionar = false" class="mx-2">Ok</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
