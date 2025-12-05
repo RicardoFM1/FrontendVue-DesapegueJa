@@ -1465,7 +1465,7 @@ function getEmptyModel(type) {
         status: "ativo",
       };
     case "categoria":
-      return { id: null, nome: "", status: "ativo", cor: "#6366f1" };
+      return { id: null, nome: "", status: "ativo", Cor: "#6366f1" };
     case "produto":
       return {
         id: null,
