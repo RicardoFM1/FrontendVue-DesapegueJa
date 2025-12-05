@@ -45,7 +45,7 @@
 
            <v-btn
            v-if="retrieve?.admin === true"
-            prepend-icon="mdi-plus"
+            prepend-icon="mdi-gavel"
             variant="flat"
             color="deep-purple-accent-4"
             class="text-capitalize font-weight-bold ml-2 hidden-xs"
