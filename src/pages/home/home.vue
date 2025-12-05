@@ -415,8 +415,366 @@
     </v-dialog>
   </div>
 
-  <div v-else>
-     </div>
+<div v-else>
+  <v-layout class="bg-grey-lighten-5">
+    <v-app-bar color="white" elevation="1" height="70">
+      <v-app-bar-nav-icon @click="drawer = !drawer" color="grey-darken-1"></v-app-bar-nav-icon>
+
+      <v-toolbar-title class="font-weight-bold text-h5 text-primary d-none d-sm-flex">
+        <v-icon start icon="mdi-store" color="primary"></v-icon>
+        Desapega
+      </v-toolbar-title>
+
+      <v-spacer></v-spacer>
+
+      <div class="d-flex align-center gap-2 mr-2">
+
+        <v-btn 
+          icon 
+          color="grey-darken-1" 
+          @click="dialogSocial = !dialogSocial"
+          :disabled="carregandoProdutos"
+        >
+          <v-icon>mdi-account-group-outline</v-icon>
+        </v-btn>
+
+        <v-btn 
+          icon 
+          class="mr-2"
+          @click="modalAlertShow = true"
+          :disabled="carregandoProdutos"
+        >
+          <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
+        </v-btn>
+
+        <v-btn
+          prepend-icon="mdi-plus"
+          variant="flat"
+          color="primary"
+          class="text-capitalize font-weight-bold ml-2 hidden-xs"
+          rounded="lg"
+          elevation="2"
+          @click="modalAlertShow = true"
+        >
+          Anunciar
+        </v-btn>
+      </div>
+
+      <v-btn
+        icon
+        class="ml-1"
+        @click="toLogin"
+      >
+        <v-avatar size="40" color="indigo">
+          <span class="text-white font-weight-bold">?</span>
+        </v-avatar>
+      </v-btn>
+    </v-app-bar>
+
+    <v-navigation-drawer v-model="drawer" width="300" class="border-none bg-white elevation-1">
+      <div class="pa-6">
+        <div class="d-flex align-center mb-6">
+          <v-icon color="primary" class="mr-2">mdi-filter-variant</v-icon>
+          <span class="text-h6 font-weight-bold">Filtros</span>
+        </div>
+
+        <div class="mb-6">
+          <label class="text-subtitle-2 font-weight-bold text-grey-darken-1 mb-2 d-block">Faixa de Preço</label>
+          <v-row dense>
+            <v-col cols="6">
+              <v-text-field
+                v-model="minimo"
+                label="Mín"
+                prefix="R$"
+                variant="outlined"
+                density="compact"
+                color="primary"
+                hide-details
+                type="number"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="maximo"
+                label="Máx"
+                prefix="R$"
+                variant="outlined"
+                density="compact"
+                color="primary"
+                hide-details
+                type="number"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </div>
+
+        <v-divider class="mb-6"></v-divider>
+
+        <div>
+          <label class="text-subtitle-2 font-weight-bold text-grey-darken-1 mb-2 d-block">Categorias</label>
+          <v-select
+            v-model="categoria"
+            :items="categorias"
+            item-title="nome"
+            item-value="id"
+            label="Selecione uma categoria"
+            variant="outlined"
+            color="primary"
+            density="comfortable"
+            clearable
+            prepend-inner-icon="mdi-shape"
+          ></v-select>
+        </div>
+      </div>
+    </v-navigation-drawer>
+
+    <v-main>
+      <v-container fluid class="px-0 py-0 fill-height align-start">
+
+        <div class="w-100 bg-white px-4 py-6 d-flex justify-center border-b sticky-search">
+          <v-text-field
+            v-model="search"
+            placeholder="O que você está procurando hoje?"
+            prepend-inner-icon="mdi-magnify"
+            variant="solo-filled"
+            flat
+            rounded="pill"
+            class="search-bar-shadow"
+            style="max-width: 600px; width: 100%;"
+            hide-details
+            clearable
+            bg-color="grey-lighten-4"
+          ></v-text-field>
+        </div>
+
+        <v-container v-if="erroGetProduto">
+          <v-row justify="center">
+            <v-col cols="12" md="6">
+              <v-alert
+                type="error"
+                variant="tonal"
+                title="Erro ao carregar"
+                text="Não foi possível listar os produtos. Verifique sua conexão."
+                icon="mdi-wifi-off"
+              >
+                <template #append>
+                  <v-btn color="error" variant="outlined" size="small" @click="recarregarProdutos">Tentar Novamente</v-btn>
+                </template>
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-container>
+
+        <v-container v-if="carregandoProdutos" class="fill-height d-flex justify-center align-center" style="min-height: 400px;">
+          <div class="text-center">
+            <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
+            <p class="mt-4 text-grey">Carregando ofertas...</p>
+          </div>
+        </v-container>
+
+        <v-container v-if="!carregandoProdutos && !erroGetProduto" class="pa-6">
+
+          <div v-if="itensFiltrados.length === 0" class="text-center py-10">
+            <v-icon size="80" color="grey-lighten-2">mdi-package-variant-closed</v-icon>
+            <h3 class="text-h6 text-grey mt-2">Nenhum produto encontrado</h3>
+            <p class="text-body-2 text-grey-lighten-1">Tente ajustar seus filtros de busca.</p>
+          </div>
+
+          <v-row>
+            <v-col
+              v-for="(item, index) in itensFiltrados"
+              :key="item.id + '-' + index"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              xl="2"
+            >
+              <v-card
+                class="product-card rounded-xl mx-auto fill-height d-flex flex-column"
+                elevation="0"
+                border
+                @click="toDetalhes(item.id)"
+              >
+                <div class="position-relative">
+                  <v-img
+                    :src="getProdutoImage(item.imagem)"
+                    height="220"
+                    cover
+                    class="rounded-t-xl bg-grey-lighten-4"
+                  >
+                    <template #error>
+                      <div class="d-flex align-center justify-center fill-height bg-grey-lighten-3 text-grey">
+                        <v-icon size="40">mdi-image-off</v-icon>
+                      </div>
+                    </template>
+                  </v-img>
+
+                  <v-chip
+                    class="position-absolute bottom-0 right-0 ma-3 font-weight-bold"
+                    variant="flat"
+                    color="green"
+                    text-color="black"
+                    elevation="3"
+                    border="thin"
+                  >
+                    R$ {{ (item.preco / 100).toFixed(2).replace('.', ',') }}
+                  </v-chip>
+                </div>
+
+                <v-card-item class="pt-3 pb-0">
+                  <v-card-title class="text-body-1 font-weight-bold pt-1 text-truncate">
+                    {{ item.nome }}
+                  </v-card-title>
+
+                  <v-card-subtitle class="d-flex align-center mt-1 px-0">
+                    <v-chip 
+                      size="large" 
+                      variant="tonal" 
+                      :color="categorias.find((c) => c.id == item.categoria_id)?.cor || 'grey'"
+                      class="mr-2"
+                    >
+                      {{ categorias.find((c) => c.id == item.categoria_id)?.nome || "Geral" }}
+                    </v-chip>
+                  </v-card-subtitle>
+                </v-card-item>
+
+                <v-card-text class="py-2 flex-grow-1">
+                  <div class="d-flex align-center text-caption text-grey">
+                    <v-icon size="14" class="mr-1">mdi-account</v-icon>
+                    <span class="text-truncate text-h6">{{ vendedor.find((v) => v.id == item.usuario_id)?.nome || "Vendedor" }}</span>
+                  </div>
+
+                  <div v-if="item.estoque <= 0" class="d-flex align-center text-red mt-1 text-h6">
+                    <v-icon size="14" class="mr-1">mdi-alert</v-icon>
+                    ESGOTADO
+                  </div>
+
+                  <div v-else class="d-flex align-center text-grey mt-1 text-h6">
+                    <v-icon size="14" class="mr-1">mdi-package-variant</v-icon>
+                    {{ item.estoque }} disponível
+                  </div>
+                </v-card-text>
+
+                <v-divider></v-divider>
+
+                <v-card-actions class="pa-3">
+                  <v-btn
+                    block
+                    variant="flat"
+                    color="primary"
+                    class="text-capitalize rounded-lg"
+                    @click.stop="modalAlertShow = true"
+                    :disabled="item.estoque <= 0"
+                  >
+                    <v-icon start>mdi-cart-plus</v-icon>
+                    Adicionar
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row class="mt-8 mb-4">
+            <v-col cols="12" class="d-flex justify-center">
+              <v-pagination
+                v-model="page"
+                :length="totalPages"
+                :total-visible="7"
+                rounded="circle"
+                color="primary"
+                v-if="!carregandoProdutos && itensFiltrados.length > 0"
+                @update:model-value="buscarProdutosPorPagina"
+              ></v-pagination>
+            </v-col>
+          </v-row>
+
+        </v-container>
+      </v-container>
+    </v-main>
+  </v-layout>
+
+  <v-dialog v-model="modalAlertShow" max-width="400">
+    <v-card class="rounded-xl pa-4">
+      <div class="text-center pt-2">
+        <v-icon size="48" color="amber" class="mb-2">mdi-alert</v-icon>
+        <div class="text-h6 font-weight-bold">Atenção</div>
+        <div class="text-body-2 text-grey mt-2">Você precisa estar logado para realizar esta ação.</div>
+      </div>
+      <v-card-actions class="justify-center mt-4">
+        <v-btn variant="text" @click="modalAlertShow = false">Fechar</v-btn>
+        <v-btn color="primary" variant="flat" @click="toLogin">Fazer Login</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog 
+    v-model="dialogSocial" 
+    max-width="600" 
+    scrollable
+    transition="dialog-bottom-transition"
+  >
+    <v-card class="rounded-xl overflow-hidden" elevation="10">
+      <v-card-title class="d-flex align-center justify-space-between py-4 px-5 bg-grey-lighten-4">
+        <div class="d-flex align-center">
+          <v-avatar color="primary" variant="tonal" size="40" class="mr-3">
+            <v-icon color="primary">mdi-store-search</v-icon>
+          </v-avatar>
+          <div>
+            <span class="text-h6 font-weight-bold d-block" style="line-height: 1.2;">Vendedores</span>
+            <span class="text-h6 text-medium-emphasis">Encontre parceiros</span>
+          </div>
+        </div>
+        <v-btn icon variant="text" color="grey-darken-1" @click="dialogSocial = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-divider></v-divider>
+
+      <div class="px-5 pt-5 pb-2">
+        <v-text-field
+          v-model="pesquisaVendedor"
+          placeholder="Busque por nome..."
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="comfortable"
+          color="primary"
+          bg-color="grey-lighten-5"
+          clearable
+          hide-details
+        ></v-text-field>
+      </div>
+
+      <v-card-text class="px-5 pb-5" style="height: 400px;">
+        <div v-if="vendedoresFiltrados.length === 0" class="text-center py-10">
+          <div class="text-grey">Nenhum vendedor encontrado.</div>
+        </div>
+
+        <v-list v-else lines="two" class="bg-transparent pa-0">
+          <v-list-item
+            v-for="v in vendedoresFiltrados"
+            :key="v.id"
+            class="mb-2 rounded-lg elevation-1 border-thin"
+            @click="toLogin"
+          >
+            <template v-slot:prepend>
+              <v-avatar color="primary" variant="flat" size="48" class="mr-3">
+                <v-img v-if="v.foto" :src="v.foto" cover></v-img>
+                <span v-else class="text-white font-weight-bold">{{ getIniciais(v.nome) }}</span>
+              </v-avatar>
+            </template>
+
+            <v-list-item-title class="font-weight-bold text-h6">{{ v.nome }}</v-list-item-title>
+            <v-list-item-subtitle class="text-subtitle-1">{{ v.email }}</v-list-item-subtitle>
+            <template v-slot:append><v-icon>mdi-chevron-right</v-icon></template>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+</div>
+
 </template>
 
 <script setup>
