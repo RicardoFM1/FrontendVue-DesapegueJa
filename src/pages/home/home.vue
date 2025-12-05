@@ -459,16 +459,29 @@
           Anunciar
         </v-btn>
       </div>
-
-      <v-btn
-        icon
-        class="ml-1"
-        @click="toLogin"
-      >
-        <v-avatar size="40" color="indigo">
-          <span class="text-white font-weight-bold">?</span>
-        </v-avatar>
-      </v-btn>
+<v-btn
+          prepend-icon="mdi-plus"
+          variant="outlined"
+          color="primary"
+          class="text-capitalize font-weight-bold ml-2 hidden-xs"
+          rounded="lg"
+          elevation="2"
+          @click="toCadastro"
+        >
+          Cadastrar
+        </v-btn>
+        <v-btn
+          prepend-icon="mdi-plus"
+          variant="flat"
+          color="primary"
+          class="text-capitalize font-weight-bold ml-2 hidden-xs"
+          rounded="lg"
+          elevation="2"
+          @click="toLogin"
+        >
+          Login
+        </v-btn>
+      
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" width="300" class="border-none bg-white elevation-1">
