@@ -1,76 +1,127 @@
 <template>
-<div class="fundoLogin">
+  <div class="fundoLogin">
+    <div class="divFormLogin">
+      <v-sheet 
+        class="sheetLogin pa-6 pa-sm-8 elevation-4" 
+        rounded="lg" 
+        width="450" 
+        style="max-width: 90%;"
+      >
+        <v-form :disabled="loading" class="formLogin" ref="form" @submit.prevent="onSubmit">
+          
+          <div class="divImageLogo text-center mb-4">
+            <v-img 
+              max-width="300" 
+             
+              src="desapegueja-logo.svg"
+            ></v-img>
+          </div>
+
+          <h1 class="tituloCadastro text-h5 font-weight-bold text-center mb-2 text-primary">
+            Bem-vindo(a) de volta!
+          </h1>
+          <p class="text-center text-medium-emphasis mb-6">
+            Acesse sua conta para continuar.
+          </p>
+          
+          <v-text-field
+            label="Email"
+            prepend-inner-icon="mdi-email-outline"
+            v-model="usuario.email"
+            type="email"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-2"
+            hide-details="auto"
+          ></v-text-field>
+          
+          <v-text-field
+            label="Senha"
+            prepend-inner-icon="mdi-lock-outline"
+            :append-inner-icon="show ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+            @click:append-inner="show = !show"
+            v-model="usuario.senha"
+            @paste.prevent
+            :type="show ? 'text' : 'password'"
+            color="primary"
+            variant="solo-filled"
+            density="compact"
+            class="mb-2"
+            hide-details="auto"
+          ></v-text-field>
+
         
-    
-        <div class="divFormLogin">
-            <v-sheet style="display: flex; border-radius: 10px;
-                justify-content: center; flex-direction: column; width: 25%; height: 60%;
-                "  class="sheetLogin">
-                
-                <v-form :disabled="loading"
-  class="formLogin"
-  ref="form"
-  @submit.prevent="onSubmit">
-                    <div class="divImageLogo">
-  <v-img style="padding: 12px 0 0 12px;" width="100%" height="auto" src="desapegueja-logo.svg"></v-img>
-</div>
 
-<h1 class="tituloCadastro">Login</h1>
-                    <v-text-field
-                    label="Email"
-                    prepend-inner-icon="mdi-email"
-                    v-model="usuario.email"
-                    type="email"
-                    base-color="#293559"
-                    >
-                    </v-text-field>
-                    <v-text-field
-                        label="Senha"
-                        prepend-inner-icon="mdi-lock"
-                        :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                        @click:append-inner="show = !show"
-                        v-model="usuario.senha"
-                        @paste.prevent
-                        :type="show ? 'text' : 'password'"
-                        base-color="#293559"
-                    >
-                    
-                </v-text-field>
-                <v-btn
- :disabled="disabled"
-    :loading="loading"
-    color="black"
-    class="btnCadastrar"
-    type="submit"
-    block
->
-  Fazer login
-</v-btn>
-<v-btn
-  color="#DB4437"
-  block
-  class="mb-4"
-  @click="loginGoogle"
->
-  <v-icon start>mdi-google</v-icon>
-  Entrar com Google
-</v-btn>
-
-                <v-btn
-         
-          variant="flat"
-          color="#5865f2"
-          type="button"
-          to="/"
+          <v-btn
+            :disabled="disabled"
+            :loading="loading"
+            color="primary"
+            class="text-white mb-4"
+            type="submit"
+            block
+            size="large"
+            rounded="lg"
           >
-            Página home
+            Entrar
           </v-btn>
-                <router-link to="/cadastro">Não tem uma conta?</router-link>
-                </v-form>
-            </v-sheet>
-    
+
+          <v-row align="center" class="my-4">
+            <v-col><v-divider></v-divider></v-col>
+            <v-col cols="auto" class="text-medium-emphasis text-caption px-2">OU</v-col>
+            <v-col><v-divider></v-divider></v-col>
+          </v-row>
+          
+          <v-btn
+            color="#DB4437"
+            block
+            class="mb-6 text-white"
+            @click="loginGoogle"
+            size="large"
+            rounded="lg"
+            style="border-color: #e0e0e0;"
+          >
+            <v-img 
+                max-width="18" 
+                class="mr-2" 
+                src="caminho/para/google-icon.svg"
+                alt="Google Icon"
+            ></v-img>
+            Continuar com Google
+          </v-btn>
+
+          <div class="text-center mt-6">
+            <p class="text-body-2 text-medium-emphasis mb-1">
+              É novo por aqui?
+            </p>
+            <v-btn
+              variant="flat"
+              color="secondary"
+              block
+              to="/cadastro"
+              size="large"
+              rounded="lg"
+            >
+              Crie sua conta
+            </v-btn>
+          </div>
+
+          <div class="text-center mt-4">
+            <v-btn
+              variant="text"
+              color="grey-darken-1"
+              type="button"
+              to="/"
+              size="small"
+            >
+              Voltar para a página inicial
+            </v-btn>
+          </div>
+
+        </v-form>
+      </v-sheet>
     </div>
-</div>
+  </div>
 </template>
 
 <script setup>

@@ -59,7 +59,6 @@
             v-model="pesquisaUsuario"
             placeholder="Busque por nome/email/cpf..."
             prepend-inner-icon="mdi-magnify"
-            
             variant="outlined"
             max-width="300"
             density="comfortable"
@@ -480,7 +479,7 @@
                         label="E-mail"
                         variant="outlined"
                         density="comfortable"
-                        :rules="rules.rulesEmail"
+                        :rules="rulesEmail"
                         prepend-inner-icon="mdi-email"
                       ></v-text-field>
                     </v-col>
@@ -990,6 +989,7 @@ import axios from "axios";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
+import router from "@/router";
 
 const formUsuario = ref(null);
 const formProduto = ref(null);
@@ -1359,9 +1359,16 @@ function convertToDisplayDate(dateString) {
   return "";
 }
 
+const rulesEmail = [
+  (value) => !!value || "Obrigatório preencher",
+  (value) =>
+    /^(?=[^@]*[a-zA-Z])[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(
+      value
+    ) || "E-mail inválido",
+];
+
 const rules = {
   required: (value) => !!value || "Campo obrigatório.",
-  email: (value) => /.+@.+\..+/.test(value) || "E-mail inválido.",
   min3: (v) => (v?.length || 0) >= 3 || "Mínimo de 3 caracteres",
   min10: (v) => (v?.length || 0) >= 10 || "Mínimo de 10 caracteres",
   preco: (v) =>
@@ -1879,6 +1886,10 @@ watch(
 );
 
 onMounted(async () => {
+  if(!localStorage.getItem("token")){
+    router.push("/")
+    return
+  }
   await getRetrieve();
   loadDataForTab(activeTab.value);
   await getCategorias();

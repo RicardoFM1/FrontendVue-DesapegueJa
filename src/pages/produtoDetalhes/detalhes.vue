@@ -88,15 +88,15 @@
     </v-container>
     
     <v-divider></v-divider>
-    
-    <v-container class="bg-white pa-6 pa-md-10 rounded-xl elevation-1 mb-8" style="max-width: 1400px;">
-      
-      <div v-if="carregandoProdutos" class="d-flex flex-column justify-center align-center my-8" style="height: 400px">
+
+     <div v-if="carregandoProdutos" class="d-flex flex-column justify-center align-center my-8" style="height: 400px">
         <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
         <p class="mt-4 text-grey-darken-1">Carregando detalhes do produto...</p>
       </div>
+
+    <v-container v-if="!carregandoProdutos" class="bg-white pa-6 pa-md-10 rounded-xl elevation-1 mb-8" style="max-width: 1400px;">
       
-      <div v-else-if="erroGetProduto" class="d-flex justify-center my-8">
+      <div v-if="erroGetProduto" class="d-flex justify-center my-8">
         <v-alert
           type="error"
           variant="tonal"

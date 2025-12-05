@@ -3,16 +3,16 @@
     <v-sheet class="pa-6 mx-auto" max-width="900" elevation="3" rounded="lg">
       <h2 class="text-h4 font-weight-bold mb-6 text-center">Confirmação de Pagamento</h2>
 
-      <!-- Loading (skeleton) -->
+    
       <div v-if="loadingPagamento" class="text-center pa-6">
         <v-skeleton-loader type="image, heading, paragraph" class="mb-4" />
         <v-progress-circular indeterminate size="56"></v-progress-circular>
         <p class="mt-3 text-subtitle-1">Carregando detalhes do pagamento...</p>
       </div>
 
-      <!-- Conteúdo -->
+    
       <div v-else>
-        <!-- STATUS ALERT -->
+      
         <div class="mb-4">
           <v-alert
             v-if="statusPagamento === STATUS.pendente"
@@ -69,7 +69,7 @@
           </v-alert>
         </div>
 
-        <!-- Itens do carrinho -->
+       
         <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
           <div class="items-list-enhanced">
             <v-sheet
@@ -116,7 +116,7 @@
           </div>
         </v-sheet>
 
-        <!-- Endereço -->
+       
         <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
           <h3 class="text-h6 font-weight-bold mb-3">Endereço de entrega</h3>
           <v-sheet
@@ -136,7 +136,7 @@
           </v-sheet>
         </v-sheet>
 
-        <!-- Pagamento -->
+       
         <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
           <h3
             class="text-h6 font-weight-bold mb-3"
@@ -221,20 +221,20 @@
               </v-btn>
             </div>
 
-            <!-- Actions after expiration -->
+         
             <div v-if="timerExpirado" class="mt-4 d-flex justify-center gap-3">
               <v-btn color="primary" @click="router.push('/carrinho')">Voltar ao carrinho</v-btn>
               <v-btn color="secondary" variant="outlined" @click="router.push('/')">Continuar navegando</v-btn>
             </div>
           </v-sheet>
 
-          <!-- Cartão -->
+     
           <v-sheet v-else-if="isCartao" class="pa-3 mt-3 text-center bg-blue-lighten-5 rounded-lg">
             <v-icon color="blue" size="30">mdi-credit-card</v-icon>
             <p class="mt-2 text-body-1">Pagamento com cartão no próximo passo</p>
           </v-sheet>
 
-          <!-- Boleto -->
+        
           <v-sheet v-else-if="isBoleto" class="pa-3 mt-3 text-center bg-yellow-lighten-5 rounded-lg">
             <v-icon color="orange" size="30">mdi-file-document-box</v-icon>
             <p class="mt-2 text-body-1">Gerar boleto bancário</p>
@@ -248,7 +248,7 @@
           </v-sheet>
         </v-sheet>
 
-        <!-- Ações: Sair / Cancelar -->
+       
         <v-row class="mt-4" justify="center" align="center" dense>
           <v-col cols="12" md="6">
             <v-btn color="grey" block large @click="sairDoPagamento" :disabled="loadingCancelamento">
@@ -265,7 +265,7 @@
       </div>
     </v-sheet>
 
-    <!-- Modal Cancelamento -->
+
     <v-dialog v-model="dialogCancelar" max-width="480">
       <v-card>
         <v-card-title class="text-h6">Cancelar pagamento</v-card-title>
@@ -575,7 +575,10 @@ async function copiarPix() {
 
 
 onMounted(async () => {
-  if (!tokenExiste.value) return router.push("/");
+  if (!localStorage.getItem("token")){
+    router.push("/");
+    return 
+  } 
 
   loadingPagamento.value = true;
   try {

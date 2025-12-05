@@ -359,6 +359,10 @@ async function getProdutos() {
 }
 
 onMounted(async () => {
+  if(!localStorage.getItem("token")){
+    router.push("/")
+    return
+  }
   await getUsuario();
   await getProdutos();
 });

@@ -8,8 +8,8 @@ import { aliases, mdi } from 'vuetify/iconsets/mdi'
 
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { createPinia } from 'pinia'
 
+import { pt } from 'vuetify/locale'
 
 
 import "vue3-toastify/dist/index.css"
@@ -18,7 +18,6 @@ import Vue3Toastify, { toast } from "vue3-toastify";
 
 const app = createApp(App)
 
-app.use(createPinia())
 app.use(router)
 
 
@@ -39,7 +38,12 @@ const vuetify = createVuetify({
   directives,
   theme: {
     defaultTheme: 'light'
-  }
+  },
+  locale: {
+    locale: 'pt', 
+    messages: { pt }, 
+    fallback: 'en', 
+  },
 })
 
 app.use(vuetify)

@@ -433,10 +433,11 @@ async function getCarrinho() {
   }
 }
 onMounted(async () => {
-  await getCategorias();
-  if (!tokenExiste.value) {
-    router.push("/");
+  if(!localStorage.getItem("token")){
+    router.push("/")
+    return
   }
+  await getCategorias();
   if (token.value) {
     await getRetrieve();
     await getCarrinho();

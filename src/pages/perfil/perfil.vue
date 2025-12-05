@@ -1503,7 +1503,7 @@ const retrieve = ref();
 const loadingInit = ref(true);
 
 onMounted(async () => {
-  if (!tokenExiste.value) {
+  if (!localStorage.getItem("token")) {
     router.push("/");
     return;
   }
