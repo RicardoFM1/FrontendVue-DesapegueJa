@@ -1009,7 +1009,7 @@ async function getProdutos() {
   if (retrieve.admin == true) {
     try {
       const res = await Promise.race([
-        connection.get(`/desapega/produtos?page=${page.value}&pageSize=10`),
+        connection.get(`/desapega/produtos?page=${page.value}&pageSize=12`),
         timeout,
       ]);
 
@@ -1037,7 +1037,7 @@ async function getProdutos() {
   } else {
     try {
       const res = await Promise.race([
-        connection.get(`/desapega/produtos?page=${page.value}&pageSize=10&status=ativo`),
+        connection.get(`/desapega/produtos?page=${page.value}&pageSize=12&status=ativo`),
         timeout,
       ]);
 

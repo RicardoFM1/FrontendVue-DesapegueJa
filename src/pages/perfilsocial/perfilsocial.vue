@@ -25,9 +25,10 @@
         <v-list class="pa-0">
             <v-list-item class="px-6 pt-6 pb-4">
                 <template v-slot:prepend>
-                    <v-avatar size="100" class="avatar-perfil">
-                        <v-img :src="usuario.foto_de_perfil || 'https://via.placeholder.com/100?text=S/Foto'" alt="Foto de Perfil"></v-img>
-                    </v-avatar>
+                    <v-avatar size="150" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
+                <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
+                <span v-else class="text-white text-h3 font-weight-bold">{{ avatarUsuario.texto }}</span>
+              </v-avatar>
                 </template>
 
                 <v-list-item-header>
@@ -209,7 +210,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { connection } from "@/connection/axiosConnection.js";
 import { useRoute, useRouter } from 'vue-router';
 
@@ -220,6 +221,7 @@ const mostrarMais = ref(true);
 const usuario = ref({});
 const produtos = ref([]);
 const totalProdutos = ref(0);
+
 
 const carregandoInformacoes = ref(false);
 const carregandoProdutos = ref(false);
@@ -262,6 +264,35 @@ function formatarDataNascimento(data) {
     }
 }
 
+
+const getIniciais = (nome) => {
+  if (!nome) return "?";
+  const partes = nome.trim().split(" ");
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (
+    partes[0].charAt(0) + partes[partes.length - 1].charAt(0)
+  ).toUpperCase();
+};
+
+const avatarUsuario = computed(() => {
+  const nome = usuario.value?.nome || "Usuário";
+  const foto = usuario.value?.foto_De_Perfil;
+
+  if (foto && foto !== "null" && foto !== "Sem imagem" && foto.trim() !== "") {
+    if (foto.startsWith("data:image")) {
+      return { tipo: "imagem", src: foto };
+    }
+
+    if (foto.startsWith("/9j/"))
+      return { tipo: "imagem", src: `data:image/jpeg;base64,${foto}` };
+    if (foto.startsWith("iVBORw0KGgo"))
+      return { tipo: "imagem", src: `data:image/png;base64,${foto}` };
+
+    return { tipo: "iniciais", texto: getIniciais(nome) };
+  }
+
+  return { tipo: "iniciais", texto: getIniciais(nome) };
+});
 
 function formatarPreco(precoEmCentavos) {
   if (precoEmCentavos === null || precoEmCentavos === undefined) {
