@@ -237,7 +237,7 @@
         
           <v-sheet v-else-if="isBoleto" class="pa-3 mt-3 text-center bg-yellow-lighten-5 rounded-lg">
             <v-icon color="orange" size="30">mdi-file-document-box</v-icon>
-            <p class="mt-2 text-body-1">Gerar boleto bancário</p>
+            <v-btn class="mt-2 text-body-1" text="Ver boleto"></v-btn>
             <v-btn v-if="boletoUrl" small outlined color="orange" :href="boletoUrl" target="_blank">Abrir Boleto</v-btn>
           </v-sheet>
 

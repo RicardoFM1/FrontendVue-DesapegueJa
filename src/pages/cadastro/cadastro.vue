@@ -29,13 +29,15 @@
           </p>
 
           <v-text-field
-            label="Nome de usuário"
+            label="Nome completo"
             prepend-inner-icon="mdi-account-circle-outline"
             v-model="usuario.Nome"
             type="text"
             color="primary"
+            :rules="rulesNomeCompleto"
             variant="solo-filled"
             density="compact"
+            required
             class="mb-2"
             hide-details="auto"
           ></v-text-field>
@@ -322,6 +324,21 @@ const telefoneFormatado = usuario.value.ddi + usuario.value.Telefone.replace(/\D
     loading.value = false;
   }
 };
+
+
+
+const rulesNomeCompleto = [
+  (value) => !!value || "Obrigatório preencher o nome completo.",
+  (value) => {
+    if (!value) return true; 
+
+  
+    const palavras = value.trim().split(/\s+/); 
+
+    
+    return palavras.length >= 2 || "É necessário informar nome e sobrenome.";
+  },
+];
 
 const rulesEmail = [
   (value) => !!value || "Obrigatório preencher",

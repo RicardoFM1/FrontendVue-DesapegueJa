@@ -466,10 +466,11 @@
                     <v-col cols="12" md="6">
                       <v-text-field
                         v-model="modalData.nome"
-                        label="Nome de Usuário"
+                        label="Nome completo"
                         variant="outlined"
+                        :rules="rulesNomeCompleto"
                         density="comfortable"
-                        :rules="[rules.required]"
+                        required
                         prepend-inner-icon="mdi-account"
                       ></v-text-field>
                     </v-col>
@@ -1359,6 +1360,19 @@ function convertToDisplayDate(dateString) {
   }
   return "";
 }
+
+const rulesNomeCompleto = [
+  (value) => !!value || "Obrigatório preencher o nome completo.",
+  (value) => {
+    if (!value) return true; 
+
+  
+    const palavras = value.trim().split(/\s+/); 
+
+    
+    return palavras.length >= 2 || "É necessário informar nome e sobrenome.";
+  },
+];
 
 const rulesEmail = [
   (value) => !!value || "Obrigatório preencher",

@@ -377,6 +377,23 @@
 
             <v-expand-transition>
               <v-alert
+                v-if="metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500"
+                type="error"
+                icon="mdi-alert"
+                class="my-4"
+                variant="tonal"
+                density="compact"
+              >
+                <p class="font-weight-bold"></p>
+                <p class="text-caption">
+                  Para continuar com o pagamento com boleto, o total precisa ser no mínimo R$5,00.
+                </p>
+              </v-alert>
+            </v-expand-transition>
+
+
+            <v-expand-transition>
+              <v-alert
                 v-if="existePagamento"
                 type="info"
                 icon="mdi-cash-lock-open"
@@ -407,6 +424,7 @@
               Verificar Pagamento
             </v-btn>
 
+           
             <v-btn
               v-else
               color="success"
@@ -420,7 +438,8 @@
                 existePagamento ||
                 !metodoPagamento ||
                 (metodoEntrega === 'entrega' &&
-                  enderecoIncompleto(enderecoUsuario))
+                  enderecoIncompleto(enderecoUsuario)) ||
+                  metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500
               "
               class="font-weight-bold"
               rounded="lg"

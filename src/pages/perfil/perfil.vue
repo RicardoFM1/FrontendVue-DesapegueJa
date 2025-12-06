@@ -203,9 +203,11 @@
                 <v-form ref="formRef" @submit.prevent="salvarAlteracoes">
                   <v-text-field
                     v-model="usuario.Nome"
-                    label="Nome de usuário"
+                    label="Nome completo"
+                    :rules="rulesNomeCompleto"
                     prepend-inner-icon="mdi-account"
                     variant="outlined"
+                    required
                   />
 
                   <v-text-field
@@ -1237,6 +1239,19 @@ function FazerLogout() {
     router.push("/login");
   }
 }
+
+const rulesNomeCompleto = [
+  (value) => !!value || "Obrigatório preencher o nome completo.",
+  (value) => {
+    if (!value) return true; 
+
+  
+    const palavras = value.trim().split(/\s+/); 
+
+    
+    return palavras.length >= 2 || "É necessário informar nome e sobrenome.";
+  },
+];
 
 const rulesEmail = [
   (v) =>
