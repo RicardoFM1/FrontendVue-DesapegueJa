@@ -112,7 +112,7 @@
         </v-alert>
       </div>
 
-      <v-row v-else class="detalhes-conteudo">
+      <v-row v-if="!carregandoProdutos" class="detalhes-conteudo">
         
         <v-col cols="12" md="6" class="pr-md-8">
           <v-card class="rounded-xl elevation-2"> 

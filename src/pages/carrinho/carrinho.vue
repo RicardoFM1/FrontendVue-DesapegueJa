@@ -302,8 +302,9 @@
               <v-expand-transition>
                 <v-alert
                   v-if="
-                    (metodoEntrega === 'entrega' || metodoPagamento.toLowerCase() === 'boleto') && 
-  enderecoIncompleto(enderecoUsuario)
+                    (metodoEntrega === 'entrega' ||
+                      metodoPagamento.toLowerCase() === 'boleto') &&
+                    enderecoIncompleto(enderecoUsuario)
                   "
                   type="warning"
                   icon="mdi-map-marker-alert"
@@ -377,7 +378,9 @@
 
             <v-expand-transition>
               <v-alert
-                v-if="metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500"
+                v-if="
+                  metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500
+                "
                 type="error"
                 icon="mdi-alert"
                 class="my-4"
@@ -386,11 +389,11 @@
               >
                 <p class="font-weight-bold"></p>
                 <p class="text-caption">
-                  Para continuar com o pagamento com boleto, o total precisa ser no mínimo R$5,00.
+                  Para continuar com o pagamento com boleto, o total precisa ser
+                  no mínimo R$5,00.
                 </p>
               </v-alert>
             </v-expand-transition>
-
 
             <v-expand-transition>
               <v-alert
@@ -424,7 +427,6 @@
               Verificar Pagamento
             </v-btn>
 
-           
             <v-btn
               v-else
               color="success"
@@ -435,11 +437,14 @@
               @click="comprar"
               :disabled="
                 loadingComprar ||
-  existePagamento ||
-  !metodoPagamento ||
-  (metodoEntrega === 'entrega' && enderecoIncompleto(enderecoUsuario)) ||
-  (metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500) || 
-  (metodoPagamento.toLowerCase() === 'boleto' && enderecoIncompleto(enderecoUsuario)) 
+                existePagamento ||
+                !metodoPagamento ||
+                (metodoEntrega === 'entrega' &&
+                  enderecoIncompleto(enderecoUsuario)) ||
+                (metodoPagamento.toLowerCase() === 'boleto' &&
+                  subtotal < 500) ||
+                (metodoPagamento.toLowerCase() === 'boleto' &&
+                  enderecoIncompleto(enderecoUsuario))
               "
               class="font-weight-bold"
               rounded="lg"
@@ -461,6 +466,35 @@
         </v-col>
       </v-row>
     </v-container>
+
+    <v-dialog v-model="modalCartaoOpen" max-width="600px" persistent>
+      <v-card class="pa-6 rounded-xl">
+        <v-card-title class="text-h5 font-weight-bold mb-4">
+          Dados do Cartão
+        </v-card-title>
+        <v-divider class="mb-6"></v-divider>
+
+        <div id="cardPaymentBrickContainer"></div>
+
+        <p class="mt-4 text-caption text-grey-darken-1">
+          Pagamento seguro processado diretamente pelo Mercado Pago.
+        </p>
+
+        <v-card-actions class="justify-end pt-4">
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="
+              modalCartaoOpen = false;
+              metodoPagamento = 'Pix';
+            "
+            class="text-capitalize"
+          >
+            Cancelar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog max-width="450" v-model="modalConfirmacaoOpen" persistent>
       <v-card class="pa-6 rounded-xl elevation-10 text-center">
@@ -649,7 +683,7 @@
 
 <script setup>
 import { connection } from "@/connection/axiosConnection";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
@@ -930,6 +964,69 @@ const salvarAlteracoesEndereco = async () => {
     loadingEndereco.value = false;
   }
 };
+const MP_PUBLIC_KEY = "TEST-177e78dc-700a-4ae6-966f-20e8a6389fd5";
+const cardTokenGerado = ref("");
+const paymentMethodIdCartao = ref("");
+const modalCartaoOpen = ref(false);
+watch(metodoPagamento, (m) => {
+  if (metodoPagamento.value.toLowerCase() === "cartão") {
+    modalCartaoOpen.value = true;
+  }
+ 
+});
+const cardToken = ref(null);
+const paymentMethodId = ref(null);
+const mpInstance = ref(null);
+const cardPaymentBrick = ref(null);
+
+watch(modalCartaoOpen, (isOpen) => {
+  if (isOpen) {
+    nextTick(() => {
+      renderizarCardPaymentBrick();
+    });
+  } else {
+  }
+});
+
+function renderizarCardPaymentBrick() {
+  const brickContainer = document.getElementById("cardPaymentBrickContainer");
+  if (!brickContainer || !mpInstance.value) return;
+  if (cardPaymentBrick.value) return;
+
+
+  const valorCompra = Math.round(Number(totalComFrete.value)); 
+
+  cardPaymentBrick.value = mpInstance.value.bricks().create("cardPayment", "cardPaymentBrickContainer", {
+    initialization: {
+      amount: valorCompra,
+      payer: {
+        email: "test_user_checkout@testuser.com", 
+      },
+    },
+    customization: {
+      visual: {
+        style: {
+          theme: "default", 
+        },
+      },
+    },
+    callbacks: {
+      onReady: () => {
+        console.log("✅ Card Payment Brick PRONTO.");
+      },
+      onSubmit: (cardFormData) => {
+        console.log("Token gerado:", cardFormData.token);
+        cardToken.value = cardFormData.token;
+        paymentMethodId.value = cardFormData.payment_method_id;
+        modalCartaoOpen.value = false;
+        comprar();
+      },
+      onError: (error) => {
+        console.error("Erro Brick:", error);
+      },
+    },
+  });
+}
 
 async function comprar() {
   if (!carrinhoUser.value.length) {
@@ -938,7 +1035,8 @@ async function comprar() {
   }
 
   if (
-    (metodoEntrega.value === "entrega" || metodoPagamento.value.toLowerCase() === "boleto") &&
+    (metodoEntrega.value === "entrega" ||
+      metodoPagamento.value.toLowerCase() === "boleto") &&
     enderecoIncompleto(enderecoUsuario.value)
   ) {
     modalEndereco.value = true;
@@ -1031,6 +1129,9 @@ async function comprar() {
       usuario_id: retrieve.value.id,
       forma_pagamento_id: formaSelecionada.id,
       status_pagamento_id: statusPagamentoPendente.id,
+      card_token: cardTokenGerado.value,
+      payment_method_id: paymentMethodIdCartao.value,
+      parcelas: 1,
       valor: totalComFrete.value,
       observacao: "",
     };
@@ -1198,9 +1299,9 @@ async function getPagamentos() {
 }
 
 onMounted(async () => {
- if(!localStorage.getItem("token")){
-    router.push("/:pathMatch(.*)*")
-    return
+  if (!localStorage.getItem("token")) {
+    router.push("/:pathMatch(.*)*");
+    return;
   }
 
   await getRetrieve();
@@ -1225,6 +1326,12 @@ onMounted(async () => {
       pagamento.uuid ||
       pagamento.pagamentoUuid ||
       "";
+  }
+  if (window.MercadoPago) {
+    mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY);
+    console.log("MP Instance inicializada:", mpInstance.value);
+  } else {
+    console.error("Mercado Pago SDK não encontrado na janela.");
   }
 });
 
@@ -1266,12 +1373,16 @@ async function carregarCarrinhoCompleto() {
   }
 }
 watch(metodoEntrega, (novo, antigo) => {
-  if ((novo === "entrega" || metodoPagamento.value.toLowerCase() === "boleto") && enderecoIncompleto(enderecoForm.value)) {
+  if (
+    (novo === "entrega" || metodoPagamento.value.toLowerCase() === "boleto") &&
+    enderecoIncompleto(enderecoForm.value)
+  ) {
     modalEndereco.value = true;
     toast.warning("Complete seu endereço para usar a opção 'Entrega'.", {
       autoClose: 3000,
     });
   }
+  
 });
 
 function enderecoIncompleto(end) {
