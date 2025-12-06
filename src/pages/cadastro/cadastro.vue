@@ -392,7 +392,11 @@ const rulesTelefone = [
   (value) => !!value || "Obrigatório preencher",
   (value) => value.length >= 8 || "Telefone muito curto",
 ];
-
+const nomeCompletoValido = computed(() => {
+    
+    const nome = usuario.value.Nome.trim();
+    return nome && nome.split(/\s+/).length >= 2;
+});
 
 const disabled = computed(
   () =>
@@ -402,7 +406,8 @@ const disabled = computed(
     !usuario.value.CPF ||
      !usuario.value.ddi ||
     !usuario.value.Telefone ||
-    !usuario.value.dataNascimento
+    !usuario.value.dataNascimento ||
+    !nomeCompletoValido.value
 );
 </script>
 

@@ -302,8 +302,8 @@
               <v-expand-transition>
                 <v-alert
                   v-if="
-                    metodoEntrega === 'entrega' &&
-                    enderecoIncompleto(enderecoUsuario)
+                    (metodoEntrega === 'entrega' || metodoPagamento.toLowerCase() === 'boleto') && 
+  enderecoIncompleto(enderecoUsuario)
                   "
                   type="warning"
                   icon="mdi-map-marker-alert"
@@ -435,11 +435,11 @@
               @click="comprar"
               :disabled="
                 loadingComprar ||
-                existePagamento ||
-                !metodoPagamento ||
-                (metodoEntrega === 'entrega' &&
-                  enderecoIncompleto(enderecoUsuario)) ||
-                  metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500
+  existePagamento ||
+  !metodoPagamento ||
+  (metodoEntrega === 'entrega' && enderecoIncompleto(enderecoUsuario)) ||
+  (metodoPagamento.toLowerCase() === 'boleto' && subtotal < 500) || 
+  (metodoPagamento.toLowerCase() === 'boleto' && enderecoIncompleto(enderecoUsuario)) 
               "
               class="font-weight-bold"
               rounded="lg"
@@ -938,7 +938,7 @@ async function comprar() {
   }
 
   if (
-    metodoEntrega.value === "entrega" &&
+    (metodoEntrega.value === "entrega" || metodoPagamento.value.toLowerCase() === "boleto") &&
     enderecoIncompleto(enderecoUsuario.value)
   ) {
     modalEndereco.value = true;
@@ -1266,7 +1266,7 @@ async function carregarCarrinhoCompleto() {
   }
 }
 watch(metodoEntrega, (novo, antigo) => {
-  if (novo === "entrega" && enderecoIncompleto(enderecoForm.value)) {
+  if ((novo === "entrega" || metodoPagamento.value.toLowerCase() === "boleto") && enderecoIncompleto(enderecoForm.value)) {
     modalEndereco.value = true;
     toast.warning("Complete seu endereço para usar a opção 'Entrega'.", {
       autoClose: 3000,
