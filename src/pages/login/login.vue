@@ -100,7 +100,8 @@
             <v-img
               max-width="18"
               class="mr-2"
-              src="caminho/para/google-icon.svg"
+              contain
+              src="imagemGoogle.png"
               alt="Google Icon"
             ></v-img>
             Continuar com Google
@@ -144,6 +145,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { connection } from "@/connection/axiosConnection";
 import { toast } from "vue3-toastify/dist/index";
+
 
 const router = useRouter();
 const route = useRoute();
