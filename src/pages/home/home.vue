@@ -18,7 +18,7 @@
           <v-btn 
             icon 
             color="grey-darken-1" 
-            @click="dialogSocial = !dialogSocial"
+            @click="openDialog"
             :disabled="carregandoProdutos"
             v-tooltip:bottom="'Buscar Vendedores'"
           >
@@ -30,6 +30,7 @@
             class="mr-2" 
             @click="toCarrinho"
             :disabled="carregandoProdutos"
+            v-tooltip:bottom = "'Carrinho'"
           >
             <v-badge 
               color="error" 
@@ -428,9 +429,12 @@
     <v-app-bar color="white" elevation="1" height="70">
       <v-app-bar-nav-icon @click="drawer = !drawer" color="grey-darken-1"></v-app-bar-nav-icon>
 
-      <v-toolbar-title class="font-weight-bold text-h5 text-primary d-none d-sm-flex">
-        <v-icon start icon="mdi-store" color="primary"></v-icon>
+      <v-toolbar-title  class="font-weight-bold text-h5 text-primary d-none d-sm-flex">
+       
+
+          <v-icon  start icon="mdi-store" color="primary"></v-icon>
         DesapegaJá
+        
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
@@ -440,8 +444,9 @@
         <v-btn 
           icon 
           color="grey-darken-1" 
-          @click="dialogSocial = !dialogSocial"
+          @click="openDialog"
           :disabled="carregandoProdutos"
+          v-tooltip:bottom="'Buscar Vendedores'"
         >
           <v-icon>mdi-account-group-outline</v-icon>
         </v-btn>
@@ -451,6 +456,7 @@
           class="mr-2"
           @click="modalAlertShow = true"
           :disabled="carregandoProdutos"
+          v-tooltip:bottom="'Carrinho'"
         >
           <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
         </v-btn>
@@ -1098,7 +1104,13 @@ watch(itens, (novoItem) => {
 
 const modalAlertShow = ref(false);
 
-
+function openDialog(){
+  if(tokenExiste.value == false){
+    modalAlertShow.value = !modalAlertShow.value;
+  }else{
+    dialogSocial.value = !dialogSocial.value
+  }
+}
 
 
 async function addToCart(item) {

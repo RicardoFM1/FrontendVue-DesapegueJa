@@ -1,16 +1,19 @@
 <template>
   <v-layout class="bg-grey-lighten-5 d-flex flex-column">
-    
-    <v-container class="py-4" style="max-width: 1400px;"> 
+    <v-container class="py-4" style="max-width: 1400px">
       <v-row align="center" justify="space-between">
-        
         <v-col cols="12" md="4" class="py-0">
           <v-breadcrumbs
-            :items="[{ text: 'Home', disabled: false, to: '/' }, { text: 'Detalhes', disabled: true }]"
+            :items="[
+              { text: 'Home', disabled: false, to: '/' },
+              { text: 'Detalhes', disabled: true },
+            ]"
             class="pa-4"
           >
             <template #title="{ item }">
-              <span class="text-caption text-grey-darken-1">{{ item.text }}</span>
+              <span class="text-caption text-grey-darken-1">{{
+                item.text
+              }}</span>
             </template>
           </v-breadcrumbs>
           <v-btn
@@ -38,18 +41,18 @@
             Home
           </v-btn>
 
-          <v-btn 
-            icon 
-            class="mr-2 pa-2" 
+          <v-btn
+            icon
+            class="mr-2 pa-2"
             @click="toCarrinho"
             :disabled="carregandoProdutos"
-            
+            v-if="tokenExiste"
           >
-            <v-badge 
-              color="error" 
-              :content="carrinho.length" 
+            <v-badge
+              color="error"
+              :content="carrinho.length"
               v-if="carrinho.length > 0"
-              offset-x="-1" 
+              offset-x="-1"
               offset-y="-1"
             >
               <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
@@ -59,26 +62,58 @@
 
           <v-menu v-model="menu" offset-y location="bottom end">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" class="ml-1">
+              <v-btn v-if="tokenExiste" icon v-bind="props" class="ml-1">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
             <v-card class="pa-4 rounded-xl" width="300" elevation="4">
               <div class="d-flex flex-column align-center mb-3">
-                <v-avatar size="80" class="mb-3" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
-                  <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
-                  <span v-else class="text-h4 text-white">{{ avatarUsuario.texto }}</span>
+                <v-avatar
+                  size="80"
+                  class="mb-3"
+                  :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+                >
+                  <v-img
+                    v-if="avatarUsuario.tipo === 'imagem'"
+                    :src="avatarUsuario.src"
+                    cover
+                  />
+                  <span v-else class="text-h4 text-white">{{
+                    avatarUsuario.texto
+                  }}</span>
                 </v-avatar>
-                <div class="text-h6 font-weight-bold text-truncate w-100 text-center">{{ usuario?.nome }}</div>
-                <div class="text-caption text-grey text-truncate w-100 text-center">{{ usuario?.email }}</div>
+                <div
+                  class="text-h6 font-weight-bold text-truncate w-100 text-center"
+                >
+                  {{ usuario?.nome }}
+                </div>
+                <div
+                  class="text-caption text-grey text-truncate w-100 text-center"
+                >
+                  {{ usuario?.email }}
+                </div>
               </div>
 
               <v-divider class="mb-3"></v-divider>
 
-              <v-btn block variant="tonal" color="primary" class="mb-2 rounded-lg" prepend-icon="mdi-account" @click="toPerfil">
+              <v-btn
+                block
+                variant="tonal"
+                color="primary"
+                class="mb-2 rounded-lg"
+                prepend-icon="mdi-account"
+                @click="toPerfil"
+              >
                 Meu Perfil
               </v-btn>
-              <v-btn block variant="outlined" color="error" class="rounded-lg" prepend-icon="mdi-logout" @click="buttonSairClicado = !buttonSairClicado">
+              <v-btn
+                block
+                variant="outlined"
+                color="error"
+                class="rounded-lg"
+                prepend-icon="mdi-logout"
+                @click="buttonSairClicado = !buttonSairClicado"
+              >
                 Sair
               </v-btn>
             </v-card>
@@ -86,16 +121,28 @@
         </v-col>
       </v-row>
     </v-container>
-    
+
     <v-divider></v-divider>
 
-     <div v-if="carregandoProdutos" class="d-flex flex-column justify-center align-center my-8" style="height: 400px">
-        <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
-        <p class="mt-4 text-grey-darken-1">Carregando detalhes do produto...</p>
-      </div>
+    <div
+      v-if="carregandoProdutos"
+      class="d-flex flex-column justify-center align-center my-8"
+      style="height: 400px"
+    >
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="64"
+        width="6"
+      ></v-progress-circular>
+      <p class="mt-4 text-grey-darken-1">Carregando detalhes do produto...</p>
+    </div>
 
-    <v-container v-if="!carregandoProdutos" class="bg-white pa-6 pa-md-10 rounded-xl elevation-1 mb-8" style="max-width: 1400px;">
-      
+    <v-container
+      v-if="!carregandoProdutos"
+      class="bg-white pa-6 pa-md-10 rounded-xl elevation-1 mb-8"
+      style="max-width: 1400px"
+    >
       <div v-if="erroGetProduto" class="d-flex justify-center my-8">
         <v-alert
           type="error"
@@ -107,116 +154,175 @@
           max-width="600"
         >
           <template #append>
-             <v-btn color="error" variant="outlined" size="small" @click="recarregarProdutos">Tentar Novamente</v-btn>
+            <v-btn
+              color="error"
+              variant="outlined"
+              size="small"
+              @click="recarregarProdutos"
+              >Tentar Novamente</v-btn
+            >
           </template>
         </v-alert>
       </div>
 
       <v-row v-if="!carregandoProdutos" class="detalhes-conteudo">
-        
         <v-col cols="12" md="6" class="pr-md-8">
-          <v-card class="rounded-xl elevation-2"> 
+          <v-card class="rounded-xl elevation-2">
             <v-img
               :src="getProdutoImage(produto.imagem)"
               class="produto-imagem"
               height="500"
               cover
             >
-               <template #placeholder>
-                  <v-row class="fill-height ma-0" align="center" justify="center">
-                     <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
-                  </v-row>
-               </template>
+              <template #placeholder>
+                <v-row class="fill-height ma-0" align="center" justify="center">
+                  <v-progress-circular
+                    indeterminate
+                    color="grey-lighten-5"
+                  ></v-progress-circular>
+                </v-row>
+              </template>
             </v-img>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="6">
-          
           <h1 class="text-h3 font-weight-bold mb-4">{{ produto.nome }}</h1>
-          
+
           <div class="d-flex align-center mb-6">
-            
-            
             <v-chip size="default" variant="tonal" color="grey-darken-1" label>
-                {{ categoriaNome }}
+              {{ categoriaNome }}
             </v-chip>
           </div>
-          
+
           <v-divider class="mb-6"></v-divider>
 
           <div class="preco-container mb-6">
             <span class="text-h4 text-primary font-weight-black">
-                {{ precoFormatado }}
+              {{ precoFormatado }}
             </span>
-           
           </div>
-          
-          <v-btn 
-            block 
+
+          <v-btn
+            block
             size="large"
-            color="success" 
+            color="success"
             class="text-h6 text-capitalize rounded-lg font-weight-bold mb-6"
-            :disabled="loadingInformacoes || produto.estoque <= 0" 
-            :loading="loadingAdicionar" 
+            :disabled="loadingInformacoes || produto.estoque <= 0"
+            :loading="loadingAdicionar"
             @click="adicionarAoCarrinho"
             elevation="4"
           >
             <v-icon left>mdi-cart-plus</v-icon>
-            {{ produto.estoque > 0 ? 'ADICIONAR AO CARRINHO' : 'ESGOTADO' }}
+            {{ produto.estoque > 0 ? "ADICIONAR AO CARRINHO" : "ESGOTADO" }}
           </v-btn>
 
-          <v-card variant="tonal" color="grey-lighten-4" class="pa-4 rounded-lg mb-6">
+          <v-card
+            variant="tonal"
+            color="grey-lighten-4"
+            class="pa-4 rounded-lg mb-6"
+          >
             <v-list density="compact" class="pa-0">
               <v-list-item class="px-0">
                 <v-list-item-title class="font-weight-bold">
-                  <v-icon size="18" class="mr-2" color="success">mdi-check-circle-outline</v-icon>
-                  Estoque: 
-                  <span :class="{'text-success': produto.estoque > 0, 'text-error': produto.estoque <= 0}">
-                    {{ produto.estoque > 0 ? `${produto.estoque} disponível` : 'Esgotado' }}
+                  <v-icon size="18" class="mr-2" color="success"
+                    >mdi-check-circle-outline</v-icon
+                  >
+                  Estoque:
+                  <span
+                    :class="{
+                      'text-success': produto.estoque > 0,
+                      'text-error': produto.estoque <= 0,
+                    }"
+                  >
+                    {{
+                      produto.estoque > 0
+                        ? `${produto.estoque} disponível`
+                        : "Esgotado"
+                    }}
                   </span>
                 </v-list-item-title>
               </v-list-item>
-              
+
               <v-list-item class="px-0">
                 <v-list-item-title class="font-weight-bold">
-                  <v-icon size="18" class="mr-2" color="primary">mdi-store</v-icon>
-                  Vendedor: <span class="text-primary">{{ vendedorNome }}</span>
+                  <v-icon size="18" class="mr-2" color="primary"
+                    >mdi-store</v-icon
+                  >
+                  Vendedor:
+                  <span
+                    style="cursor: pointer"
+                    @click="toVendedor"
+                    class="text-primary"
+                    >{{ vendedorNome }}</span
+                  >
                 </v-list-item-title>
               </v-list-item>
-              
+
+              <v-list-item v-if="tokenExiste" class="px-0">
+                <v-expand-transition>
+                  <v-alert type="info">
+                    <p>
+                      Clique no nome do vendedor(a) para acessar o perfil do
+                      vendedor(a)
+                    </p>
+                  </v-alert>
+                </v-expand-transition>
+              </v-list-item>
+
               <v-list-item class="px-0">
                 <v-list-item-title class="font-weight-bold">
-                  <v-icon size="18" class="mr-2" color="grey-darken-1">mdi-calendar-range</v-icon>
+                  <v-icon size="18" class="mr-2" color="grey-darken-1"
+                    >mdi-calendar-range</v-icon
+                  >
                   Anunciado em: {{ produto.data_post }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-card>
-          
+
           <div class="detalhes-produto">
             <h2 class="text-h6 font-weight-bold mb-3">Descrição do Produto</h2>
-            <p class="text-body-1 text-medium-emphasis" style="line-height: 1.6;">
+            <p
+              class="text-body-1 text-medium-emphasis"
+              style="line-height: 1.6"
+            >
               {{ produto.descricao }}
             </p>
           </div>
-          
         </v-col>
       </v-row>
     </v-container>
-    
+
     <v-dialog v-model="buttonSairClicado" max-width="400">
       <v-card class="rounded-xl pa-4" elevation="10">
         <div class="text-center pt-4">
           <v-avatar color="red-lighten-5" size="80" class="mb-4">
-             <v-icon color="error" size="40">mdi-logout-variant</v-icon>
+            <v-icon color="error" size="40">mdi-logout-variant</v-icon>
           </v-avatar>
           <div class="text-h5 font-weight-bold mb-2">Sair da Conta?</div>
-          <div class="text-body-2 text-grey">Tem certeza que deseja encerrar sua sessão?</div>
+          <div class="text-body-2 text-grey">
+            Tem certeza que deseja encerrar sua sessão?
+          </div>
         </div>
         <v-card-actions class="justify-center mt-6">
-           <v-btn variant="text" color="grey" rounded="lg" @click="buttonSairClicado = false" class="px-6">Cancelar</v-btn>
-           <v-btn color="error" variant="flat" rounded="lg" @click="FazerLogout" :loading="loadingLogout" class="px-6">Sair Agora</v-btn>
+          <v-btn
+            variant="text"
+            color="grey"
+            rounded="lg"
+            @click="buttonSairClicado = false"
+            class="px-6"
+            >Cancelar</v-btn
+          >
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            @click="FazerLogout"
+            :loading="loadingLogout"
+            class="px-6"
+            >Sair Agora</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -224,17 +330,33 @@
     <v-dialog v-model="usuarioNaoLogado" max-width="400">
       <v-card class="rounded-xl pa-4">
         <div class="text-center pt-2">
-           <v-icon size="48" color="amber" class="mb-2">mdi-alert</v-icon>
-           <div class="text-h6 font-weight-bold">Aviso</div>
-           <div class="text-body-2 text-grey mt-2">Usuário sem permissão para executar esta ação! Tente primeiro fazer login.</div>
+          <v-icon size="48" color="amber" class="mb-2">mdi-alert</v-icon>
+          <div class="text-h6 font-weight-bold">Aviso</div>
+          <div class="text-body-2 text-grey mt-2">
+            Usuário sem permissão para executar esta ação! Tente primeiro fazer
+            login.
+          </div>
         </div>
         <v-card-actions class="justify-center mt-4">
-           <v-btn variant="outlined" color="primary" @click="toLogin" class="mx-2">Fazer Login</v-btn>
-           <v-btn variant="text" @click="usuarioNaoLogado = false; loadingAdicionar = false" class="mx-2">Ok</v-btn>
+          <v-btn
+            variant="outlined"
+            color="primary"
+            @click="toLogin"
+            class="mx-2"
+            >Fazer Login</v-btn
+          >
+          <v-btn
+            variant="text"
+            @click="
+              usuarioNaoLogado = false;
+              loadingAdicionar = false;
+            "
+            class="mx-2"
+            >Ok</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </v-layout>
 </template>
 <script setup>
@@ -246,7 +368,6 @@ import "vue3-toastify/dist/index.css";
 
 const route = useRoute();
 const router = useRouter();
-
 
 const token = ref();
 const tokenExiste = ref(false);
@@ -266,10 +387,10 @@ const carregandoProdutos = ref(false);
 const carregando = ref(false);
 const categoriaNome = ref();
 const vendedorNome = ref();
-const usuarioNaoLogado = ref(false)
-const loadingAdicionar = ref(false)
-const loadingInformacoes = ref(true)
-const menu = ref(false)
+const usuarioNaoLogado = ref(false);
+const loadingAdicionar = ref(false);
+const loadingInformacoes = ref(true);
+const menu = ref(false);
 const buttonSairClicado = ref(false);
 const loadingLogout = ref(false);
 
@@ -319,20 +440,20 @@ async function getRetrieve() {
 }
 
 async function getVendedor() {
-  loadingInformacoes.value = true
+  loadingInformacoes.value = true;
   try {
     const res = await connection.get("/desapega/usuarios");
     if (res.status === 200) vendedor.value = res.data;
   } catch (error) {
     toast.error("Erro ao buscar vendedores");
   }
-  loadingInformacoes.value = false
+  loadingInformacoes.value = false;
 }
-const total = ref(0)
+const total = ref(0);
 
 async function getProdutos() {
   carregandoProdutos.value = true;
-  loadingInformacoes.value = true
+  loadingInformacoes.value = true;
   erroGetProduto.value = false;
   const timeout = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Tempo limite excedido")), 8000)
@@ -346,8 +467,8 @@ async function getProdutos() {
     const res = await Promise.race([connection.get(url), timeout]);
 
     if (res.status === 200) {
-      itens.value = res.data.produtos     
-  total.value = res.data.total
+      itens.value = res.data.produtos;
+      total.value = res.data.total;
       const id = parseInt(route.params.id);
       produto.value = res.data.produtos.find((p) => p.id === id) || {};
     } else {
@@ -358,42 +479,42 @@ async function getProdutos() {
     toast.error("Erro ao carregar produto");
   } finally {
     carregandoProdutos.value = false;
-    loadingInformacoes.value = false
+    loadingInformacoes.value = false;
   }
 }
 
 async function getCategorias() {
-loadingInformacoes.value = true
+  loadingInformacoes.value = true;
   try {
     const res = await connection.get(`/desapega/categorias`);
-    if (res.status === 200){
+    if (res.status === 200) {
       categorias.value = res.data;
-    } 
+    }
   } catch (error) {
     toast.error("Erro ao carregar categorias");
-  }finally{
-    loadingInformacoes.value = false
+  } finally {
+    loadingInformacoes.value = false;
   }
 }
 watch(produto, (p) => {
-console.log(p, "produto")
-})
+  console.log(p, "produto");
+});
 watch(categorias, (c) => {
-console.log(c, "categorias")
-})
+  console.log(c, "categorias");
+});
 watch(categoriaNome, (c) => {
-console.log(c)
-})
+  console.log(c);
+});
 watch([produto, categorias], ([p, c]) => {
   if (!p || !p.categoria_id || !c.length) return;
 
-  const cat = c.find(cat => cat.id == p.categoria_id) || "";
+  const cat = c.find((cat) => cat.id == p.categoria_id) || "";
   categoriaNome.value = cat ? cat.nome : "";
 });
 watch([produto, vendedor], ([p, v]) => {
   if (!v || !p.usuario_id || !v.length) return;
 
-  const vendedor = v.find(vend => vend.id == p.usuario_id) || "";
+  const vendedor = v.find((vend) => vend.id == p.usuario_id) || "";
   vendedorNome.value = vendedor ? vendedor.nome : "";
 });
 function recarregarProdutos() {
@@ -419,7 +540,7 @@ function toCarrinho() {
   router.push("/carrinho");
 }
 function toHome() {
-  router.push("/")
+  router.push("/");
 }
 function toPerfil() {
   if (tokenExiste.value == false) {
@@ -442,35 +563,38 @@ const precoFormatado = computed(() => {
   if (!produto.value.preco) return "";
   return (produto.value.preco / 100).toLocaleString("pt-BR", {
     style: "currency",
-    currency: "BRL"
+    currency: "BRL",
   });
 });
 
-const carrinho = ref([])
+const carrinho = ref([]);
 
 async function getCarrinho() {
-  if(token.value){
-  try {
+  if (token.value) {
+    try {
+      const res = await connection.get(
+        `/desapega/carrinho/${retrieve?.value.id}`
+      );
 
-    const res = await connection.get(`/desapega/carrinho/${retrieve?.value.id}`);
-    
-    if (res.status == 200 || res.status == 201) {
-      carrinho.value = res.data;
-    } else {
-      toast.error("Estamos com dificuldade de listar seu carrinho...");
+      if (res.status == 200 || res.status == 201) {
+        carrinho.value = res.data;
+      } else {
+        toast.error("Estamos com dificuldade de listar seu carrinho...");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Erro ao listar seu carrinho");
     }
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Erro ao listar seu carrinho");
   }
 }
-}
-
-
 
 onMounted(async () => {
   if (tokenExiste.value) await getRetrieve();
-  await Promise.all([getProdutos(), getCategorias(), getVendedor(), getCarrinho() ]);
-
+  await Promise.all([
+    getProdutos(),
+    getCategorias(),
+    getVendedor(),
+    getCarrinho(),
+  ]);
 });
 const getIniciais = (nome) => {
   if (!nome) return "?";
@@ -501,45 +625,48 @@ const avatarUsuario = computed(() => {
   return { tipo: "iniciais", texto: getIniciais(nome) };
 });
 
-async function adicionarAoCarrinho(){
-  loadingAdicionar.value = true
- 
-  if(!retrieve.value?.id){
-    usuarioNaoLogado.value = true
+async function adicionarAoCarrinho() {
+  loadingAdicionar.value = true;
+
+  if (!retrieve.value?.id) {
+    usuarioNaoLogado.value = true;
     return;
   }
-  try{
-
+  try {
     const body = {
       usuario_id: retrieve.value?.id,
       produto_id: produto.value.id,
-      quantidade: 1
-    }
-    console.log(body, "carrinho")
+      quantidade: 1,
+    };
+    console.log(body, "carrinho");
     const res = await connection.post("/desapega/carrinho", body, {
-      headers:{
-        Authorization: `Bearer ${token.value}`
-      }
-    })
-    if(res.status == 201 || res.status == 200){
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+      },
+    });
+    if (res.status == 201 || res.status == 200) {
       toast.success("Produto adicionado ao carrinho!");
     }
-    
-  }catch(err){
-   toast.error(err.response.data.message || "Erro ao adicionar ao carrinho") 
-  }finally{
-    loadingAdicionar.value = false
-    
+  } catch (err) {
+    toast.error(err.response.data.message || "Erro ao adicionar ao carrinho");
+  } finally {
+    loadingAdicionar.value = false;
   }
-
-  
 }
-function toLogin(){
-    router.push("/login")
+function toVendedor() {
+  if (tokenExiste.value) {
+    return router.push(`/perfilsocial/${produto.value.usuario_id}`);
+  } else {
+    return;
   }
+}
+
+function toLogin() {
+  router.push("/login");
+}
 watch(retrieve, (novo) => {
   console.log("Usuário:", novo);
 });
 </script>
 
-<style src="../css/paginaDetalhesProduto/detalhes.css"></style> 
+<style src="../css/paginaDetalhesProduto/detalhes.css"></style>
