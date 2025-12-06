@@ -433,7 +433,7 @@
        
 
           <v-icon  start icon="mdi-store" color="primary"></v-icon>
-        DesapegaJá
+        DesapegueJá
         
       </v-toolbar-title>
 
