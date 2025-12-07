@@ -581,6 +581,7 @@
                 density="comfortable"
                 :rules="modalData.id ? [rulesTelefone] : [rules.required, rulesTelefone]"
                 prepend-inner-icon="mdi-phone"
+                @input="filtrarNumeros"
             ></v-text-field>
         </v-col>
 
@@ -1360,6 +1361,17 @@ function convertToDisplayDate(inputDate) {
 
     return '';
 }
+
+const filtrarNumeros = () => {
+  
+  const valorAtual = modalData.value.telefone;
+
+  
+  const valorFiltrado = valorAtual.replace(/\D/g, '');
+
+  
+  modalData.value.telefone = valorFiltrado;
+};
 
 const buscarEnderecoViaCep = async () => {
   let cepNumeros = "";
