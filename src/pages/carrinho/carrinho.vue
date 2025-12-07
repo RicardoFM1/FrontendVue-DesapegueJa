@@ -467,37 +467,41 @@
       </v-row>
     </v-container>
 
+    <v-dialog
+      v-model="modalCartaoOpen"
+      max-width="600px"
+      persistent
+      @after-enter="onModalOpened"
+      @after-leave="fecharBrick"
+    >
+      <v-card class="pa-6 rounded-xl">
+        <v-card-title class="text-h5 font-weight-bold mb-4">
+          Dados do Cartão
+        </v-card-title>
 
+        <div
+          id="cardPaymentBrickContainer"
+          style="min-height: 380px; display: block"
+        ></div>
 
-<v-dialog v-model="modalCartaoOpen" max-width="600px" persistent>
-  <v-card class="pa-6 rounded-xl">
-    <v-card-title class="text-h5 font-weight-bold mb-4">
-      Dados do Cartão
-    </v-card-title>
+        <p class="mt-4 text-caption text-grey-darken-1">
+          Pagamento seguro processado diretamente pelo Mercado Pago.
+        </p>
 
-    <div id="cardPaymentBrickContainer" style="min-height: 350px;"></div>
-
-    <p class="mt-4 text-caption text-grey-darken-1">
-      Pagamento seguro processado diretamente pelo Mercado Pago.
-    </p>
-
-    <v-card-actions class="justify-end pt-4">
-      <v-btn
-        color="grey"
-        variant="text"
-        @click="
-          modalCartaoOpen = false;
-          metodoPagamento = 'Pix';
-        "
-      >
-        Cancelar
-      </v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
-
-
-
+        <v-card-actions class="justify-end pt-4">
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="
+              modalCartaoOpen = false;
+              metodoPagamento = 'Pix';
+            "
+          >
+            Cancelar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog max-width="450" v-model="modalConfirmacaoOpen" persistent>
       <v-card class="pa-6 rounded-xl elevation-10 text-center">
@@ -967,7 +971,7 @@ const salvarAlteracoesEndereco = async () => {
     loadingEndereco.value = false;
   }
 };
-const MP_PUBLIC_KEY = "APP_USR-842098d7-130d-481a-a80a-0925855f6f12";
+const MP_PUBLIC_KEY = "TEST-177e78dc-700a-4ae6-966f-20e8a6389fd5";
 const cardTokenGerado = ref("");
 const paymentMethodIdCartao = ref("");
 const modalCartaoOpen = ref(false);
@@ -975,74 +979,63 @@ watch(metodoPagamento, (m) => {
   if (metodoPagamento.value.toLowerCase() === "cartão") {
     modalCartaoOpen.value = true;
   }
- 
 });
 const cardToken = ref(null);
 const paymentMethodId = ref(null);
 const mpInstance = ref(null);
+const mpLoaded = ref(false);
 const cardPaymentBrick = ref(null);
 
-watch(modalCartaoOpen, async (isOpen) => {
-  if (isOpen) {
-    await nextTick();
-    setTimeout(() => {
-      if (!mpInstance.value) {
-        console.error("MP não carregou ainda");
-        return;
-      }
-      renderizarCardPaymentBrick();
-    }, 300);
+function onModalOpened() {
+  console.log("🎉 Modal aberto!");
+  if (mpLoaded.value) {
+    nextTick(() => renderizarCardPaymentBrick());
   } else {
-    try {
-      mpInstance.value?.bricks()?.destroy(cardPaymentBrick.value);
-    } catch(e) {}
-    cardPaymentBrick.value = null;
+    console.warn("Aguardando Mercado Pago carregar...");
   }
-});
+}
 
+function fecharBrick() {
+  try {
+    mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
+  } catch {}
+}
 
+async function renderizarCardPaymentBrick() {
+  console.log("🔎 Renderizando Brick...");
 
+  if (!mpInstance.value) {
+    console.error("❌ mpInstance ainda não carregou!");
+    return;
+  }
 
+  const container = document.getElementById("cardPaymentBrickContainer");
+  if (!container) {
+    console.warn("❌ Container não existe ainda!");
+    return;
+  }
 
-function renderizarCardPaymentBrick() {
-  const brickContainer = document.getElementById("cardPaymentBrickContainer");
-  if (!brickContainer || !mpInstance.value) return;
-  if (cardPaymentBrick.value) return;
+  try {
+    mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
+  } catch {}
 
+  const valor = 1000
 
-  const valorCompra = Math.round(Number(totalComFrete.value)); 
-
-  cardPaymentBrick.value = mpInstance.value.bricks().create("cardPayment", "cardPaymentBrickContainer", {
-    initialization: {
-      amount: valorCompra,
-      accessToken: 'APP_USR-5088250160831492-112622-78f1e9f3fe417468dea4362a85e3f1a2-3009140010',
-      payer: {
-        email: retrieve.value.email, 
-      },
-    },
-    customization: {
-      visual: {
-        style: {
-          theme: "default", 
+  cardPaymentBrick.value = mpInstance.value
+    .bricks()
+    .create("cardPayment", "cardPaymentBrickContainer", {
+      initialization: { amount: valor },
+      callbacks: {
+        onReady: () => console.log("Brick pronto!"),
+        onError: (err) => console.error("Brick erro:", err),
+        onSubmit: (data) => {
+          console.log("TOKEN:", data.token);
+          console.log("METHOD:", data.payment_method_id);
+          modalCartaoOpen.value = false;
+          comprar();
         },
       },
-    },
-    callbacks: {
-      onReady: () => {
-        console.log("✅ Card Payment Brick PRONTO.");
-      },
-      onSubmit: (cardFormData) => {
-        console.log("Token gerado:", cardFormData.token);
-        cardToken.value = cardFormData.token;
-        paymentMethodId.value = cardFormData.payment_method_id;
-        modalCartaoOpen.value = false;
-        comprar();
-      },
-      onError: (error) => {
-        console.error("Erro Brick:", error);
-      },
-    },
-  });
+    });
 }
 
 async function comprar() {
@@ -1344,14 +1337,17 @@ onMounted(async () => {
       pagamento.pagamentoUuid ||
       "";
   }
-   if (window.MercadoPago) {
-    mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, {
-     
-    });
+  const interval = setInterval(() => {
+    if (window.MercadoPago) {
+      mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, {
+        locale: "pt-BR",
+      });
+      console.log("✅ Mercado Pago SDK carregada!");
+      mpLoaded.value = true;
+      clearInterval(interval);
+    }
     console.log("MP Instance inicializada:", mpInstance.value);
-  } else {
-    console.error("Mercado Pago SDK não encontrado na janela.");
-  }
+  }, 50);
 });
 
 async function carregarCarrinhoCompleto() {
@@ -1401,7 +1397,6 @@ watch(metodoEntrega, (novo, antigo) => {
       autoClose: 3000,
     });
   }
-  
 });
 
 function enderecoIncompleto(end) {
