@@ -107,6 +107,10 @@
                     </v-chip>
                   </template>
 
+                   <template v-slot:item.data="{ item }">
+                    {{ item.data_de_nascimento ? item.data_de_nascimento : "-" }}
+                  </template>
+
                   <template v-slot:item.admin="{ item }">
                     <v-chip
                       :color="item.admin ? 'deep-purple-accent-4' : 'grey'"
@@ -412,59 +416,56 @@
                 <v-form v-if="modalType === 'usuario'" ref="formUsuario">
                   <v-row class="justify-center mb-6">
                     <v-col cols="12" class="text-center">
-                      <v-avatar class="mb-3" size="120" color="grey-lighten-3">
-                <template
-                    v-if="
-                        !modalData.fotoDePerfilUrl ||
-                        modalData.fotoDePerfilUrl === 'Sem imagem' ||
-                        modalData.fotoDePerfilUrl === ''
-                    "
-                >
-                    <v-icon size="80" color="grey-darken-1">mdi-account-circle</v-icon>
-                </template>
-                <template v-else>
-                    <v-img
-                        :src="modalData.fotoDePerfilUrl"
-                        alt="Foto de Perfil"
-                        cover
-                    />
-                </template>
-            </v-avatar>
+    <v-avatar 
+        size="150" 
+        :color="avatarModal.tipo === 'imagem' ? 'grey-lighten-3' : 'indigo'"
+        class="mb-3"
+    >
+        <v-img 
+            v-if="avatarModal.tipo === 'imagem'" 
+            :src="avatarModal.src" 
+            cover 
+            alt="Foto de Perfil"
+        ></v-img>
+        
+        <span v-else class="text-white text-h3 font-weight-bold">
+            {{ avatarModal.texto }}
+        </span>
+    </v-avatar>
 
-                      <div class="mt-3">
-                <v-btn
-                    variant="tonal"
-                    color="primary"
-                    class="mr-3"
-                    @click="abrirExplorador"
-                    prepend-icon="mdi-camera"
-                    :disabled="saving"
-                >
-                    Alterar Foto
-                </v-btn>
-                <v-btn
-                    variant="outlined"
-                    color="red"
-                    @click="removerImagem"
-                    prepend-icon="mdi-delete"
-                    :disabled="
-                        saving ||
-                        !modalData.fotoDePerfilUrl ||
-                        modalData.fotoDePerfilUrl === 'Sem imagem' ||
-                        modalData.fotoDePerfilUrl === ''
-                    "
-                >
-                    Remover
-                </v-btn>
-            </div>
+    <div class="mt-3">
+        <v-btn
+            variant="tonal"
+            color="primary"
+            class="mr-3"
+            @click="abrirExplorador"
+            prepend-icon="mdi-camera"
+            :disabled="saving"
+        >
+            Alterar Foto
+        </v-btn>
+        
+        <v-btn
+            variant="outlined"
+            color="red"
+            @click="removerImagem"
+            prepend-icon="mdi-delete"
+            :disabled="
+                saving || 
+                avatarModal.tipo !== 'imagem'
+            "
+        >
+            Remover
+        </v-btn>
+    </div>
 
-            <input
-                type="file"
-                ref="inputArquivo"
-                accept="image/png, image/jpeg"
-                @change="carregarImagem"
-                style="display: none"
-            />
+    <input
+        type="file"
+        ref="inputArquivo"
+        accept="image/png, image/jpeg"
+        @change="carregarImagem"
+        style="display: none"
+    />
         </v-col>
     </v-row>
 
@@ -507,46 +508,49 @@
         </v-col>
 
                     <v-col cols="12" md="6">
-                      <v-menu
-                        :close-on-content-click="false"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template v-slot:activator="{ props }">
-                          <v-text-field
-                            v-bind="props"
-                            v-model="modalData.data_de_nascimento"
-                            label="Data de Nascimento"
-                            variant="outlined"
-                            density="comfortable"
-                            placeholder="DD/MM/AAAA"
-                            :rules="modalData.id ? [rulesDataNascimento] : [rules.required, rulesDataNascimento]"
-                            @input="
-                              modalData.data_de_nascimento = formatData(
-                                modalData.data_de_nascimento
-                              )
-                            "
-                            maxlength="10"
-                            prepend-inner-icon="mdi-calendar"
-                          ></v-text-field>
-                        </template>
+    <v-menu
+        v-model="menuAberto"
+        :close-on-content-click="false"
+        offset-y
+        min-width="auto"
+    >
+        <template v-slot:activator="{ props }">
+            <v-text-field
+                ref="inputData"
+                v-bind="props"
+                v-model="modalData.data_de_nascimento"
+                label="Data de Nascimento"
+                variant="outlined"
+                density="comfortable"
+                placeholder="DD/MM/AAAA"
+                :rules="modalData.id ? [rulesDataNascimento] : [rules.required, rulesDataNascimento]"
+                
+                @input="modalData.data_de_nascimento = modalData.data_de_nascimento.slice(0, 10)"
+                
+                maxlength="10"
+                prepend-inner-icon="mdi-calendar"
+            ></v-text-field>
+        </template>
 
-                        <v-date-picker
-                          :model-value="
-                            convertToInputDate(modalData.data_de_nascimento)
-                          "
-                          @update:model-value="
-                            (date) =>
-                              (modalData.data_de_nascimento =
-                                convertToDisplayDate(date))
-                          "
-                          hide-actions
-                          show-adjacent-months
-                          title="Selecione a Data"
-                          :max="new Date().toISOString().substr(0, 10)"
-                        ></v-date-picker>
-                      </v-menu>
-                    </v-col>
+        <v-date-picker
+            :model-value="
+                convertToInputDate(modalData.data_de_nascimento)
+            "
+            @update:model-value="
+                (date) => {
+                    
+                    modalData.data_de_nascimento = convertToDisplayDate(date);
+                  
+                    menuAberto = false;
+                }
+            "
+            hide-actions
+            show-adjacent-months
+            title="Selecione a Data"
+            :max="new Date().toISOString().substr(0, 10)"
+        ></v-date-picker>
+    </v-menu>
+</v-col>
 
                     <v-col cols="12" md="4">
             <v-select
@@ -623,7 +627,7 @@
                         label="Nome da Categoria"
                         variant="outlined"
                         density="comfortable"
-                        :rules="[rules.required]"
+                        :rules="modalData.id ? [] : [rules.required]"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
@@ -1089,6 +1093,7 @@ const usuarioHeaders = [
   { title: "Email", key: "email" },
   { title: "CPF", key: "cpf" },
   { title: "Telefone", key: "telefone" },
+  { title: "Data de nascimento", key: "data" },
   { title: "Admin", key: "admin" },
   { title: "Status", key: "status" },
   { title: "Ações", key: "actions", sortable: false, align: "end" },
@@ -1272,12 +1277,78 @@ function formatCPF(value) {
   return value;
 }
 
-function formatData(value) {
-  if (!value) return "";
-  value = value.replace(/\D/g, "");
-  value = value.replace(/(\d{2})(\d)/, "$1/$2");
-  value = value.replace(/(\d{2})(\d)/, "$1/$2");
-  return value.substring(0, 10);
+const getIniciais = (nome) => {
+  if (!nome) return "?";
+  const partes = nome.trim().split(" ");
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (
+    partes[0].charAt(0) + partes[partes.length - 1].charAt(0)
+  ).toUpperCase();
+};
+
+const avatarModal = computed(() => {
+  const nome = modalData.value.nome || "";
+  const foto = modalData.value.fotoDePerfilUrl;
+
+  if (foto && foto !== "null" && foto !== "Sem imagem" && foto.trim() !== "") {
+    if (foto.startsWith("data:image") || foto.startsWith("http")) {
+      return { tipo: "imagem", src: foto };
+    }
+    if (foto.startsWith("/9j/"))
+      return { tipo: "imagem", src: `data:image/jpeg;base64,${foto}` };
+    if (foto.startsWith("iVBORw0KGgo"))
+      return { tipo: "imagem", src: `data:image/png;base64,${foto}` };
+
+    return { tipo: "imagem", src: foto }; 
+  }
+
+  return { tipo: "iniciais", texto: getIniciais(nome) };
+});
+
+function convertToInputDate(displayDate) {
+    if (!displayDate || displayDate.length !== 10) return null;
+    const parts = displayDate.split('/');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return null;
+}
+
+const menuAberto = ref(false); 
+
+function convertToDisplayDate(inputDate) {
+    if (!inputDate) return '';
+
+  
+    if (inputDate instanceof Date) {
+        const day = String(inputDate.getDate()).padStart(2, '0');
+        const month = String(inputDate.getMonth() + 1).padStart(2, '0');
+        const year = inputDate.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    
+    if (typeof inputDate === 'string') {
+      
+        const parts = inputDate.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        
+        
+        if (inputDate.includes('/')) return inputDate;
+        
+        
+        const dateObj = new Date(inputDate);
+        if (!isNaN(dateObj)) {
+             const day = String(dateObj.getDate()).padStart(2, '0');
+             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+             const year = dateObj.getFullYear();
+             return `${day}/${month}/${year}`;
+        }
+    }
+
+    return '';
 }
 
 const buscarEnderecoViaCep = async () => {
@@ -1355,23 +1426,7 @@ function isValidDateOfBirth(dateString) {
   return true;
 }
 
-function convertToInputDate(dateString) {
-  if (!dateString || dateString.length !== 10) return "";
-  const parts = dateString.split("/");
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-  return "";
-}
 
-function convertToDisplayDate(dateString) {
-  if (!dateString || dateString.length !== 10) return "";
-  const parts = dateString.split("-");
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-  return "";
-}
 
 const rulesNomeCompleto = [
   (value) => !!value || "Obrigatório preencher o nome completo.",
@@ -1446,12 +1501,23 @@ function abrirExplorador() {
   inputArquivo.value.click();
 }
 
-function carregarImagem(event) {
-  const file = event.target.files[0];
-  if (file) {
-    imagemParaUpload.value = file;
-    modalData.value.fotoDePerfilUrl = URL.createObjectURL(file);
-  }
+async function carregarImagem(event) {
+    const file = event.target.files[0];
+    if (file) {
+        
+        modalData.value.fotoDePerfilUrl = URL.createObjectURL(file); 
+        
+        imagemParaUpload.value = await convertFileToBase64(file);
+    }
+}
+
+function convertFileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 }
 
 function removerImagem() {
@@ -1522,40 +1588,48 @@ function getEmptyModel(type) {
 }
 
 function openModal(type, item = null) {
-  modalType.value = type;
-  cepLoading.value = false;
+    modalType.value = type;
+    cepLoading.value = false;
 
-  if (item && item.id) {
-    modalData.value = { ...item };
-    if (type === "usuario") {
-      let fullPhone = item.telefone || "";
-      let ddiMatch = fullPhone.match(/^\+(\d+)/);
+    if (item && item.id) {
+        modalData.value = { ...item };
+        if (type === "usuario") {
+            let fullPhone = (item.telefone || "").replace(/\D/g, "");
 
-      if (ddiMatch) {
-        modalData.value.ddi = ddiMatch[1];
-        modalData.value.telefone = fullPhone
-          .replace(ddiMatch[0], "")
-          .replace(/\D/g, "");
-      } else {
-        modalData.value.ddi = fullPhone.substring(0, 2) || "55";
-        modalData.value.telefone = fullPhone.substring(2).replace(/\D/g, "");
-      }
+            
+            const todosDDIs = (ddiOptions.value || []) 
+                .map(d => d.value.toString())
+                .sort((a, b) => b.length - a.length); 
+            
+            let ddiEncontrado = "55";
+            let numeroTelefone = fullPhone;
 
-      modalData.value.cpf = formatCPF(item.cpf);
-      modalData.value.fotoDePerfilUrl = item.foto_de_perfil;
-      modalData.value.data_de_nascimento = convertToDisplayDate(
-        item.data_de_nascimento
-      );
+            for (const ddi of todosDDIs) {
+                if (fullPhone.startsWith(ddi)) {
+                    ddiEncontrado = ddi;
+                    numeroTelefone = fullPhone.substring(ddi.length);
+                    break;
+                }
+            }
+            
+            modalData.value.ddi = ddiEncontrado;
+            modalData.value.telefone = numeroTelefone;
 
-      modalData.value.admin = item.admin ? true : false;
+            modalData.value.cpf = formatCPF(item.cpf);
+            modalData.value.fotoDePerfilUrl = item.foto_de_perfil;
+            modalData.value.data_de_nascimento = convertToDisplayDate(
+    item.data_de_nascimento 
+);
+
+            modalData.value.admin = item.admin ? true : false;
+        }
+        if (type === "produto") {
+            modalData.value.dataPost = formatDateToInput(item.dataPost);
+        }
+    } else {
+        modalData.value = getEmptyModel(type);
     }
-    if (type === "produto") {
-      modalData.value.dataPost = formatDateToInput(item.dataPost);
-    }
-  } else {
-    modalData.value = getEmptyModel(type);
-  }
-  modalOpen.value = true;
+    modalOpen.value = true;
 }
 
 function closeModal() {
@@ -1583,177 +1657,185 @@ async function getRetrieve() {
 }
 
 async function saveData() {
-  let formValid = true;
-  let response;
+    let formValid = true;
+    let response;
 
-  if (modalType.value === "usuario" && formUsuario.value) {
-    const { valid } = await formUsuario.value.validate();
-    formValid = valid;
-  } else if (modalType.value === "categoria" && formCategoria.value) {
-    const { valid } = await formCategoria.value.validate();
-    formValid = valid;
-  } else if (modalType.value === "produto" && formProduto.value) {
-    const { valid } = await formProduto.value.validate();
-    formValid = valid;
-  } else if (modalType.value === "endereco" && formEndereco.value) {
-    const { valid } = await formEndereco.value.validate();
-    formValid = valid;
-  }
-
-  if (
-    formValid &&
-    modalType.value === "produto" &&
-    !modalData.value.id &&
-    !previewImage.value
-  ) {
-    toast.error("É necessário selecionar uma imagem para o novo produto.");
-    formValid = false;
-  }
-
-  if (!formValid) {
-    toast.error(
-      "Por favor, preencha todos os campos obrigatórios corretamente."
-    );
-    return;
-  }
-
-  saving.value = true;
-
-  try {
-    const entityId = modalData.value.id;
-    const dataToSend = { ...modalData.value };
-
-    switch (modalType.value) {
-      case "usuario":
-        const numeroLimpo = dataToSend.telefone.toString().replace(/\D/g, "");
-        dataToSend.telefone = `+${dataToSend.ddi}${numeroLimpo}`;
-
-        dataToSend.cpf = dataToSend.cpf.toString().replace(/\D/g, "");
-
-        dataToSend.foto_de_perfil = dataToSend.fotoDePerfilUrl;
-
-        if (imagemParaUpload.value) {
-          dataToSend.nova_foto = imagemParaUpload.value;
-        }
-
-        delete dataToSend.ddi;
-        delete dataToSend.fotoDePerfilUrl;
-
-        if (dataToSend.id) {
-          response = await connection.patch(
-            `/desapega/usuarios/${dataToSend.id}`,
-            dataToSend
-          );
-        } else {
-          response = await connection.post("/desapega/usuarios", dataToSend);
-        }
-        break;
-
-      case "categoria":
-        const categoriaToSend = {
-          nome: dataToSend.Nome,
-          cor: dataToSend.Cor,
-          status: dataToSend.status,
-        };
-
-        if (dataToSend.id) {
-          response = await connection.patch(
-            `/desapega/categorias/${dataToSend.id}`,
-            categoriaToSend
-          );
-        } else {
-          response = await connection.post(
-            "/desapega/categorias",
-            categoriaToSend,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-        }
-        break;
-
-      case "produto":
-        const precoEmCentavos = Math.round(modalData.value.Preco * 100);
-
-        const produtoToSend = {
-          usuario_id: retrieve?.value.id,
-          nome: modalData.value.Nome,
-          preco: precoEmCentavos,
-          descricao: modalData.value.Descricao,
-          categoria_id: modalData.value.CategoriaId,
-          estoque: modalData.value.Estoque,
-          status: modalData.value.Status || "ativo",
-          imagem: previewImage.value,
-        };
-
-        if (entityId) {
-          response = await connection.patch(
-            `/desapega/produtos/${entityId}`,
-            produtoToSend
-          );
-        } else {
-          response = await connection.post("/desapega/produtos", produtoToSend);
-        }
-        break;
-
-      case "endereco":
-        const body = {
-          usuario_id: retrieve?.value.id,
-          cep: endereco.value.Cep,
-          estado: endereco.value.Estado,
-          cidade: endereco.value.Cidade,
-          bairro: endereco.value.Bairro,
-          rua: endereco.value.Rua,
-          numero: endereco.value.Numero,
-          logradouro: endereco.value.Logradouro,
-          complemento: endereco.value.Complemento,
-          status: endereco.value.Status,
-        };
-        if (entityId) {
-          response = await connection.patch(
-            `/desapega/enderecos/id/${entityId}`,
-            body,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-        } else {
-          response = await connection.post("/desapega/enderecos", body, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
-        }
-        break;
-      default:
-        throw new Error("Tipo de modal desconhecido.");
+    if (modalType.value === "usuario" && formUsuario.value) {
+        const { valid } = await formUsuario.value.validate();
+        formValid = valid;
+    } else if (modalType.value === "categoria" && formCategoria.value) {
+        const { valid } = await formCategoria.value.validate();
+        formValid = valid;
+    } else if (modalType.value === "produto" && formProduto.value) {
+        const { valid } = await formProduto.value.validate();
+        formValid = valid;
+    } else if (modalType.value === "endereco" && formEndereco.value) {
+        const { valid } = await formEndereco.value.validate();
+        formValid = valid;
     }
 
-    toast.success(
-      `${
-        modalType.value.charAt(0).toUpperCase() + modalType.value.slice(1)
-      } salvo com sucesso!`
-    );
-    closeModal();
-    await loadDataForTab(modalType.value + "s");
-  } catch (error) {
-    console.error(`Erro ao salvar ${modalType.value}:`, error);
-    toast.error(
-      `Erro ao salvar ${modalType.value}: ${
-        error.response?.data?.message || "Verifique a conexão ou os dados."
-      }`
-    );
-  } finally {
-    saving.value = false;
-
-    if (modalType.value === "produto") {
-      imagemProdutoBase64.value = null;
+    if (
+        formValid &&
+        modalType.value === "produto" &&
+        !modalData.value.id &&
+        !previewImage.value
+    ) {
+        toast.error("É necessário selecionar uma imagem para o novo produto.");
+        formValid = false;
     }
-  }
+
+    if (!formValid) {
+        toast.error(
+            "Por favor, preencha todos os campos obrigatórios corretamente."
+        );
+        return;
+    }
+
+    saving.value = true;
+
+    try {
+        const entityId = modalData.value.id;
+        const dataToSend = { ...modalData.value };
+
+        switch (modalType.value) {
+            case "usuario":
+                const numeroLimpo = dataToSend.telefone.toString().replace(/\D/g, "");
+                dataToSend.telefone = `+${dataToSend.ddi}${numeroLimpo}`;
+
+                dataToSend.cpf = dataToSend.cpf.toString().replace(/\D/g, "");
+
+                
+                if (imagemParaUpload.value) {
+                    dataToSend.foto_de_perfil = imagemParaUpload.value;
+                } else {
+                    dataToSend.foto_de_perfil = dataToSend.fotoDePerfilUrl;
+                }
+
+              
+                delete dataToSend.ddi;
+                delete dataToSend.fotoDePerfilUrl;
+
+
+                if (dataToSend.id) {
+                    response = await connection.patch(
+                        `/desapega/usuarios/${dataToSend.id}`,
+                        dataToSend
+                    );
+                } else {
+                    response = await connection.post("/desapega/usuarios", dataToSend);
+                }
+                break;
+
+            case "categoria":
+                const categoriaToSend = {
+                    nome: dataToSend.Nome,
+                    cor: dataToSend.Cor,
+                    status: dataToSend.status,
+                };
+
+                if (dataToSend.id) {
+                    response = await connection.patch(
+                        `/desapega/categorias/${dataToSend.id}`,
+                        categoriaToSend
+                    );
+                } else {
+                    response = await connection.post(
+                        "/desapega/categorias",
+                        categoriaToSend,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        }
+                    );
+                }
+                break;
+
+            case "produto":
+                const precoEmCentavos = Math.round(modalData.value.Preco * 100);
+
+                const produtoToSend = {
+                    usuario_id: retrieve?.value.id,
+                    nome: modalData.value.Nome,
+                    preco: precoEmCentavos,
+                    descricao: modalData.value.Descricao,
+                    categoria_id: modalData.value.CategoriaId,
+                    estoque: modalData.value.Estoque,
+                    status: modalData.value.Status || "ativo",
+                    imagem: previewImage.value,
+                };
+
+                if (entityId) {
+                    response = await connection.patch(
+                        `/desapega/produtos/${entityId}`,
+                        produtoToSend
+                    );
+                } else {
+                    response = await connection.post("/desapega/produtos", produtoToSend);
+                }
+                break;
+
+            case "endereco":
+                const body = {
+                    usuario_id: retrieve?.value.id,
+                    cep: endereco.value.Cep,
+                    estado: endereco.value.Estado,
+                    cidade: endereco.value.Cidade,
+                    bairro: endereco.value.Bairro,
+                    rua: endereco.value.Rua,
+                    numero: endereco.value.Numero,
+                    logradouro: endereco.value.Logradouro,
+                    complemento: endereco.value.Complemento,
+                    status: endereco.value.Status,
+                };
+                if (entityId) {
+                    response = await connection.patch(
+                        `/desapega/enderecos/id/${entityId}`,
+                        body,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        }
+                    );
+                } else {
+                    response = await connection.post("/desapega/enderecos", body, {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    });
+                }
+                break;
+            default:
+                throw new Error("Tipo de modal desconhecido.");
+        }
+
+        toast.success(
+            `${
+                modalType.value.charAt(0).toUpperCase() + modalType.value.slice(1)
+            } salvo com sucesso!`
+        );
+        closeModal();
+        await loadDataForTab(modalType.value + "s");
+    } catch (error) {
+        console.error(`Erro ao salvar ${modalType.value}:`, error);
+        toast.error(
+            `Erro ao salvar ${modalType.value}: ${
+                error.response?.data?.message || "Verifique a conexão ou os dados."
+            }`
+        );
+    } finally {
+        saving.value = false;
+        
+        
+        if (modalType.value === "usuario") {
+            imagemParaUpload.value = null;
+        }
+
+        if (modalType.value === "produto") {
+            imagemProdutoBase64.value = null;
+        }
+    }
 }
 
 async function loadDataForTab(tab) {
