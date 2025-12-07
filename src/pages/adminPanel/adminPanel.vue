@@ -54,22 +54,21 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Usuários
                   </h2>
-                 
+
                   <v-text-field
-            v-model="pesquisaUsuario"
-            placeholder="Busque por nome/email/cpf..."
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            max-width="300"
-            density="comfortable"
-            color="primary"
-            bg-color="grey-lighten-5"
-            clearable
-            hide-details
-            v-tooltip:bottom="'Busque um usuário por nome/email/cpf'"
-          ></v-text-field>
-     
-          
+                    v-model="pesquisaUsuario"
+                    placeholder="Busque por nome/email/cpf..."
+                    prepend-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    max-width="300"
+                    density="comfortable"
+                    color="primary"
+                    bg-color="grey-lighten-5"
+                    clearable
+                    hide-details
+                    v-tooltip:bottom="'Busque um usuário por nome/email/cpf'"
+                  ></v-text-field>
+
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -79,46 +78,46 @@
                     Novo Usuário
                   </v-btn>
                 </div>
-               <v-data-table
-    :headers="usuarioHeaders"
-    :items="usuariosFiltrados "
-    :loading="loading"
-    class="elevation-0 border rounded-lg"
-    hover
->
-    <template v-slot:item.nome="{ item }">
-        {{ item.nome ? item.nome : '-' }}
-    </template>
-    
-    <template v-slot:item.email="{ item }">
-        {{ item.email ? item.email : '-' }}
-    </template>
-    
-    <template v-slot:item.telefone="{ item }">
-        {{ item.telefone ? item.telefone : '-' }}
-    </template>
+                <v-data-table
+                  :headers="usuarioHeaders"
+                  :items="usuariosFiltrados"
+                  :loading="loading"
+                  class="elevation-0 border rounded-lg"
+                  hover
+                >
+                  <template v-slot:item.nome="{ item }">
+                    {{ item.nome ? item.nome : "-" }}
+                  </template>
 
-    <template v-slot:item.status="{ item }">
-        <v-chip
-            :color="item.status === 'ativo' ? 'success' : 'error'"
-            size="small"
-            variant="flat"
-        >
-            {{ item.status ? item.status : '-' }}
-        </v-chip>
-    </template>
+                  <template v-slot:item.email="{ item }">
+                    {{ item.email ? item.email : "-" }}
+                  </template>
 
-    <template v-slot:item.admin="{ item }">
-        <v-chip
-            :color="item.admin ? 'deep-purple-accent-4' : 'grey'"
-            size="small"
-            variant="flat"
-        >
-            {{ item.admin ? "Admin" : "Cliente" }}
-        </v-chip>
-    </template>
-    <template v-slot:item.actions="{ item }">
-       <div class="d-flex gap-2">
+                  <template v-slot:item.telefone="{ item }">
+                    {{ item.telefone ? item.telefone : "-" }}
+                  </template>
+
+                  <template v-slot:item.status="{ item }">
+                    <v-chip
+                      :color="item.status === 'ativo' ? 'success' : 'error'"
+                      size="small"
+                      variant="flat"
+                    >
+                      {{ item.status ? item.status : "-" }}
+                    </v-chip>
+                  </template>
+
+                  <template v-slot:item.admin="{ item }">
+                    <v-chip
+                      :color="item.admin ? 'deep-purple-accent-4' : 'grey'"
+                      size="small"
+                      variant="flat"
+                    >
+                      {{ item.admin ? "Admin" : "Cliente" }}
+                    </v-chip>
+                  </template>
+                  <template v-slot:item.actions="{ item }">
+                    <div class="d-flex gap-2">
                       <v-btn
                         icon="mdi-pencil"
                         size="small"
@@ -136,11 +135,13 @@
                         :color="item.status === 'ativo' ? 'error' : 'success'"
                         variant="text"
                         @click="openConfirmDialog('usuario', item)"
-                         v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
+                        v-tooltip:bottom="
+                          item.status === 'ativo' ? 'Desativar' : 'Ativar'
+                        "
                       ></v-btn>
                     </div>
-        </template>
-</v-data-table>
+                  </template>
+                </v-data-table>
               </v-window-item>
 
               <v-window-item value="categorias">
@@ -148,19 +149,19 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Categorias
                   </h2>
-                   <v-text-field
-            v-model="pesquisaCategoria"
-            placeholder="Busque por nome..."
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            max-width="300"
-            density="comfortable"
-            color="primary"
-            bg-color="grey-lighten-5"
-            clearable
-            hide-details
-            v-tooltip:bottom="'Busque um categoria por nome'"
-          ></v-text-field>
+                  <v-text-field
+                    v-model="pesquisaCategoria"
+                    placeholder="Busque por nome..."
+                    prepend-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    max-width="300"
+                    density="comfortable"
+                    color="primary"
+                    bg-color="grey-lighten-5"
+                    clearable
+                    hide-details
+                    v-tooltip:bottom="'Busque um categoria por nome'"
+                  ></v-text-field>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -169,9 +170,8 @@
                   >
                     Nova Categoria
                   </v-btn>
-                  
                 </div>
-                
+
                 <v-data-table
                   :headers="categoriaHeaders"
                   :items="categoriasFiltradas"
@@ -218,7 +218,9 @@
                         :color="item.status === 'ativo' ? 'error' : 'success'"
                         variant="text"
                         @click="openConfirmDialog('categoria', item)"
-                         v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
+                        v-tooltip:bottom="
+                          item.status === 'ativo' ? 'Desativar' : 'Ativar'
+                        "
                       ></v-btn>
                     </div>
                   </template>
@@ -231,18 +233,18 @@
                     Gerenciar Produtos
                   </h2>
                   <v-text-field
-            v-model="pesquisaProduto"
-            placeholder="Busque por nome"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            max-width="300"
-            density="comfortable"
-            color="primary"
-            bg-color="grey-lighten-5"
-            clearable
-            hide-details
-            v-tooltip:bottom="'Busque um produto por nome'"
-          ></v-text-field>
+                    v-model="pesquisaProduto"
+                    placeholder="Busque por nome"
+                    prepend-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    max-width="300"
+                    density="comfortable"
+                    color="primary"
+                    bg-color="grey-lighten-5"
+                    clearable
+                    hide-details
+                    v-tooltip:bottom="'Busque um produto por nome'"
+                  ></v-text-field>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -275,7 +277,6 @@
                       :color="item.status === 'ativo' ? 'success' : 'error'"
                       size="small"
                       variant="flat"
-                      
                     >
                       {{ item.status }}
                     </v-chip>
@@ -299,7 +300,9 @@
                         :color="item.status === 'ativo' ? 'error' : 'success'"
                         variant="text"
                         @click="openConfirmDialog('produto', item)"
-                        v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
+                        v-tooltip:bottom="
+                          item.status === 'ativo' ? 'Desativar' : 'Ativar'
+                        "
                       ></v-btn>
                     </div>
                   </template>
@@ -311,19 +314,21 @@
                   <h2 class="text-h5 font-weight-bold text-grey-darken-3">
                     Gerenciar Endereços
                   </h2>
-                   <v-text-field
-            v-model="pesquisaEndereco"
-            placeholder="Busque por um endereço"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            max-width="300"
-            density="comfortable"
-            color="primary"
-            bg-color="grey-lighten-5"
-            clearable
-            hide-details
-            v-tooltip:bottom="'Busque por CEP/Rua/Número/Estado/Cidade/Bairro/Logradouro/Complemento'"
-          ></v-text-field>
+                  <v-text-field
+                    v-model="pesquisaEndereco"
+                    placeholder="Busque por um endereço"
+                    prepend-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    max-width="300"
+                    density="comfortable"
+                    color="primary"
+                    bg-color="grey-lighten-5"
+                    clearable
+                    hide-details
+                    v-tooltip:bottom="
+                      'Busque por CEP/Rua/Número/Estado/Cidade/Bairro/Logradouro/Complemento'
+                    "
+                  ></v-text-field>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -334,53 +339,54 @@
                   </v-btn>
                 </div>
                 <v-data-table
-  :headers="enderecoHeaders"
-  :items="enderecosFiltrados"
-  :loading="loading"
-  class="elevation-0 border rounded-lg"
-  hover
->
-  <template v-slot:item.status="{ item }">
-    <v-chip
-      :color="item.status === 'ativo' ? 'success' : 'error'"
-      size="small"
-      variant="flat"
-    >
-      {{ item.status ? item.status : "-" }}
-    </v-chip>
-  </template>
+                  :headers="enderecoHeaders"
+                  :items="enderecosFiltrados"
+                  :loading="loading"
+                  class="elevation-0 border rounded-lg"
+                  hover
+                >
+                  <template v-slot:item.status="{ item }">
+                    <v-chip
+                      :color="item.status === 'ativo' ? 'success' : 'error'"
+                      size="small"
+                      variant="flat"
+                    >
+                      {{ item.status ? item.status : "-" }}
+                    </v-chip>
+                  </template>
 
-  <template v-slot:item.actions="{ item }">
-    <div class="d-flex gap-2">
-      <v-btn
-        icon="mdi-pencil"
-        size="small"
-        color="primary"
-        variant="text"
-        @click="openModal('endereco', item)"
-      ></v-btn>
-      <v-btn
-        :icon="
-          item.status === 'ativo'
-            ? 'mdi-block-helper'
-            : 'mdi-check-circle'
-        "
-        size="small"
-        :color="item.status === 'ativo' ? 'error' : 'success'"
-        variant="text"
-        @click="openConfirmDialog('endereco', item)"
-         v-tooltip:bottom="item.status === 'ativo' ? 'Desativar' : 'Ativar'"
-      ></v-btn>
-    </div>
-  </template>
+                  <template v-slot:item.actions="{ item }">
+                    <div class="d-flex gap-2">
+                      <v-btn
+                        icon="mdi-pencil"
+                        size="small"
+                        color="primary"
+                        variant="text"
+                        @click="openModal('endereco', item)"
+                      ></v-btn>
+                      <v-btn
+                        :icon="
+                          item.status === 'ativo'
+                            ? 'mdi-block-helper'
+                            : 'mdi-check-circle'
+                        "
+                        size="small"
+                        :color="item.status === 'ativo' ? 'error' : 'success'"
+                        variant="text"
+                        @click="openConfirmDialog('endereco', item)"
+                        v-tooltip:bottom="
+                          item.status === 'ativo' ? 'Desativar' : 'Ativar'
+                        "
+                      ></v-btn>
+                    </div>
+                  </template>
 
-  <template v-slot:no-data>
-    <div class="text-center pa-4 text-medium-emphasis">
-      Nenhum endereço cadastrado.
-    </div>
-  </template>
-
-</v-data-table>
+                  <template v-slot:no-data>
+                    <div class="text-center pa-4 text-medium-emphasis">
+                      Nenhum endereço cadastrado.
+                    </div>
+                  </template>
+                </v-data-table>
               </v-window-item>
             </v-window>
           </v-card-text>
@@ -407,60 +413,60 @@
                   <v-row class="justify-center mb-6">
                     <v-col cols="12" class="text-center">
                       <v-avatar class="mb-3" size="120" color="grey-lighten-3">
-                        <template
-                          v-if="
-                            !modalData.fotoDePerfilUrl ||
-                            modalData.fotoDePerfilUrl == 'Sem imagem'
-                          "
-                        >
-                          <v-icon size="80" color="grey-darken-1"
-                            >mdi-account-circle</v-icon
-                          >
-                        </template>
-                        <template v-else>
-                          <v-img
-                            :src="modalData.fotoDePerfilUrl"
-                            alt="Foto de Perfil"
-                            cover
-                          />
-                        </template>
-                      </v-avatar>
+                <template
+                    v-if="
+                        !modalData.fotoDePerfilUrl ||
+                        modalData.fotoDePerfilUrl === 'Sem imagem' ||
+                        modalData.fotoDePerfilUrl === ''
+                    "
+                >
+                    <v-icon size="80" color="grey-darken-1">mdi-account-circle</v-icon>
+                </template>
+                <template v-else>
+                    <v-img
+                        :src="modalData.fotoDePerfilUrl"
+                        alt="Foto de Perfil"
+                        cover
+                    />
+                </template>
+            </v-avatar>
 
                       <div class="mt-3">
-                        <v-btn
-                          variant="tonal"
-                          color="primary"
-                          class="mr-3"
-                          @click="abrirExplorador"
-                          prepend-icon="mdi-camera"
-                          :disabled="saving"
-                        >
-                          Alterar Foto
-                        </v-btn>
-                        <v-btn
-                          variant="outlined"
-                          color="red"
-                          @click="removerImagem"
-                          prepend-icon="mdi-delete"
-                          :disabled="
-                            saving ||
-                            !modalData.fotoDePerfilUrl ||
-                            modalData.fotoDePerfilUrl == 'Sem imagem'
-                          "
-                        >
-                          Remover
-                        </v-btn>
-                      </div>
+                <v-btn
+                    variant="tonal"
+                    color="primary"
+                    class="mr-3"
+                    @click="abrirExplorador"
+                    prepend-icon="mdi-camera"
+                    :disabled="saving"
+                >
+                    Alterar Foto
+                </v-btn>
+                <v-btn
+                    variant="outlined"
+                    color="red"
+                    @click="removerImagem"
+                    prepend-icon="mdi-delete"
+                    :disabled="
+                        saving ||
+                        !modalData.fotoDePerfilUrl ||
+                        modalData.fotoDePerfilUrl === 'Sem imagem' ||
+                        modalData.fotoDePerfilUrl === ''
+                    "
+                >
+                    Remover
+                </v-btn>
+            </div>
 
-                      <input
-                        type="file"
-                        ref="inputArquivo"
-                        accept="image/png, image/jpeg"
-                        @change="carregarImagem"
-                        style="display: none"
-                      />
-                    </v-col>
-                  </v-row>
+            <input
+                type="file"
+                ref="inputArquivo"
+                accept="image/png, image/jpeg"
+                @change="carregarImagem"
+                style="display: none"
+            />
+        </v-col>
+    </v-row>
 
                   <v-row>
                     <v-col cols="12" md="6">
@@ -468,36 +474,37 @@
                         v-model="modalData.nome"
                         label="Nome completo"
                         variant="outlined"
-                        :rules="rulesNomeCompleto"
+                       :rules="modalData.id ? [rulesNomeCompleto] : [rules.required, rulesNomeCompleto]"
                         density="comfortable"
-                        required
+                      
                         prepend-inner-icon="mdi-account"
                       ></v-text-field>
                     </v-col>
+
                     <v-col cols="12" md="6">
                       <v-text-field
                         v-model="modalData.email"
                         label="E-mail"
                         variant="outlined"
                         density="comfortable"
-                        :rules="rulesEmail"
+                        :rules="modalData.id ? [rulesEmail] : [rules.required, rulesEmail]"
                         prepend-inner-icon="mdi-email"
                       ></v-text-field>
                     </v-col>
 
                     <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="modalData.cpf"
-                        label="CPF"
-                        variant="outlined"
-                        density="comfortable"
-                        placeholder="000.000.000-00"
-                        :rules="rules.rulesCpf"
-                        @input="modalData.cpf = formatCPF(modalData.cpf)"
-                        maxlength="14"
-                        prepend-inner-icon="mdi-card-account-details"
-                      ></v-text-field>
-                    </v-col>
+            <v-text-field
+                v-model="modalData.cpf"
+                label="CPF"
+                variant="outlined"
+                density="comfortable"
+                placeholder="000.000.000-00"
+                :rules="modalData.id ? [rulesCpf] : [rules.required, rulesCpf]"
+                @input="modalData.cpf = formatCPF(modalData.cpf)"
+                maxlength="14"
+                prepend-inner-icon="mdi-card-account-details"
+            ></v-text-field>
+        </v-col>
 
                     <v-col cols="12" md="6">
                       <v-menu
@@ -513,7 +520,7 @@
                             variant="outlined"
                             density="comfortable"
                             placeholder="DD/MM/AAAA"
-                            :rules="rules.rulesDataNascimento"
+                            :rules="modalData.id ? [rulesDataNascimento] : [rules.required, rulesDataNascimento]"
                             @input="
                               modalData.data_de_nascimento = formatData(
                                 modalData.data_de_nascimento
@@ -523,6 +530,7 @@
                             prepend-inner-icon="mdi-calendar"
                           ></v-text-field>
                         </template>
+
                         <v-date-picker
                           :model-value="
                             convertToInputDate(modalData.data_de_nascimento)
@@ -541,28 +549,27 @@
                     </v-col>
 
                     <v-col cols="12" md="4">
-                      <v-select
-                        :items="ddiOptions"
-                        v-model="modalData.ddi"
-                        item-title="text"
-                        item-value="value"
-                        label="DDI"
-                        variant="outlined"
-                        density="comfortable"
-                        :rules="rules.rulesDDI"
-                      ></v-select>
-                    </v-col>
+            <v-select
+                :items="ddiOptions"
+                v-model="modalData.ddi"
+                item-title="text"
+                item-value="value"
+                label="DDI"
+                variant="outlined"
+                density="comfortable"
+            ></v-select>
+        </v-col>
 
-                    <v-col cols="12" md="8">
-                      <v-text-field
-                        v-model="modalData.telefone"
-                        label="Telefone (Sem DDI)"
-                        variant="outlined"
-                        density="comfortable"
-                        :rules="rules.rulesTelefone"
-                        prepend-inner-icon="mdi-phone"
-                      ></v-text-field>
-                    </v-col>
+        <v-col cols="12" md="8">
+            <v-text-field
+                v-model="modalData.telefone"
+                label="Telefone (Sem DDI)"
+                variant="outlined"
+                density="comfortable"
+                :rules="modalData.id ? [rulesTelefone] : [rules.required, rulesTelefone]"
+                prepend-inner-icon="mdi-phone"
+            ></v-text-field>
+        </v-col>
 
                     <v-col cols="12">
                       <v-text-field
@@ -573,11 +580,7 @@
                         "
                         variant="outlined"
                         density="comfortable"
-                        :rules="
-                          modalData.id
-                            ? rules.rulesSenha
-                            : [rules.required, ...rules.rulesSenha]
-                        "
+                        :rules=" modalData.id ? rules.rulesSenha : [rules.required, ...rules.rulesSenha] "
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="
                           mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'
@@ -598,6 +601,7 @@
                         label="Acesso Administrativo"
                         color="primary"
                       ></v-checkbox>
+
                       <v-select
                         v-model="modalData.status"
                         :items="['ativo', 'inativo']"
@@ -1004,46 +1008,54 @@ const mostrarSenha = ref(false);
 const previewImage = ref("");
 const imageInput = ref(null);
 const arquivoImagem = ref(null);
-const pesquisaUsuario = ref("")
-const pesquisaCategoria = ref("")
-const pesquisaProduto = ref("")
-const pesquisaEndereco = ref("")
+const pesquisaUsuario = ref("");
+const pesquisaCategoria = ref("");
+const pesquisaProduto = ref("");
+const pesquisaEndereco = ref("");
 const usuariosFiltrados = computed(() => {
-  const termo = pesquisaUsuario?.value?.toLowerCase().trim()
-  if(!termo) return usuarios.value
+  const termo = pesquisaUsuario?.value?.toLowerCase().trim();
+  if (!termo) return usuarios.value;
 
-  return usuarios.value.filter((u) =>
-   (u.nome && u.nome.toLowerCase().includes(termo) ||
-   (u.email && u.email.toLowerCase().includes(termo)) || (u.cpf && u.cpf.includes(termo))
-))
-})
+  return usuarios.value.filter(
+    (u) =>
+      (u.nome && u.nome.toLowerCase().includes(termo)) ||
+      (u.email && u.email.toLowerCase().includes(termo)) ||
+      (u.cpf && u.cpf.includes(termo))
+  );
+});
 const categoriasFiltradas = computed(() => {
   const termo = pesquisaCategoria?.value?.toLowerCase().trim();
-  if(!termo) return categorias.value
+  if (!termo) return categorias.value;
 
-  return categorias.value.filter((c) => 
-  (c.nome && c.nome.toLowerCase().includes(termo))
-)
-})
+  return categorias.value.filter(
+    (c) => c.nome && c.nome.toLowerCase().includes(termo)
+  );
+});
 const produtosFiltrados = computed(() => {
   const termo = pesquisaProduto?.value?.toLowerCase().trim();
-  if(!termo) return produtos.value
+  if (!termo) return produtos.value;
 
-  return produtos.value.filter((p) => 
-(p.nome && p.nome.toLowerCase().includes(termo))
-)
-})
+  return produtos.value.filter(
+    (p) => p.nome && p.nome.toLowerCase().includes(termo)
+  );
+});
 const enderecosFiltrados = computed(() => {
   const termo = pesquisaEndereco?.value?.toLowerCase().trim();
-  if(!termo) return enderecos.value;
+  if (!termo) return enderecos.value;
 
-  
-  return enderecos.value.filter((e) => 
-  (e.cep && e.cep.includes(termo)) || (e.rua && e.rua.toLowerCase().includes(termo)) || (e.numero && e.numero.includes(termo)) ||
-  (e.cidade && e.cidade.toLowerCase().includes(termo)) || (e.estado && e.estado.toLowerCase().includes(termo)) || (e.bairro && e.bairro.toLowerCase().includes(termo)) ||
-  (e.tipo_de_logradouro && e.tipo_de_logradouro.toLowerCase().includes(termo)) || (e.complemento && e.complemento.toLowerCase().includes(termo))
-)
-})
+  return enderecos.value.filter(
+    (e) =>
+      (e.cep && e.cep.includes(termo)) ||
+      (e.rua && e.rua.toLowerCase().includes(termo)) ||
+      (e.numero && e.numero.includes(termo)) ||
+      (e.cidade && e.cidade.toLowerCase().includes(termo)) ||
+      (e.estado && e.estado.toLowerCase().includes(termo)) ||
+      (e.bairro && e.bairro.toLowerCase().includes(termo)) ||
+      (e.tipo_de_logradouro &&
+        e.tipo_de_logradouro.toLowerCase().includes(termo)) ||
+      (e.complemento && e.complemento.toLowerCase().includes(termo))
+  );
+});
 
 const activeTab = ref("usuarios");
 const loading = ref(false);
@@ -1107,7 +1119,7 @@ const enderecoHeaders = [
   { title: "Bairro", key: "bairro" },
   { title: "Logradouro", key: "logradouro" },
   { title: "Complemento", key: "complemento" },
-  { title: "Status", key: "status"},
+  { title: "Status", key: "status" },
   { title: "Ações", key: "actions", sortable: false, align: "end" },
 ];
 
@@ -1364,12 +1376,10 @@ function convertToDisplayDate(dateString) {
 const rulesNomeCompleto = [
   (value) => !!value || "Obrigatório preencher o nome completo.",
   (value) => {
-    if (!value) return true; 
+    if (!value) return true;
 
-  
-    const palavras = value.trim().split(/\s+/); 
+    const palavras = value.trim().split(/\s+/);
 
-    
     return palavras.length >= 2 || "É necessário informar nome e sobrenome.";
   },
 ];
@@ -1430,6 +1440,8 @@ const rules = {
   rulesTelefone: [(value) => !!value || "Telefone é obrigatório."],
 };
 
+const imagemParaUpload = ref(null);
+
 function abrirExplorador() {
   inputArquivo.value.click();
 }
@@ -1437,6 +1449,7 @@ function abrirExplorador() {
 function carregarImagem(event) {
   const file = event.target.files[0];
   if (file) {
+    imagemParaUpload.value = file;
     modalData.value.fotoDePerfilUrl = URL.createObjectURL(file);
   }
 }
@@ -1444,6 +1457,7 @@ function carregarImagem(event) {
 function removerImagem() {
   modalData.value.fotoDePerfilUrl = null;
   modalData.value.imagem = "Sem imagem";
+  imagemParaUpload.value = null;
   inputArquivo.value.value = null;
 }
 
@@ -1519,10 +1533,12 @@ function openModal(type, item = null) {
 
       if (ddiMatch) {
         modalData.value.ddi = ddiMatch[1];
-        modalData.value.telefone = fullPhone.replace(ddiMatch[0], "").trim();
+        modalData.value.telefone = fullPhone
+          .replace(ddiMatch[0], "")
+          .replace(/\D/g, "");
       } else {
         modalData.value.ddi = fullPhone.substring(0, 2) || "55";
-        modalData.value.telefone = fullPhone.substring(2);
+        modalData.value.telefone = fullPhone.substring(2).replace(/\D/g, "");
       }
 
       modalData.value.cpf = formatCPF(item.cpf);
@@ -1579,8 +1595,7 @@ async function saveData() {
   } else if (modalType.value === "produto" && formProduto.value) {
     const { valid } = await formProduto.value.validate();
     formValid = valid;
-  }
-  else if (modalType.value === "endereco" && formEndereco.value) {
+  } else if (modalType.value === "endereco" && formEndereco.value) {
     const { valid } = await formEndereco.value.validate();
     formValid = valid;
   }
@@ -1610,10 +1625,19 @@ async function saveData() {
 
     switch (modalType.value) {
       case "usuario":
-        dataToSend.telefone = `+${dataToSend.ddi}${dataToSend.telefone.replace(
-          /\D/g,
-          ""
-        )}`;
+        const numeroLimpo = dataToSend.telefone.toString().replace(/\D/g, "");
+        dataToSend.telefone = `+${dataToSend.ddi}${numeroLimpo}`;
+
+        dataToSend.cpf = dataToSend.cpf.toString().replace(/\D/g, "");
+
+        dataToSend.foto_de_perfil = dataToSend.fotoDePerfilUrl;
+
+        if (imagemParaUpload.value) {
+          dataToSend.nova_foto = imagemParaUpload.value;
+        }
+
+        delete dataToSend.ddi;
+        delete dataToSend.fotoDePerfilUrl;
 
         if (dataToSend.id) {
           response = await connection.patch(
@@ -1641,9 +1665,11 @@ async function saveData() {
           response = await connection.post(
             "/desapega/categorias",
             categoriaToSend,
-            {headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
-            }}
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
         }
         break;
@@ -1653,19 +1679,12 @@ async function saveData() {
 
         const produtoToSend = {
           usuario_id: retrieve?.value.id,
-
           nome: modalData.value.Nome,
-
           preco: precoEmCentavos,
-
           descricao: modalData.value.Descricao,
-
           categoria_id: modalData.value.CategoriaId,
-
           estoque: modalData.value.Estoque,
-
           status: modalData.value.Status || "ativo",
-
           imagem: previewImage.value,
         };
 
@@ -1696,31 +1715,31 @@ async function saveData() {
           response = await connection.patch(
             `/desapega/enderecos/id/${entityId}`,
             body,
-            {headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
-            }}
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
         } else {
-          response = await connection.post("/desapega/enderecos", body,
-            {headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
-            }}
-          );
+          response = await connection.post("/desapega/enderecos", body, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
         }
         break;
       default:
         throw new Error("Tipo de modal desconhecido.");
     }
 
-     
-      toast.success(
-        `${
-          modalType.value.charAt(0).toUpperCase() + modalType.value.slice(1)
-        } salvo com sucesso!`
-      );
-      closeModal();
-      await loadDataForTab(modalType.value + "s");
-    
+    toast.success(
+      `${
+        modalType.value.charAt(0).toUpperCase() + modalType.value.slice(1)
+      } salvo com sucesso!`
+    );
+    closeModal();
+    await loadDataForTab(modalType.value + "s");
   } catch (error) {
     console.error(`Erro ao salvar ${modalType.value}:`, error);
     toast.error(
@@ -1776,9 +1795,7 @@ async function loadDataForTab(tab) {
       } else {
         dataRef.value = [];
       }
-    }
-
-    else if (tabName === "categorias") {
+    } else if (tabName === "categorias") {
       if (Array.isArray(data)) {
         dataRef.value = data.map((item) => ({
           ...item,
@@ -1786,15 +1803,11 @@ async function loadDataForTab(tab) {
           Nome: item.nome,
         }));
       }
-    } 
-    
-    else {
-      // usuários, endereços
+    } else {
       if (Array.isArray(data)) {
         dataRef.value = data;
       }
     }
-
   } catch (error) {
     console.error(`Erro ao carregar dados de ${tab}:`, error);
     dataRef.value = [];
@@ -1856,7 +1869,7 @@ async function confirmStatusChange() {
   if (type === "usuario") endpoint = "/desapega/usuarios";
   else if (type === "categoria") endpoint = "/desapega/categorias";
   else if (type === "produto") endpoint = "/desapega/produtos";
-  else if (type === "endereco") endpoint = "/desapega/enderecos/id"
+  else if (type === "endereco") endpoint = "/desapega/enderecos/id";
 
   if (!id || !endpoint) {
     toast.error("ID ou endpoint inválido para a alteração de status.");
@@ -1911,9 +1924,9 @@ watch(
 );
 
 onMounted(async () => {
-  if(!localStorage.getItem("token")){
-    router.push("/:pathMatch(.*)*")
-    return
+  if (!localStorage.getItem("token")) {
+    router.push("/:pathMatch(.*)*");
+    return;
   }
   await getRetrieve();
   loadDataForTab(activeTab.value);
