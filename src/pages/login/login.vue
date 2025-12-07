@@ -59,11 +59,10 @@
             <v-alert type="error">
               Sintimos informar, mas seu usuário foi DESATIVADO, contate nosso suporte para mais detalhes. <a 
   style="color:white" 
-  href="mailto:suportedesapeguenoreply@gmail.com" 
-  @click="console.log('Link clicado!')"
->
-  suportedesapeguenoreply@gmail.com
+  href="mailto:suportedesapeguenoreply@gmail.com"  
+  >suportedesapeguenoreply@gmail.com
 </a>
+
               
             </v-alert>
           </v-expand-transition>
@@ -248,6 +247,9 @@ const loginGoogle = () => {
   window.location.href =
     "https://localhost:7000/desapega/usuarios/login-google";
 };
+
+
+
 
 const disabled = computed(() => !usuario.value.email || !usuario.value.senha);
 </script>
