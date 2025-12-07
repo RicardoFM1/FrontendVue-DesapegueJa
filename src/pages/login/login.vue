@@ -89,19 +89,20 @@
           </v-row>
 
           <v-btn
-            color="#DB4437"
+            variant="outlined"
             block
-            class="mb-6 text-white"
+            class="mb-6 text-black"
             @click="loginGoogle"
             size="large"
             rounded="lg"
             style="border-color: #e0e0e0"
           >
             <v-img
-              max-width="18"
+              min-width="24"
+              max-width="24"
               class="mr-2"
               contain
-              src="imagemGoogle.png"
+              src="/imagemGoogle.png"
               alt="Google Icon"
             ></v-img>
             Continuar com Google
