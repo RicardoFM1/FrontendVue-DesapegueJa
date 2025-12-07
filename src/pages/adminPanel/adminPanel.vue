@@ -1288,7 +1288,7 @@ const getIniciais = (nome) => {
 
 const avatarModal = computed(() => {
   const nome = modalData.value.nome || "";
-  const foto = modalData.value.fotoDePerfilUrl;
+  const foto = modalData.value.foto_De_Perfil;
 
   if (foto && foto !== "null" && foto !== "Sem imagem" && foto.trim() !== "") {
     if (foto.startsWith("data:image") || foto.startsWith("http")) {
@@ -1505,7 +1505,7 @@ async function carregarImagem(event) {
     const file = event.target.files[0];
     if (file) {
         
-        modalData.value.fotoDePerfilUrl = URL.createObjectURL(file); 
+        modalData.value.foto_De_Perfil = URL.createObjectURL(file); 
         
         imagemParaUpload.value = await convertFileToBase64(file);
     }
@@ -1521,7 +1521,7 @@ function convertFileToBase64(file) {
 }
 
 function removerImagem() {
-  modalData.value.fotoDePerfilUrl = null;
+  modalData.value.foto_De_Perfil = null;
   modalData.value.imagem = "Sem imagem";
   imagemParaUpload.value = null;
   inputArquivo.value.value = null;
@@ -1555,7 +1555,6 @@ function getEmptyModel(type) {
         data_de_nascimento: "",
         ddi: "55",
         imagem: null,
-        fotoDePerfilUrl: null,
         status: "ativo",
       };
     case "categoria":
@@ -1616,7 +1615,6 @@ function openModal(type, item = null) {
             modalData.value.telefone = numeroTelefone;
 
             modalData.value.cpf = formatCPF(item.cpf);
-            modalData.value.fotoDePerfilUrl = item.foto_de_perfil;
             modalData.value.data_de_nascimento = convertToDisplayDate(
     item.data_de_nascimento 
 );
@@ -1708,12 +1706,12 @@ async function saveData() {
                 if (imagemParaUpload.value) {
                     dataToSend.foto_de_perfil = imagemParaUpload.value;
                 } else {
-                    dataToSend.foto_de_perfil = dataToSend.fotoDePerfilUrl;
+                    dataToSend.foto_de_perfil = dataToSend.foto_De_Perfil;
                 }
 
               
                 delete dataToSend.ddi;
-                delete dataToSend.fotoDePerfilUrl;
+                delete dataToSend.foto_De_Perfil;
 
 
                 if (dataToSend.id) {
@@ -2001,6 +1999,7 @@ watch(
     if (modalType.value === "usuario" && !newVal.ddi) {
       modalData.value.ddi = ddiOptions.value[0].value;
     }
+    console.log(modalData, "datamodal")
   },
   { deep: true }
 );
