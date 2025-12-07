@@ -285,6 +285,15 @@
                       {{ item.status }}
                     </v-chip>
                   </template>
+                  <template v-slot:item.categoria="{ item }">
+                    <v-chip
+                      :color="categoriasP.find((p) => p.id === item.categoria_id ).cor"
+                      size="small"
+                      variant="flat"
+                    >
+                      {{ categoriasP.find((p) => p.id === item.categoria_id ).nome }}
+                    </v-chip>
+                  </template>
                   <template v-slot:item.actions="{ item }">
                     <div class="d-flex gap-2">
                       <v-btn
@@ -657,11 +666,11 @@
                     <v-row>
                       <v-col cols="12" sm="8">
                         <v-text-field
-                          v-model="modalData.Nome"
+                          v-model="modalData.nome"
                           label="Título do Produto"
                           :rules="
                             modalData.id
-                              ? [rules.min3]
+                              ? []
                               : [rules.required, rules.min3]
                           "
                           prepend-icon="mdi-tag"
@@ -671,7 +680,7 @@
 
                       <v-col cols="12" sm="4">
                         <v-text-field
-                          v-model.number="modalData.Estoque"
+                          v-model.number="modalData.estoque"
                           label="Estoque"
                           type="number"
                           step="1"
@@ -691,7 +700,7 @@
                     <v-row>
                       <v-col cols="12" sm="6">
                         <v-text-field
-                          v-model.number="modalData.Preco"
+                          v-model.number="modalData.preco"
                           label="Preço (R$)"
                           type="number"
                           step="0.01"
@@ -710,7 +719,7 @@
 
                       <v-col cols="12" sm="6">
                         <v-select
-                          v-model="modalData.CategoriaId"
+                          v-model="modalData.categoria_id"
                           :items="categoriasP"
                           item-title="nome"
                           item-value="id"
@@ -734,12 +743,12 @@
                     <v-row>
                       <v-col cols="12">
                         <v-textarea
-                          v-model="modalData.Descricao"
+                          v-model="modalData.descricao"
                           label="Descrição Detalhada"
                           rows="3"
                           :rules="
                             modalData.id
-                              ? [rules.min10]
+                              ? []
                               : [rules.required, rules.min10]
                           "
                           prepend-icon="mdi-comment-text"
@@ -795,11 +804,11 @@
                     prepend-inner-icon="mdi-map-marker-outline"
                     append-inner-icon="mdi-close"
                     @click:append-inner="
-                      (endereco.Cep = ''),
-                        (endereco.Bairro = ''),
-                        (endereco.Cidade = ''),
-                        (endereco.Estado = ''),
-                        (endereco.Rua = '')
+                      (modalData.cep = ''),
+                        (modalData.bairro = ''),
+                        (modalData.cidade = ''),
+                        (modalData.estado = ''),
+                        (modalData.rua = '')
                     "
                     placeholder="00000-00"
                     @input="onInputCep"
@@ -809,7 +818,7 @@
 
                   <v-select
                     label="Estado"
-                    v-model="endereco.Estado"
+                    v-model="modalData.estado"
                     :readonly="readOnlyComCEP"
                     :items="[
                       { title: 'Acre', value: 'AC' },
@@ -848,7 +857,7 @@
 
                   <v-text-field
                     label="Cidade"
-                    v-model="endereco.Cidade"
+                    v-model="modalData.cidade"
                     :readonly="readOnlyComCEP"
                     variant="outlined"
                     prepend-inner-icon="mdi-city"
@@ -856,7 +865,7 @@
 
                   <v-text-field
                     label="Bairro"
-                    v-model="endereco.Bairro"
+                    v-model="modalData.bairro"
                     :readonly="readOnlyComCEP"
                     variant="outlined"
                     prepend-inner-icon="mdi-map-legend"
@@ -866,7 +875,7 @@
                     <v-col cols="8">
                       <v-text-field
                         label="Rua"
-                        v-model="endereco.Rua"
+                        v-model="modalData.rua"
                         :readonly="readOnlyComCEP"
                         variant="outlined"
                         prepend-inner-icon="mdi-road-variant"
@@ -875,7 +884,7 @@
                     <v-col cols="4">
                       <v-text-field
                         label="Número"
-                        v-model="endereco.Numero"
+                        v-model="modalData.numero"
                         variant="outlined"
                         prepend-inner-icon="mdi-numeric"
                       />
@@ -884,7 +893,7 @@
 
                   <v-select
                     label="Tipo de logradouro"
-                    v-model="endereco.Logradouro"
+                    v-model="modalData.logradouro"
                     :items="[
                       { title: 'Rua', value: 'rua' },
                       { title: 'Avenida', value: 'avenida' },
@@ -900,14 +909,14 @@
 
                   <v-text-field
                     label="Complemento (Opcional)"
-                    v-model="endereco.Complemento"
+                    v-model="modalData.complemento"
                     variant="outlined"
                     prepend-inner-icon="mdi-post"
                   />
 
                   <v-select
                     label="Status do Endereço"
-                    v-model="endereco.Status"
+                    v-model="modalData.status"
                     :items="[
                       { title: 'Ativo (Endereço Principal)', value: 'ativo' },
                       {
@@ -1110,6 +1119,7 @@ const produtoHeaders = [
   { title: "Nome", key: "nome" },
   { title: "Preço", key: "preco" },
   { title: "Estoque", key: "estoque" },
+  { title: "Categoria", key: "categoria" },
   { title: "Data da criação", key: "dataPost" },
   { title: "Status", key: "status" },
   { title: "Ações", key: "actions", sortable: false, align: "end" },
@@ -1135,7 +1145,7 @@ const ddiOptions = ref([
   { text: "+351 (Portugal)", value: "351" },
 ]);
 const readOnlyComCEP = computed(() => {
-  const numeros = endereco.value.Cep?.replace(/\D/g, "") || "";
+  const numeros = modalData.value.Cep?.replace(/\D/g, "") || "";
   return numeros.length === 8;
 });
 
@@ -1354,8 +1364,8 @@ function convertToDisplayDate(inputDate) {
 const buscarEnderecoViaCep = async () => {
   let cepNumeros = "";
 
-  if (endereco?.value?.Cep) {
-    cepNumeros = endereco?.value?.Cep?.replace(/\D/g, "");
+  if (modalData?.value?.cep) {
+    cepNumeros = modalData?.value?.cep?.replace(/\D/g, "");
   } else {
     return;
   }
@@ -1374,10 +1384,10 @@ const buscarEnderecoViaCep = async () => {
       return;
     }
 
-    endereco.value.Rua = res.data.logradouro || "";
-    endereco.value.Bairro = res.data.bairro || "";
-    endereco.value.Cidade = res.data.localidade || "";
-    endereco.value.Estado = res.data.uf || "";
+    modalData.value.rua = res.data.logradouro || "";
+    modalData.value.bairro = res.data.bairro || "";
+    modalData.value.cidade = res.data.localidade || "";
+    modalData.value.estado = res.data.uf || "";
   } catch (err) {
     toast.error("Erro ao buscar endereço via CEP");
   }
@@ -1395,10 +1405,10 @@ const formatCep = (value) => {
 
 const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
 
-watch(() => endereco.value.Cep, buscarEnderecoViaCepDebounced);
+watch(() => modalData.value.cep, buscarEnderecoViaCepDebounced);
 
 const onInputCep = (event) => {
-  endereco.value.Cep = formatCep(event.target.value);
+  modalData.value.cep = formatCep(event.target.value);
 };
 
 function isValidDateOfBirth(dateString) {
@@ -1574,13 +1584,17 @@ function getEmptyModel(type) {
     case "endereco":
       return {
         id: null,
-        cep: "",
+        usuario_id: null,
+        cep: null,
         rua: "",
-        numero: "",
+        numero: null,
         cidade: "",
         bairro: "",
         estado: "",
+        logradouro: "",
+        status: ""
       };
+      
     default:
       return {};
   }
@@ -1589,6 +1603,7 @@ function getEmptyModel(type) {
 function openModal(type, item = null) {
     modalType.value = type;
     cepLoading.value = false;
+    console.log(item, "item")
 
     if (item && item.id) {
         modalData.value = { ...item };
@@ -1624,6 +1639,7 @@ function openModal(type, item = null) {
         if (type === "produto") {
             modalData.value.dataPost = formatDateToInput(item.dataPost);
         }
+       
     } else {
         modalData.value = getEmptyModel(type);
     }
@@ -1750,16 +1766,16 @@ async function saveData() {
                 break;
 
             case "produto":
-                const precoEmCentavos = Math.round(modalData.value.Preco * 100);
+                const precoEmCentavos = Math.round(modalData.value.preco * 100);
 
                 const produtoToSend = {
                     usuario_id: retrieve?.value.id,
-                    nome: modalData.value.Nome,
+                    nome: modalData.value.nome,
                     preco: precoEmCentavos,
-                    descricao: modalData.value.Descricao,
-                    categoria_id: modalData.value.CategoriaId,
-                    estoque: modalData.value.Estoque,
-                    status: modalData.value.Status || "ativo",
+                    descricao: modalData.value.descricao,
+                    categoria_id: modalData.value.categoria_id,
+                    estoque: modalData.value.estoque,
+                    status: modalData.value.status || "ativo",
                     imagem: previewImage.value,
                 };
 
@@ -1775,16 +1791,16 @@ async function saveData() {
 
             case "endereco":
                 const body = {
-                    usuario_id: retrieve?.value.id,
-                    cep: endereco.value.Cep,
-                    estado: endereco.value.Estado,
-                    cidade: endereco.value.Cidade,
-                    bairro: endereco.value.Bairro,
-                    rua: endereco.value.Rua,
-                    numero: endereco.value.Numero,
-                    logradouro: endereco.value.Logradouro,
-                    complemento: endereco.value.Complemento,
-                    status: endereco.value.Status,
+                    usuario_id: modalData.value.usuario_id,
+                    cep: modalData.value.cep,
+                    estado: modalData.value.estado,
+                    cidade: modalData.value.cidade,
+                    bairro: modalData.value.bairro,
+                    rua: modalData.value.rua,
+                    numero: modalData.value.numero,
+                    logradouro: modalData.value.logradouro,
+                    complemento: modalData.value.complemento,
+                    status: modalData.value.status,
                 };
                 if (entityId) {
                     response = await connection.patch(
