@@ -38,9 +38,9 @@
               </v-avatar>
             </template>
 
-            <div class="d-flex">
-
-              <v-list-item-header>
+           
+            
+            <v-list-item-header>
                 <v-tooltip
                 :text="usuario.nome || 'Usuário Não Identificado'"
                 location="top"
@@ -56,36 +56,22 @@
                 </template>
               </v-tooltip>
              </v-list-item-header>
-             <v-list-item class="font-weight-bold ml-6">
-               
-                <a
-                  :href="
-                    'https://mail.google.com/mail/?view=cm&fs=1&to=' +
-                    usuario.email"
-                  class="text-primary"
-                  style="cursor: pointer"
-                >
-                  <v-btn
-                  color="#0d6efd"
-                  prepend-icon="mdi-email"
-                  >Mandar email</v-btn>
-                </a>
-              </v-list-item>
-              <v-list-item>
-              <a
-                  :href="
-                    'https://mail.google.com/mail/?view=cm&fs=1&to=' +
-                    usuario.email"
-                  class="text-primary"
-                  style="cursor: pointer"
-                >
-                  <v-btn
-                  color="green"
-                  prepend-icon="mdi-email"
-                  >Chamar no whats</v-btn>
-                </a>
-              </v-list-item>
-            </div>
+             <v-row no-gutters class="align-center">
+  <v-col cols="12" sm="8" class="d-flex flex-wrap"> 
+    
+    <v-list-item class="mr-2 pa-0"> <a :href="'https://mail.google.com/mail/?view=cm&fs=1&to=' + usuario.email" class="text-primary" style="cursor: pointer">
+        <v-btn color="#0d6efd" prepend-icon="mdi-email">Mandar email</v-btn>
+      </a>
+    </v-list-item>
+    
+    <v-list-item class="pa-0">
+      <a :href="'https://api.whatsapp.com/send?phone=' + usuario.telefone"  target="_blank" class="text-primary" style="cursor: pointer">
+        <v-btn color="green" prepend-icon="mdi-whatsapp">Chamar no whats</v-btn>
+      </a>
+    </v-list-item>
+  </v-col>
+</v-row>
+          
               
 
               <v-tooltip :text="usuario.email || 'N/A'" location="bottom">
