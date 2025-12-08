@@ -464,19 +464,46 @@
                     prepend-inner-icon="mdi-check-circle-outline"
                   />
 
-                  <v-card-actions class="px-0 pt-4 justify-end">
-                    <v-btn
-                      color="primary"
+                  <v-card-actions class="px-0 pt-4">
+                    <v-row>
+                      <v-col>
+                        <v-btn
+                        color="green"
+                        type="button"
+                        variant="flat"
+                        @click="enderecosAMais + 1"
+                        >
+                        Adicionar
+                        </v-btn>
+                      </v-col>
+
+
+                      <v-col>
+                        <v-btn
+                        color="primary"
                       :loading="loadingEndereco"
                       type="submit"
                       @click="salvarAlteracoesEndereco"
                       variant="flat"
-                    >
+                      >
                       Salvar Alterações
                     </v-btn>
+                  </v-col>
+                  </v-row>
                   </v-card-actions>
                 </v-form>
               </v-card>
+              <v-expansion-panels>
+                <v-expansion-panel>
+                  <v-expansion-panel-title>
+                    teste
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+
+                    algo
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
             </v-col>
           </v-row>
         </v-window-item>
@@ -1130,6 +1157,7 @@ function formatarData(date) {
   return `${dia}/${mes}/${ano}`;
 }
 
+const enderecosAMais = ref(0);
 const menuData = ref(false);
 const filtroStatus = ref(null);
 const filtroForma = ref(null);
@@ -1200,6 +1228,7 @@ function verPagamento(uuid) {
   if (!uuid) return toast.error("UUID inválido");
   router.push(`/pagamento/${uuid}`);
 }
+
 
 const produto = ref({
   nome: "",
