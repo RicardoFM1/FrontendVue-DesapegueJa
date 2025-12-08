@@ -550,7 +550,7 @@
         <v-divider class="mb-6"></v-divider>
         <v-form @submit.prevent="salvarAlteracoesEndereco">
           <v-text-field
-            label="CEP"
+            label="CEP (Obrigatório)"
             v-model="enderecoForm.Cep"
             append-inner-icon="mdi-close-circle"
             @click:append-inner="
@@ -564,10 +564,11 @@
             @input="onInputCep"
             variant="outlined"
             density="comfortable"
+            required
           ></v-text-field>
 
           <v-select
-            label="Estado"
+            label="Estado (Obrigatório)"
             v-model="enderecoForm.Estado"
             :readonly="readOnlyComCEP"
             :items="[
@@ -603,40 +604,45 @@
             item-value="value"
             variant="outlined"
             density="comfortable"
+            required
           ></v-select>
 
           <v-text-field
-            label="Cidade"
+            label="Cidade (Obrigatório)"
             v-model="enderecoForm.Cidade"
             :readonly="readOnlyComCEP"
             variant="outlined"
             density="comfortable"
+            required
           ></v-text-field>
 
           <v-text-field
-            label="Bairro"
+            label="Bairro (Obrigatório)"
             v-model="enderecoForm.Bairro"
             :readonly="readOnlyComCEP"
             variant="outlined"
             density="comfortable"
+            required
           ></v-text-field>
 
           <v-row>
             <v-col cols="9" class="py-0">
               <v-text-field
-                label="Rua"
+                label="Rua (Obrigatório)"
                 v-model="enderecoForm.Rua"
                 :readonly="readOnlyComCEP"
                 variant="outlined"
                 density="comfortable"
+                required
               ></v-text-field>
             </v-col>
             <v-col cols="3" class="py-0">
               <v-text-field
-                label="Número"
+                label="Número (Obrigatório)"
                 v-model="enderecoForm.Numero"
                 variant="outlined"
                 density="comfortable"
+                required
               ></v-text-field>
             </v-col>
           </v-row>
@@ -654,6 +660,7 @@
             item-title="title"
             item-value="value"
             variant="outlined"
+            required
             density="comfortable"
           ></v-select>
 
@@ -663,7 +670,12 @@
             variant="outlined"
             density="comfortable"
           ></v-text-field>
-
+          <v-expand-transition>
+            <v-alert
+            type="info">
+            Preencha os campos obrigatórios antes de continuar! 
+            </v-alert>
+          </v-expand-transition>
           <v-card-actions class="justify-end pt-4">
             <v-btn
               color="grey"

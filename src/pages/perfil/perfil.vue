@@ -446,6 +446,20 @@
                   </v-row>
 
                   <v-select
+                    label="Tipo de endereço"
+                    v-model="item.tipo_de_endereco"
+                    :items="[
+                      { title: 'Residencial', value: 'residencial' },
+                      { title: 'Comercial', value: 'comercial' },
+                      { title: 'Outro', value: 'outro' },
+                    ]"
+                    item-title="title"
+                    item-value="value"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-sign-direction"
+                  />
+                  
+                  <v-select
                     label="Tipo de logradouro"
                     v-model="item.tipo_de_logradouro"
                     :items="[
@@ -1452,6 +1466,100 @@ const formatData = (value) => {
   return result;
 };
 
+const getRetrieve = async () => {
+  try {
+    const res = await connection.get("/desapega/usuarios/retrieve", {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+
+    if (res && res.status === 200 && res.data) {
+      retrieve.value = res.data;
+      usuario.value = res.data;
+
+      if (
+        retrieve.foto_Perfil &&
+        retrieve.foto_Perfil !== "null" &&
+        retrieve.foto_Perfil !== ""
+      ) {
+        if (retrieve.foto_Perfil.startsWith("data:image")) {
+          retrieve.foto_Perfil = retrieve.foto_Perfil;
+        } else if (retrieve.foto_Perfil.startsWith("/9j/")) {
+          retrieve.foto_Perfil = `data:image/jpeg;base64,${retrieve.foto_Perfil}`;
+        } else if (retrieve.foto_Perfil.startsWith("iVBORw0KGgo")) {
+          retrieve.foto_Perfil = `data:image/png;base64,${retrieve.foto_Perfil}`;
+        } else if (
+          retrieve.foto_Perfil.startsWith("R0lGODlh") ||
+          retrieve.foto_Perfil.startsWith("R0lGODdh")
+        ) {
+          retrieve.foto_Perfil = `data:image/gif;base64,${retrieve.foto_Perfil}`;
+        } else {
+          retrieve.foto_Perfil = `data:image/png;base64,${retrieve.foto_Perfil}`;
+        }
+      } else {
+        retrieve.foto_Perfil = null;
+      }
+    } else {
+      toast.error("Erro ao buscar o usuário");
+      console.error("Resposta inesperada:", res);
+    }
+
+    const telRaw = String(res.data.telefone || "").replace(/\D/g, "");
+
+    let ddi = "55";
+    let numero = "";
+
+    if (telRaw.length > 11) {
+      ddi = telRaw.slice(0, telRaw.length - 11);
+      numero = telRaw.slice(-11);
+    } else {
+      numero = telRaw;
+    }
+
+    if (res.status === 200 && res.data) {
+      retrieve.value = res.data;
+
+      usuario.value = {
+        Nome: res.data.nome,
+        email: res.data.email,
+        senha: "",
+        CPF: res.data.cpf,
+        ddi: ddi,
+        Telefone: numero ? numero : "",
+        dataNascimento: res.data.data_Nascimento || "",
+      };
+
+      imagemPerfil.value = res.data.foto_Perfil || null;
+    }
+    } catch (err) {
+    toast.error(
+      err.response?.data?.message ||
+        "Erro ao buscar dados do usuário ou endereço"
+    );
+  } finally {
+    loadingInit.value = false;
+  }
+}
+const getEnderecos = async () => {
+  try{
+    if (retrieve.value && retrieve.value.id) {
+      const resEnderecos = await connection.get(
+        `/desapega/enderecos/${retrieve.value.id}`,
+        {
+          headers: { Authorization: `Bearer ${token.value}` },
+        }
+      );
+
+      if (resEnderecos.status === 200 && resEnderecos.data) {
+        endereco.value = resEnderecos.data
+      }
+    }
+  
+  }catch(err){
+    toast.error("erro ao buscar endereços")
+  }
+}
+
+
 const carrinho = ref([]);
 
 async function getCarrinho() {
@@ -1596,93 +1704,9 @@ onMounted(async () => {
     return
   }
 
-  try {
-    const res = await connection.get("/desapega/usuarios/retrieve", {
-      headers: { Authorization: `Bearer ${token.value}` },
-    });
-
-    if (res && res.status === 200 && res.data) {
-      retrieve.value = res.data;
-      usuario.value = res.data;
-      console.log("FOTO PERFIL REAL:", res.data.foto_Perfil);
-      console.log("Tamanho da string:", res.data.foto_Perfil?.length);
-      console.log("RETORNO API:", res.data);
-
-      if (
-        retrieve.foto_Perfil &&
-        retrieve.foto_Perfil !== "null" &&
-        retrieve.foto_Perfil !== ""
-      ) {
-        if (retrieve.foto_Perfil.startsWith("data:image")) {
-          retrieve.foto_Perfil = retrieve.foto_Perfil;
-        } else if (retrieve.foto_Perfil.startsWith("/9j/")) {
-          retrieve.foto_Perfil = `data:image/jpeg;base64,${retrieve.foto_Perfil}`;
-        } else if (retrieve.foto_Perfil.startsWith("iVBORw0KGgo")) {
-          retrieve.foto_Perfil = `data:image/png;base64,${retrieve.foto_Perfil}`;
-        } else if (
-          retrieve.foto_Perfil.startsWith("R0lGODlh") ||
-          retrieve.foto_Perfil.startsWith("R0lGODdh")
-        ) {
-          retrieve.foto_Perfil = `data:image/gif;base64,${retrieve.foto_Perfil}`;
-        } else {
-          retrieve.foto_Perfil = `data:image/png;base64,${retrieve.foto_Perfil}`;
-        }
-      } else {
-        retrieve.foto_Perfil = null;
-      }
-    } else {
-      toast.error("Erro ao buscar o usuário");
-      console.error("Resposta inesperada:", res);
-    }
-
-    const telRaw = String(res.data.telefone || "").replace(/\D/g, "");
-
-    let ddi = "55";
-    let numero = "";
-
-    if (telRaw.length > 11) {
-      ddi = telRaw.slice(0, telRaw.length - 11);
-      numero = telRaw.slice(-11);
-    } else {
-      numero = telRaw;
-    }
-
-    if (res.status === 200 && res.data) {
-      retrieve.value = res.data;
-
-      usuario.value = {
-        Nome: res.data.nome,
-        email: res.data.email,
-        senha: "",
-        CPF: res.data.cpf,
-        ddi: ddi,
-        Telefone: numero ? numero : "",
-        dataNascimento: res.data.data_Nascimento || "",
-      };
-
-      imagemPerfil.value = res.data.foto_Perfil || null;
-    }
-
-    if (retrieve.value && retrieve.value.id) {
-      const resEnderecos = await connection.get(
-        `/desapega/enderecos/${retrieve.value.id}`,
-        {
-          headers: { Authorization: `Bearer ${token.value}` },
-        }
-      );
-
-      if (resEnderecos.status === 200 && resEnderecos.data) {
-        endereco.value = resEnderecos.data
-      }
-    }
-  } catch (err) {
-    toast.error(
-      err.response?.data?.message ||
-        "Erro ao buscar dados do usuário ou endereço"
-    );
-  } finally {
-    loadingInit.value = false;
-  }
+  
+  await getRetrieve();
+  await getEnderecos();
   await getProdutos();
   await getCategorias();
   await getPagamentos();
@@ -1761,9 +1785,7 @@ const salvarAlteracoes = async () => {
     );
     if (res.status === 200 || res.status === 204) {
       toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
-      setTimeout(() => {
-        router.go(0);
-      }, 2000);
+      await getRetrieve();
     } else {
       toast.error(res.data?.message || "Erro ao salvar alterações");
     }
@@ -1817,6 +1839,7 @@ const id = enderecoEditado.id;
       bairro: enderecoEditado.bairro,
       rua: enderecoEditado.rua,
       numero: enderecoEditado.numero,
+      tipo_de_endereco: enderecoEditado.tipo_de_endereco,
       logradouro: enderecoEditado.tipo_de_logradouro,
       complemento: enderecoEditado.complemento,
       status: enderecoEditado.status,
@@ -1831,10 +1854,15 @@ const id = enderecoEditado.id;
       }
     );
     if (res.status === 200 || res.status === 204) {
-      toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
-      setTimeout(() => {
-        router.go(0);
-      }, 2000);
+      if(body.status.toLowerCase() === "ativo"){
+      
+       toast.success("Endereço definido como ativo! O endereço ativo anterior foi desativado.", { autoClose: 4000 });
+       
+     }else{
+      
+       toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
+     }
+     await getEnderecos();
     } else {
       toast.error(res.data?.message || "Erro ao salvar alterações");
     }
