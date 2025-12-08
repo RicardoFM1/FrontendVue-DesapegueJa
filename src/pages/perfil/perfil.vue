@@ -283,6 +283,7 @@
                         prepend-inner-icon="mdi-cellphone"
                         :rules="rulesTelefone"
                         variant="outlined"
+                        @input="filtrarNumeros"
                       />
                     </v-col>
                   </v-row>
@@ -307,6 +308,7 @@
                   <v-btn
                   color="primary"
                   block
+                  @click="validarAntesDeCriar"
                   :loading="loading"
                       type="submit"
                       variant="flat"
@@ -467,6 +469,7 @@
                       color="primary"
                       :loading="loadingEndereco"
                       type="submit"
+                      @click="salvarAlteracoesEndereco"
                       variant="flat"
                     >
                       Salvar Alterações
@@ -1281,10 +1284,10 @@ function FazerLogout() {
 
 const rulesNomeCompleto = [
   (value) => !!value || "Obrigatório preencher o nome completo.",
+  (value) => /^[\p{L}\s]+$/u.test(value) || "O nome deve conter apenas letras e espaços.",
   (value) => {
     if (!value) return true; 
 
-  
     const palavras = value.trim().split(/\s+/); 
 
     
@@ -1332,9 +1335,17 @@ const rulesDataNascimento = [
 ];
 
 
+const rulesTelefone = [(v) => v > 6 || "Telefone muito curto"]
 
-const rulesTelefone = [(v) => !v];
-const formatTelefone = (v) => v.replace(/\D/g, "");
+const filtrarNumeros = () => {
+  
+  const valorAtual = usuario.value.Telefone;
+
+  const valorFiltrado = valorAtual.replace(/\D/g, '');
+
+  
+  usuario.value.Telefone = valorFiltrado;
+};
 
 const formatCep = (value) => {
   let numeros = value.replace(/\D/g, "").slice(0, 8);
@@ -1704,6 +1715,14 @@ const ExcluirConta = async () => {
 
 const salvarAlteracoes = async () => {
   loading.value = true;
+  const validado = await formRef.value.validate();
+
+  if(!validado.valid){
+    toast.error("Corrija os campos destacados antes de continuar");
+    loading.value = false;
+    return;
+  }
+
   try {
     const cpfFormatado = usuario.value.CPF?.replace(/[./-]/g, "") || "";
     const telefoneLimpo = usuario.value.Telefone.replace(/\D/g, "");
@@ -1976,7 +1995,7 @@ function pegarStatusCor(statusId) {
 }
 
 const form = ref(null);
-const formValido = ref(false);
+const formEndereco = ref(null);
 
 const rules = {
   required: (v) => !!v || "Campo obrigatório",
