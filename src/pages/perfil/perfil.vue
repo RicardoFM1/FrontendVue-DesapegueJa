@@ -321,38 +321,58 @@
                 </v-form>
               </v-card>
             </v-col>
-
+            
             <v-col cols="12" md="6">
+               <v-col>
+                        <v-btn
+                        color="green"
+                        type="button"
+                        variant="flat"
+                        :loading="loadingCriarEndereco"
+                        @click="criarEndereco"
+                        >
+                        Adicionar
+                        </v-btn>
+                      </v-col>
+            <v-expansion-panels  v-if="endereco.length > 0">
+
+           <v-expansion-panel class="mb-4" v-for="(item, index) in endereco" :key="item.id || index">
+
+          
               <v-card class="pa-6" rounded="lg" elevation="4">
-                <v-card-title
-                  class="text-h5 pa-0 text-center mb-4 font-weight-bold"
-                >
-                  Endereço de Entrega
-                </v-card-title>
+                <v-expansion-panel-title class="text-h5 pa-0 text-center mb-4 font-weight-bold">
+
+                
+                Endereço {{ index + 1 }}
+       
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+
+        
                 <v-divider class="mb-6"></v-divider>
 
-                <v-form @submit.prevent="salvarAlteracoesEndereco">
+                <v-form @submit.prevent="salvarAlteracoesEndereco(item)">
                   <v-text-field
                     label="CEP"
-                    v-model="endereco.Cep"
+                    v-model="item.cep"
                     prepend-inner-icon="mdi-map-marker-outline"
                     append-inner-icon="mdi-close"
                     @click:append-inner="
-                      (endereco.Cep = ''),
-                        (endereco.Bairro = ''),
-                        (endereco.Cidade = ''),
-                        (endereco.Estado = ''),
-                        (endereco.Rua = '')
+                      (item.cep = ''),
+                        (item.bairro = ''),
+                        (item.cidade = ''),
+                        (item.estado = ''),
+                        (item.rua = '')
                     "
                     placeholder="00000-00"
-                    @input="onInputCep"
+                    @input="onInputCep(item)"
                     variant="outlined"
                     maxlength="9"
                   />
 
                   <v-select
                     label="Estado"
-                    v-model="endereco.Estado"
+                    v-model="item.estado"
                     :readonly="readOnlyComCEP"
                     :items="[
                       { title: 'Acre', value: 'AC' },
@@ -391,7 +411,7 @@
 
                   <v-text-field
                     label="Cidade"
-                    v-model="endereco.Cidade"
+                    v-model="item.cidade"
                     :readonly="readOnlyComCEP"
                     variant="outlined"
                     prepend-inner-icon="mdi-city"
@@ -399,7 +419,7 @@
 
                   <v-text-field
                     label="Bairro"
-                    v-model="endereco.Bairro"
+                    v-model="item.bairro"
                     :readonly="readOnlyComCEP"
                     variant="outlined"
                     prepend-inner-icon="mdi-map-legend"
@@ -409,7 +429,7 @@
                     <v-col cols="8">
                       <v-text-field
                         label="Rua"
-                        v-model="endereco.Rua"
+                        v-model="item.rua"
                         :readonly="readOnlyComCEP"
                         variant="outlined"
                         prepend-inner-icon="mdi-road-variant"
@@ -418,7 +438,7 @@
                     <v-col cols="4">
                       <v-text-field
                         label="Número"
-                        v-model="endereco.Numero"
+                        v-model="item.numero"
                         variant="outlined"
                         prepend-inner-icon="mdi-numeric"
                       />
@@ -427,7 +447,7 @@
 
                   <v-select
                     label="Tipo de logradouro"
-                    v-model="endereco.Logradouro"
+                    v-model="item.tipo_de_logradouro"
                     :items="[
                       { title: 'Rua', value: 'rua' },
                       { title: 'Avenida', value: 'avenida' },
@@ -442,15 +462,15 @@
                   />
 
                   <v-text-field
-                    label="Complemento (Opcional)"
-                    v-model="endereco.Complemento"
+                    label="Complemento"
+                    v-model="item.complemento"
                     variant="outlined"
                     prepend-inner-icon="mdi-post"
                   />
 
                   <v-select
                     label="Status do Endereço"
-                    v-model="endereco.Status"
+                    v-model="item.status"
                     :items="[
                       { title: 'Ativo (Endereço Principal)', value: 'ativo' },
                       {
@@ -464,47 +484,29 @@
                     prepend-inner-icon="mdi-check-circle-outline"
                   />
 
-                  <v-card-actions class="px-0 pt-4">
-                    <v-row>
-                      <v-col>
-                        <v-btn
-                        color="green"
-                        type="button"
-                        variant="flat"
-                        @click="enderecosAMais + 1"
-                        >
-                        Adicionar
-                        </v-btn>
-                      </v-col>
-
-
-                      <v-col>
-                        <v-btn
-                        color="primary"
-                      :loading="loadingEndereco"
-                      type="submit"
-                      @click="salvarAlteracoesEndereco"
-                      variant="flat"
-                      >
-                      Salvar Alterações
-                    </v-btn>
-                  </v-col>
-                  </v-row>
-                  </v-card-actions>
+                  <v-card-actions class="px-0 pt-4 justify-end">
+                    <v-row no-gutters class="justify-end">
+                        <v-col cols="auto">
+                            <v-btn
+                                color="primary"
+                                :loading="loadingEndereco"
+                                type="submit"
+                              
+                                variant="flat"
+                            >
+                                Salvar Alterações
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-card-actions>
                 </v-form>
+                      </v-expansion-panel-text>
               </v-card>
-              <v-expansion-panels>
-                <v-expansion-panel>
-                  <v-expansion-panel-title>
-                    teste
-                  </v-expansion-panel-title>
-                  <v-expansion-panel-text>
-
-                    algo
-                  </v-expansion-panel-text>
-                </v-expansion-panel>
-              </v-expansion-panels>
-            </v-col>
+             
+                
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </v-col>
           </v-row>
         </v-window-item>
 
@@ -1275,25 +1277,17 @@ const usuario = ref({
   ddi: "55",
 });
 
-const endereco = ref({
-  Cep: "",
-  Estado: "",
-  Cidade: "",
-  Bairro: "",
-  Rua: "",
-  Numero: "",
-  Logradouro: "",
-  Complemento: "",
-  Status: "",
-});
-
+const endereco = ref([]);
+watch(endereco, () => {
+  console.log(endereco.value, "endereços")
+})
 const mostrarSenha = ref(false);
 const loading = ref(false);
 const loadingEndereco = ref(false);
 const imagemPerfil = ref(null);
 const inputArquivo = ref(null);
 const readOnlyComCEP = computed(() => {
-  const numeros = endereco.value.Cep?.replace(/\D/g, "") || "";
+  const numeros = endereco.value.cep?.replace(/\D/g, "") || "";
   return numeros.length === 8;
 });
 const carregandoProdutos = ref(false);
@@ -1397,8 +1391,8 @@ function debounce(func, delay) {
 const buscarEnderecoViaCep = async () => {
   let cepNumeros = "";
 
-  if (endereco?.value?.Cep) {
-    cepNumeros = endereco?.value?.Cep?.replace(/\D/g, "");
+  if (endereco?.value?.cep) {
+    cepNumeros = endereco?.value?.cep?.replace(/\D/g, "");
   } else {
     return;
   }
@@ -1417,10 +1411,10 @@ const buscarEnderecoViaCep = async () => {
       return;
     }
 
-    endereco.value.Rua = res.data.logradouro || "";
-    endereco.value.Bairro = res.data.bairro || "";
-    endereco.value.Cidade = res.data.localidade || "";
-    endereco.value.Estado = res.data.uf || "";
+    endereco.value.rua = res.data.logradouro || "";
+    endereco.value.bairro = res.data.bairro || "";
+    endereco.value.cidade = res.data.localidade || "";
+    endereco.value.estado = res.data.uf || "";
   } catch (err) {
     toast.error("Erro ao buscar endereço via CEP");
   }
@@ -1428,10 +1422,10 @@ const buscarEnderecoViaCep = async () => {
 
 const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
 
-watch(() => endereco.value.Cep, buscarEnderecoViaCepDebounced);
+watch(() => endereco.value.cep, buscarEnderecoViaCepDebounced);
 
 const onInputCep = (event) => {
-  endereco.value.Cep = formatCep(event.target.value);
+  endereco.value.cep = formatCep(event.target.value);
 };
 
 const formatCPF = (value) => {
@@ -1678,17 +1672,7 @@ onMounted(async () => {
       );
 
       if (resEnderecos.status === 200 && resEnderecos.data) {
-        endereco.value = {
-          Cep: resEnderecos.data.cep,
-          Estado: resEnderecos.data.estado,
-          Cidade: resEnderecos.data.cidade,
-          Bairro: resEnderecos.data.bairro,
-          Rua: resEnderecos.data.rua,
-          Numero: resEnderecos.data.numero,
-          Logradouro: resEnderecos.data.tipo_de_logradouro,
-          Complemento: resEnderecos.data.complemento,
-          Status: resEnderecos.data.status,
-        };
+        endereco.value = resEnderecos.data
       }
     }
   } catch (err) {
@@ -1789,22 +1773,56 @@ const salvarAlteracoes = async () => {
     loading.value = false;
   }
 };
-const salvarAlteracoesEndereco = async () => {
+const loadingCriarEndereco = ref(false)
+const criarEndereco = async () => {
+  loadingCriarEndereco.value = true
+  const body = {
+      usuario_id: retrieve?.value.id,
+      cep: "",
+      estado: "",
+      cidade: "",
+      bairro: "",
+      rua: "",
+      numero: "",
+      logradouro: "",
+      complemento: "",
+      status: "inativo",
+  }
+  try{
+    const res = await connection.post("/desapega/enderecos", body, {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    })
+    if(res.status === 201 | res.status === 200){
+      toast.success("Endereço adicionado")
+      enderecosAMais.value += 1
+    }
+  }catch(err){
+    console.log(err, "erro ao adicionar endereço")
+  }finally{
+    loadingCriarEndereco.value = false
+  }
+}
+
+const salvarAlteracoesEndereco = async (enderecoEditado) => {
   loadingEndereco.value = true;
+const id = enderecoEditado.id;
+
   try {
     const body = {
-      cep: endereco.value.Cep,
-      estado: endereco.value.Estado,
-      cidade: endereco.value.Cidade,
-      bairro: endereco.value.Bairro,
-      rua: endereco.value.Rua,
-      numero: endereco.value.Numero,
-      logradouro: endereco.value.Logradouro,
-      complemento: endereco.value.Complemento,
-      status: endereco.value.Status,
+      cep: enderecoEditado.cep, 
+      estado: enderecoEditado.estado, 
+      cidade: enderecoEditado.cidade, 
+      bairro: enderecoEditado.bairro,
+      rua: enderecoEditado.rua,
+      numero: enderecoEditado.numero,
+      logradouro: enderecoEditado.tipo_de_logradouro,
+      complemento: enderecoEditado.complemento,
+      status: enderecoEditado.status,
     };
     const res = await connection.patch(
-      `/desapega/enderecos/${retrieve.value.id}`,
+      `/desapega/enderecos/id/${id}`,
       body,
       {
         headers: {
@@ -1826,6 +1844,7 @@ const salvarAlteracoesEndereco = async () => {
     loadingEndereco.value = false;
   }
 };
+
 async function getProdutos() {
   carregandoProdutos.value = true;
   erroGetProduto.value = false;
