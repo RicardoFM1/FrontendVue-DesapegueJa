@@ -21,100 +21,80 @@
       </template>
       <template v-else>
         <v-list class="pa-0">
-          <v-list-item class="px-6 pt-6 pb-4">
-            <template v-slot:prepend>
-              <v-avatar
-                size="150"
-                :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+
+  <v-list-item class="px-6 pt-6 pb-4">
+    <v-row no-gutters justify="start" class="flex-column flex-sm-row align-start">
+        
+      <v-col cols="12" sm="3" class="mb-4 d-flex justify-center">
+        <v-avatar
+          :size="$vuetify.display.smAndDown ? 80 : 150"
+          :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+        >
+          <v-img
+            v-if="avatarUsuario.tipo === 'imagem'"
+            :src="avatarUsuario.src"
+            cover
+          />
+          <span v-else class="text-white text-h3 font-weight-bold">{{
+            avatarUsuario.texto
+          }}</span>
+        </v-avatar>
+      </v-col>
+
+      <v-col cols="12" sm="9">
+        <div>
+          <v-tooltip :text="usuario.nome || 'Usuário Não Identificado'" location="top">
+            <template v-slot:activator="{ props }">
+              <v-list-item-title
+                v-bind="props"
+                class="text-h4 font-weight-bold mb-1 name-truncate"
               >
-                <v-img
-                  v-if="avatarUsuario.tipo === 'imagem'"
-                  :src="avatarUsuario.src"
-                  cover
-                />
-                <span v-else class="text-white text-h3 font-weight-bold">{{
-                  avatarUsuario.texto
-                }}</span>
-              </v-avatar>
+                {{ usuario.nome || "Usuário Não Identificado" }}
+              </v-list-item-title>
             </template>
+          </v-tooltip>
 
-           
-            
-            <v-list-item-header>
-                <v-tooltip
-                :text="usuario.nome || 'Usuário Não Identificado'"
-                location="top"
+          <v-tooltip :text="usuario.email || 'N/A'" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-list-item-subtitle
+                v-bind="props"
+                class="text-h6 text-medium-emphasis email-truncate"
               >
-              
-                <template v-slot:activator="{ props }">
-                  <v-list-item-title
-                    v-bind="props"
-                    class="text-h4 font-weight-bold mb-1 name-truncate"
-                  >
-                    {{ usuario.nome || "Usuário Não Identificado" }}
-                  </v-list-item-title>
-                </template>
-              </v-tooltip>
-             </v-list-item-header>
-             <v-row no-gutters class="align-center">
-  <v-col cols="12" sm="8" class="d-flex flex-wrap"> 
-    
-    <v-list-item class="mr-2 pa-0"> <a :href="'https://mail.google.com/mail/?view=cm&fs=1&to=' + usuario.email" class="text-primary" style="cursor: pointer">
-        <v-btn color="#0d6efd" prepend-icon="mdi-email">Mandar email</v-btn>
-      </a>
-    </v-list-item>
-    
-    <v-list-item class="pa-0">
-      <a :href="'https://api.whatsapp.com/send?phone=' + usuario.telefone"  target="_blank" class="text-primary" style="cursor: pointer">
-        <v-btn color="green" prepend-icon="mdi-whatsapp">Chamar no whats</v-btn>
-      </a>
-    </v-list-item>
-  </v-col>
-</v-row>
-          
-              
+                {{ usuario.email || "N/A" }}
+              </v-list-item-subtitle>
+            </template>
+          </v-tooltip>
 
-              <v-tooltip :text="usuario.email || 'N/A'" location="bottom">
-                <template v-slot:activator="{ props }">
-                  <v-list-item-subtitle
-                    v-bind="props"
-                    class="text-h6 text-medium-emphasis email-truncate"
-                  >
-                    {{ usuario.email || "N/A" }}
-                  </v-list-item-subtitle>
-                </template>
-              </v-tooltip>
+          <div class="d-flex flex-wrap mt-3">
+            <a
+              :href="'https://mail.google.com/mail/?view=cm&fs=1&to=' + usuario.email"
+              target="_blank"
+              class="text-primary mr-2 mb-2"
+              style="text-decoration: none;"
+            >
+              <v-btn color="#0d6efd" prepend-icon="mdi-email" size="small">
+                MANDAR EMAIL
+              </v-btn>
+            </a>
+            <a
+              :href="'https://api.whatsapp.com/send?phone=' + usuario.telefone"
+              target="_blank"
+              class="text-primary mb-2"
+              style="text-decoration: none;"
+            >
+              <v-btn color="green" prepend-icon="mdi-whatsapp" size="small">
+                CHAMAR NO WHATS
+              </v-btn>
+            </a>
+          </div>
 
-              <div class="d-flex flex-wrap mt-2">
-                <v-chip
-                  :color="
-                    usuario.status === 'ativo'
-                      ? 'green-darken-2'
-                      : 'red-darken-2'
-                  "
-                  size="small"
-                  class="mr-2"
-                  label
-                  variant="flat"
-                  prepend-icon="mdi-circle-small"
-                >
-                  {{ usuario.status === "ativo" ? "Ativo" : "Inativo" }}
-                </v-chip>
-
-                <v-chip
-                  v-if="usuario.admin == 1 || usuario.admin === true"
-                  color="deep-purple-accent-4"
-                  size="small"
-                  label
-                  variant="flat"
-                  prepend-icon="mdi-gavel"
-                >
-                  Administrador
-                </v-chip>
-              </div>
-           
-          </v-list-item>
-        </v-list>
+          <div class="d-flex flex-wrap mt-2">
+            </div>
+        </div>
+      </v-col>
+    </v-row>
+  </v-list-item>
+</v-list>
 
         <v-divider class="my-4"></v-divider>
 
