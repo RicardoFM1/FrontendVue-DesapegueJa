@@ -59,7 +59,7 @@
             <v-alert type="error">
               Sintimos informar, mas seu usuário foi DESATIVADO, contate nosso suporte para mais detalhes. <a 
   style="color:white" 
-  href="mailto:suportedesapeguenoreply@gmail.com"  
+  href="https://mail.google.com/mail/?view=cm&fs=1&to=suportedesapeguenoreply@gmail.com"  
   >suportedesapeguenoreply@gmail.com
 </a>
 
