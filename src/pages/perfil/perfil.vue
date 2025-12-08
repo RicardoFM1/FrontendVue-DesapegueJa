@@ -164,20 +164,27 @@
                       </template>
                     </v-avatar>
 
-                    <div class="mt-3">
-                      <v-btn
+                    <v-row class="mt-2">
+                      <v-col cols="12" sm="auto">
+
+                        <v-btn
                         variant="tonal"
                         color="primary"
-                        class="mr-3"
+                        block
                         @click="abrirExplorador"
                         prepend-icon="mdi-camera"
                         :disabled="loading"
                       >
                         Alterar Foto
                       </v-btn>
+                    </v-col>
+
+                    <v-col cols="12" sm="auto">
+
                       <v-btn
-                        variant="outlined"
-                        color="red"
+                      variant="outlined"
+                      color="red"
+                      block
                         @click="removerImagem"
                         prepend-icon="mdi-delete"
                         :disabled="
@@ -188,8 +195,9 @@
                       >
                         Remover
                       </v-btn>
-                    </div>
-
+                    </v-col>
+                    </v-row>
+                    
                     <input
                       type="file"
                       ref="inputArquivo"
@@ -280,22 +288,33 @@
                   </v-row>
 
                   <v-card-actions class="px-0 pt-4 justify-end">
-                    <v-btn
-                      color="grey"
+                    <v-row>
+                      <v-col cols="12" sm="auto">
+
+                        <v-btn
+                        color="grey"
+                        block
                       variant="outlined"
                       type="button"
                       @click="recarregarPagina"
                     >
-                      Recarregar
-                    </v-btn>
-                    <v-btn
-                      color="primary"
-                      :loading="loading"
+                    Recarregar
+                  </v-btn>
+                </v-col>
+
+                <v-col cols="12" sm="auto">
+
+                  <v-btn
+                  color="primary"
+                  block
+                  :loading="loading"
                       type="submit"
                       variant="flat"
                     >
-                      Salvar Alterações
-                    </v-btn>
+                    Salvar Alterações
+                  </v-btn>
+                </v-col>
+                  </v-row>
                   </v-card-actions>
                 </v-form>
               </v-card>
@@ -780,24 +799,30 @@
             ></v-img>
 
             <v-row align="center" justify="start" dense class="px-3">
-              <v-btn
+              <v-col cols="12" sm="auto">
+
+                <v-btn
                 variant="tonal"
                 color="primary"
+                block
                 @click="$refs.imageInput.click()"
                 prepend-icon="mdi-upload"
-              >
+                >
                 Escolher imagem
               </v-btn>
+            </v-col>
+              <v-col cols="12" sm="auto">
 
-              <v-btn
+                <v-btn
                 variant="outlined"
                 color="red"
-                class="ml-3"
+                block
                 @click="removerImagemProduto"
                 prepend-icon="mdi-delete"
-              >
+                >
                 Remover
               </v-btn>
+            </v-col>
             </v-row>
 
             <input
@@ -808,7 +833,7 @@
               @change="carregarImagemProduto"
             />
             <div class="text-caption mt-2 ml-1 text-medium-emphasis">
-              Formato aceito: PNG/JPEG • Max 1MB
+              Formato aceito: PNG • Max 1MB
             </div>
           </v-card>
 
@@ -862,22 +887,36 @@
             class="mb-3"
           />
         </v-card-text>
-
+        
         <v-card-actions class="justify-end pa-4 bg-grey-lighten-3">
-          <v-btn variant="outlined" color="grey-darken-2" @click="Cancelar">
-            Cancelar
-          </v-btn>
-          <v-btn variant="outlined" color="orange" @click="resetForm">
-            Limpar
-          </v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
-            @click="validarAntesDeCriar"
-            prepend-icon="mdi-content-save"
-          >
-            Salvar
-          </v-btn>
+          <v-row>
+            <v-col cols="12" sm="auto">
+
+              <v-btn block variant="outlined" color="grey-darken-2" @click="Cancelar">
+                Cancelar
+              </v-btn>
+            </v-col>
+
+            <v-col cols="12" sm="auto"> 
+
+              <v-btn block variant="outlined" color="orange" @click="resetForm">
+                Limpar
+              </v-btn>
+            </v-col>
+
+            <v-col cols="12" sm="auto">
+
+              <v-btn
+              block
+              color="primary"
+              variant="flat"
+              @click="validarAntesDeCriar"
+              prepend-icon="mdi-content-save"
+              >
+              Salvar
+            </v-btn>
+          </v-col>
+        </v-row>
         </v-card-actions>
       </v-form>
     </v-card>
@@ -1966,14 +2005,14 @@ async function validarAntesDeCriar() {
 const loadingConfirmar = ref(false);
 
 function resetForm() {
-  if (confirm("Deseja limpar o formulário?")) {
+  
     produto.value.nome = "";
     produto.value.preco = null;
     produto.value.categoria_id = "";
     produto.value.descricao = "";
     produto.value.estoque = null;
     previewImage.value = null;
-  }
+  
 }
 
 const modal = ref(false);
