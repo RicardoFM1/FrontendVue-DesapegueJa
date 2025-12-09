@@ -96,13 +96,14 @@
             <v-divider class="mb-4"></v-divider>
 
             <div
-              v-for="(item, index) in carrinhoUser"
-              :key="item.id"
+              
               class="mb-4"
             >
               <v-card
                 variant="outlined"
-                class="pa-3 rounded-lg d-flex align-center"
+                v-for="(item, index) in carrinhoUser"
+              :key="item.id"
+                class="pa-3 rounded-lg d-flex flex-column flex-sm-row align-sm-center: true"
                 :class="{ 'bg-red-lighten-5': item.estoque === 0 }"
               >
                 <v-avatar size="100" rounded="lg" class="mr-4 flex-shrink-0">
@@ -189,31 +190,43 @@
                     class="mb-3"
                   ></v-select>
 
-                  <div class="d-flex">
-                    <v-btn
-                      variant="tonal"
+                  <v-row class="d-flex">
+                    <div class="d-flex align-center mt-2">
+
+                      
+
+                        
+                        <v-btn
+                        variant="tonal"
                       color="primary"
                       size="small"
                       class="mr-2"
+                      block
                       @click="toDetalhes(item.id)"
                       :disabled="carregandoInformacoes"
                     >
-                      Ver Detalhes
-                    </v-btn>
-
-                    <v-btn
-                      icon
+                    Ver Detalhes
+                  </v-btn>
+             
+             
+                  
+                  
+                
+                <v-btn
+                  icon
                       variant="text"
                       color="error"
                       size="small"
                       @click="clickRemover(item)"
-                    >
+                      >
                       <v-icon>mdi-trash-can-outline</v-icon>
                       <v-tooltip activator="parent" location="top"
-                        >Remover</v-tooltip
+                      >Remover</v-tooltip
                       >
                     </v-btn>
                   </div>
+                  
+                  </v-row>
                 </div>
               </v-card>
 
