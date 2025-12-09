@@ -190,43 +190,36 @@
                     class="mb-3"
                   ></v-select>
 
-                  <v-row class="d-flex">
-                    <div class="d-flex align-center mt-2">
+                  <v-row class="d-flex align-center" dense>
+  
+  <v-col cols="9" sm="auto"> 
+    <v-btn
+      variant="tonal"
+      color="primary"
+      size="small"
+      block 
+      @click="toDetalhes(item.id)"
+      :disabled="carregandoInformacoes"
+    >
+      Ver Detalhes
+    </v-btn>
+  </v-col>
 
-                      
-
-                        
-                        <v-btn
-                        variant="tonal"
-                      color="primary"
-                      size="small"
-                      class="mr-2"
-                      block
-                      @click="toDetalhes(item.id)"
-                      :disabled="carregandoInformacoes"
-                    >
-                    Ver Detalhes
-                  </v-btn>
-             
-             
-                  
-                  
-                
-                <v-btn
-                  icon
-                      variant="text"
-                      color="error"
-                      size="small"
-                      @click="clickRemover(item)"
-                      >
-                      <v-icon>mdi-trash-can-outline</v-icon>
-                      <v-tooltip activator="parent" location="top"
-                      >Remover</v-tooltip
-                      >
-                    </v-btn>
-                  </div>
-                  
-                  </v-row>
+  <v-col cols="3" sm="auto" class="py-0 pl-0">
+    <v-btn
+      icon
+      variant="text"
+      color="error"
+      size="small"
+      @click="clickRemover(item)"
+    >
+      <v-icon>mdi-trash-can-outline</v-icon>
+      <v-tooltip activator="parent" location="top"
+        >Remover</v-tooltip
+      >
+    </v-btn>
+  </v-col>
+</v-row>
                 </div>
               </v-card>
 
@@ -1060,70 +1053,136 @@ const salvarAlteracoesEndereco = async () => {
   }
 };
 const MP_PUBLIC_KEY = "TEST-177e78dc-700a-4ae6-966f-20e8a6389fd5";
+
 const cardTokenGerado = ref("");
 const paymentMethodIdCartao = ref("");
 const modalCartaoOpen = ref(false);
-watch(metodoPagamento, (m) => {
-  if (metodoPagamento.value.toLowerCase() === "cartão") {
+
+watch(metodoPagamento, () => {
+  if (metodoPagamento.value?.toLowerCase() === "cartão") {
     modalCartaoOpen.value = true;
   }
 });
+
 const cardToken = ref(null);
 const paymentMethodId = ref(null);
 const mpInstance = ref(null);
 const mpLoaded = ref(false);
 const cardPaymentBrick = ref(null);
 
-function onModalOpened() {
+/* ================================
+   ABERTURA DO MODAL
+=================================*/
+async function onModalOpened() {
   console.log("🎉 Modal aberto!");
-  if (mpLoaded.value) {
-    nextTick(() => renderizarCardPaymentBrick());
-  } else {
+
+  // Aguarda o Vue renderizar os elementos do modal
+  await nextTick();
+
+  if (!mpLoaded.value) {
     console.warn("Aguardando Mercado Pago carregar...");
+    return;
   }
+
+  // Renderiza o brick com segurança
+  renderizarCardPaymentBrick();
 }
 
-function fecharBrick() {
+/* ================================
+   FECHAR / DESTRUIR BRICK
+=================================*/
+async function fecharBrick() {
   try {
-    mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
-  } catch {}
+    await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
+  } catch (e) {
+    console.warn("Destroy falhou (provavelmente já destruído)", e);
+  }
+}
+function validarBinManual(bin) {
+  const regras = {
+    visa: /^4[0-9]{5}$/,
+    mastercard: /^(5[1-5]|2[2-7])[0-9]{4}$/,
+    amex: /^3[47][0-9]{4}$/,
+    elo: /^(401176|438935|457631|457632|431274|451416|504175|506699|5067)/,
+    hipercard: /^(606282|637568)/,
+  };
+
+  for (const bandeira in regras) {
+    if (regras[bandeira].test(bin)) {
+      console.log("🔥 BIN válido:", bandeira);
+      return bandeira;
+    }
+  }
+
+  console.warn("❌ BIN inválido:", bin);
+  return null;
 }
 
 async function renderizarCardPaymentBrick() {
-  console.log("🔎 Renderizando Brick...");
+  console.log("🔎 Renderizando Brick…");
+  console.log("BIN listener pronto?", mpInstance.value.getIdentificationTypes);
 
   if (!mpInstance.value) {
-    console.error("❌ mpInstance ainda não carregou!");
+    console.error("❌ mpInstance não carregou ainda!");
     return;
   }
 
-  const container = document.getElementById("cardPaymentBrickContainer");
+  // Aguarda DOM: container precisa existir
+  await nextTick();
+
+  let container = document.getElementById("cardPaymentBrickContainer");
+
   if (!container) {
-    console.warn("❌ Container não existe ainda!");
+    console.warn("Container não existe ainda… tentando novamente.");
+    setTimeout(renderizarCardPaymentBrick, 120);
     return;
   }
 
+  // DESTROY seguro (com await)
   try {
-    mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
+    await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
   } catch {}
 
-  const valor = 1000
+  // ⚠️ Delay necessário por bug do Mercado Pago
+  await new Promise((r) => setTimeout(r, 150));
 
-  cardPaymentBrick.value = mpInstance.value
-    .bricks()
-    .create("cardPayment", "cardPaymentBrickContainer", {
-      initialization: { amount: valor },
-      callbacks: {
-        onReady: () => console.log("Brick pronto!"),
-        onError: (err) => console.error("Brick erro:", err),
-        onSubmit: (data) => {
-          console.log("TOKEN:", data.token);
-          console.log("METHOD:", data.payment_method_id);
-          modalCartaoOpen.value = false;
-          comprar();
-        },
+  const valor = 1000;
+
+  // Criar brick
+  cardPaymentBrick.value = await mpInstance.value.bricks().create(
+  "cardPayment",
+  "cardPaymentBrickContainer",
+  {
+    initialization: {
+      amount: valor
+    },
+    callbacks: {
+      onReady: () => console.log("Brick pronto!"),
+
+      onChange: (data) => {
+        const bin = data?.cardNumber?.bin;
+        if (bin && bin.length >= 6) {
+          validarBinManual(bin);
+        }
       },
-    });
+
+      onError: (err) => {
+        console.error("Brick erro:", err);
+      },
+
+      onSubmit: (data) => {
+        console.log("TOKEN:", data.token);
+        console.log("METHOD:", data.payment_method_id);
+
+        cardTokenGerado.value = data.token;
+        paymentMethodIdCartao.value = data.payment_method_id;
+
+        modalCartaoOpen.value = false;
+        comprar();
+      }
+    }
+  }
+);
 }
 
 async function comprar() {
@@ -1398,6 +1457,8 @@ async function getPagamentos() {
   }
 }
 
+
+
 onMounted(async () => {
   if (!localStorage.getItem("token")) {
     router.push("/:pathMatch(.*)*");
@@ -1427,17 +1488,14 @@ onMounted(async () => {
       pagamento.pagamentoUuid ||
       "";
   }
-  const interval = setInterval(() => {
-    if (window.MercadoPago) {
-      mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, {
-        locale: "pt-BR",
-      });
-      console.log("✅ Mercado Pago SDK carregada!");
-      mpLoaded.value = true;
-      clearInterval(interval);
-    }
-    console.log("MP Instance inicializada:", mpInstance.value);
-  }, 50);
+  await nextTick(); 
+
+  mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, {
+    locale: "pt-BR",
+  });
+
+  console.log("✅ Mercado Pago inicializado com DOM pronta!");
+  mpLoaded.value = true;
 });
 
 async function carregarCarrinhoCompleto() {

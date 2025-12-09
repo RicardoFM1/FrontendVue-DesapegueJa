@@ -112,13 +112,13 @@
               <input
                 ref="imageInput"
                 type="file"
-                accept="image/png"
+                accept="image/png, image/jpeg"
                 class="d-none"
                 @change="carregarImagem"
               />
 
               <v-row justify="space-between" class="text-caption">
-                <div class="small">Formato aceito: PNG • Max 1MB</div>
+                <div class="small">Formato aceito: PNG, JPEG • Max 5MB</div>
                 <div class="small">Verificação rápida de qualidade</div>
               </v-row>
             </v-card>
@@ -593,7 +593,7 @@ async function confirmarAnuncio() {
     }
 
     if (!imagem.value) {
-      return toast.error("Envie uma imagem PNG válida");
+      return toast.error("Envie uma imagem PNG ou JPEG válida");
     }
 
     const body = {
@@ -650,14 +650,14 @@ function carregarImagem(event) {
   const arquivo = event.target.files[0];
   if (!arquivo) return;
 
-  if (!arquivo.type.includes("png")) {
-    toast.error("Apenas imagens PNG são permitidas.");
+ if (!arquivo.type.includes("png") && !arquivo.type.includes("jpeg")) {
+    toast.error("Apenas imagens PNG e JPEG são permitidas.");
     event.target.value = "";
     return;
-  }
+}
 
-  if (arquivo.size > 1024 * 1024) {
-    toast.error("A imagem deve ter no máximo 1MB.");
+  if (arquivo.size > 5 * 1024 * 1024) {
+    toast.error("A imagem deve ter no máximo 5MB.");
     event.target.value = "";
     return;
   }

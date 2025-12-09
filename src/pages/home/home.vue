@@ -1084,7 +1084,7 @@ function getProdutoImage(imagem) {
   if (imagem.startsWith("iVBORw0KGgo"))
     return `data:image/png;base64,${imagem}`;
   if (imagem.startsWith("R0lGODlh") || imagem.startsWith("R0lGODdh"))
-    return `data:image/gif;base64,${imagem}`; // GIF
+    return `data:image/gif;base64,${imagem}`; 
   if (imagem.startsWith("UklGR")) return `data:image/webp;base64,${imagem}`;
 
   return `data:image/png;base64,${imagem}`;

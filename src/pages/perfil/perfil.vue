@@ -904,7 +904,7 @@
               @change="carregarImagemProduto"
             />
             <div class="text-caption mt-2 ml-1 text-medium-emphasis">
-              Formato aceito: PNG • Max 1MB
+              Formato aceito: PNG, JPEG • Max 5MB
             </div>
           </v-card>
 
@@ -1642,13 +1642,13 @@ function carregarImagem(event) {
 
   console.log("Arquivo recebido:", arquivo.name, arquivo.type, arquivo.size);
 
-  if (!arquivo.type.includes("png")) {
-    toast.error("Apenas imagens PNG são permitidas.");
+if (!arquivo.type.includes("png") && !arquivo.type.includes("jpeg")) {
+    toast.error("Apenas imagens PNG e JPEG são permitidas.");
     event.target.value = "";
     return;
-  }
+}
 
-  const tamanhoMax = 1 * 1024 * 1024;
+  const tamanhoMax = 5 * 1024 * 1024;
   if (arquivo.size > tamanhoMax) {
     toast.error("A imagem deve ter no máximo 1MB.");
     event.target.value = "";
@@ -1670,14 +1670,14 @@ function carregarImagemProduto(event) {
   const arquivo = event.target.files[0];
   if (!arquivo) return;
 
-  if (!arquivo.type.includes("png")) {
-    toast.error("Apenas imagens PNG são permitidas.");
+if (!arquivo.type.includes("png") && !arquivo.type.includes("jpeg")) {
+    toast.error("Apenas imagens PNG e JPEG são permitidas.");
     event.target.value = "";
     return;
-  }
+}
 
-  if (arquivo.size > 1024 * 1024) {
-    toast.error("A imagem deve ter no máximo 1MB.");
+  if (arquivo.size > 5 * 1024 * 1024) {
+    toast.error("A imagem deve ter no máximo 5MB.");
     event.target.value = "";
     return;
   }

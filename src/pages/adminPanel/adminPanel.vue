@@ -830,7 +830,7 @@
         <input
           ref="imageInput"
           type="file"
-          accept="image/png"
+          accept="image/png, image/jpeg"
           class="d-none"
           @change="carregarImagemProduto"
         />
@@ -1347,14 +1347,14 @@ function carregarImagemProduto(event) {
   const arquivo = event.target.files[0];
   if (!arquivo) return;
 
-  if (!arquivo.type.includes("png")) {
-    toast.error("Apenas imagens PNG são permitidas.");
+  if (!arquivo.type.includes("png") && !arquivo.type.includes("jpeg")) {
+    toast.error("Apenas imagens PNG e JPEG são permitidas.");
     event.target.value = "";
     return;
-  }
+}
 
-  if (arquivo.size > 1024 * 1024) {
-    toast.error("A imagem deve ter no máximo 1MB.");
+  if (arquivo.size > 5 * 1024 * 1024) {
+    toast.error("A imagem deve ter no máximo 5MB.");
     event.target.value = "";
     return;
   }
@@ -1591,17 +1591,16 @@ const rules = {
   estoque: (v) =>
     (typeof v === "number" && v > 0) || "Estoque deve ser maior que 0",
   requiredFile: (v) =>
-    (Array.isArray(v) && v.length > 0) || "Imagem é obrigatória (PNG, Max 1MB)",
+    (Array.isArray(v) && v.length > 0) || "Imagem é obrigatória (PNG, Max 5MB)",
   fileType: (v) =>
     !v ||
     v.length === 0 ||
-    v[0].type === "image/png" ||
-    "Apenas PNG é permitido",
+    (v[0].type === "image/png" || v[0].type === "image/jpeg") || "Apenas PNG e JPEG é permitido",
   fileSize: (v) =>
     !v ||
     v.length === 0 ||
-    v[0].size <= 1024 * 1024 ||
-    "A imagem deve ter no máximo 1MB",
+    v[0].size <= 5 * 1024 * 1024 ||
+    "A imagem deve ter no máximo 5MB",
 
   rulesEmail: [
     (value) => !!value || "E-mail é obrigatório.",
