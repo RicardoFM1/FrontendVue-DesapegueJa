@@ -1305,9 +1305,11 @@ async function removerItem() {
       }
     );
     toast.success("Item removido do carrinho!", { autoClose: 2000 });
-    setTimeout(async () => {
-      router.go(0);
-    }, 1000);
+    
+      setTimeout(() => {
+        router.go(0)
+      }, 1000);
+   
   } catch (err) {
     console.error("removerItem:", err);
     toast.error(

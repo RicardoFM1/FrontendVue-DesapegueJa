@@ -1141,6 +1141,7 @@ async function addToCart(item) {
     );
  
     await getCarrinho();
+    await getProdutos();
   } catch (err) {
     console.error("Erro adicionar ao carrinho:", err);
   }
