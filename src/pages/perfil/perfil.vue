@@ -318,192 +318,233 @@
                         Adicionar
                         </v-btn>
                       </v-col>
-            <v-expansion-panels  v-if="endereco.length > 0">
+            <v-expansion-panels v-if="endereco.length > 0" variant="accordion">
+  <v-expansion-panel 
+    v-for="(item, index) in endereco" 
+    :key="item.id || index" 
+    class="mb-4 rounded-lg"
+    :elevation="4"
+  >
+    <v-expansion-panel-title class="py-4 px-6">
+      <div class="d-flex align-center justify-space-between w-100">
+        <div class="text-h6 font-weight-medium d-flex align-center">
+          <v-icon color="primary" class="mr-3">mdi-home-map-marker</v-icon>
+          Endereço #{{ index + 1 }}
+        </div>
 
-           <v-expansion-panel class="mb-4" v-for="(item, index) in endereco" :key="item.id || index">
+        <v-chip 
+          :color="item.status === 'ativo' ? 'success' : 'grey'" 
+          size="small"
+          class="font-weight-bold text-uppercase"
+        >
+          {{ item.status === 'ativo' ? 'Principal' : 'Inativo' }}
+        </v-chip>
+      </div>
+    </v-expansion-panel-title>
 
+    <v-expansion-panel-text class="pa-6">
+      <v-divider class="mb-6"></v-divider>
+
+      <v-form @submit.prevent="salvarAlteracoesEndereco(item)">
+        <v-container fluid class="pa-0">
           
-              <v-card class="pa-6" rounded="lg" elevation="4">
-                <v-expansion-panel-title class="text-h5 pa-0 text-center mb-4 font-weight-bold">
+          <v-row dense>
+            <v-col cols="12">
+              <v-text-field
+                label="CEP"
+                v-model="item.cep"
+                prepend-inner-icon="mdi-map-marker-outline"
+                append-inner-icon="mdi-close"
+                @click:append-inner="
+                  (item.cep = ''),
+                    (item.bairro = ''),
+                    (item.cidade = ''),
+                    (item.estado = ''),
+                    (item.rua = '')
+                "
+                placeholder="00000-00"
+                @input="onInputCep(item)"
+                variant="outlined"
+                density="comfortable"
+                maxlength="9"
+              />
+            </v-col>
+          </v-row>
 
-                
-                Endereço {{ index + 1 }}
-       
-              </v-expansion-panel-title>
-              <v-expansion-panel-text>
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-select
+                label="Estado"
+                v-model="item.estado"
+                :readonly="readOnlyComCEP"
+                :items="[
+                  { title: 'Acre', value: 'AC' },
+                  { title: 'Alagoas', value: 'AL' },
+                  { title: 'Amapá', value: 'AP' },
+                  { title: 'Amazonas', value: 'AM' },
+                  { title: 'Bahia', value: 'BA' },
+                  { title: 'Ceará', value: 'CE' },
+                  { title: 'Distrito Federal', value: 'DF' },
+                  { title: 'Espírito Santo', value: 'ES' },
+                  { title: 'Goiás', value: 'GO' },
+                  { title: 'Maranhão', value: 'MA' },
+                  { title: 'Mato Grosso', value: 'MT' },
+                  { title: 'Mato Grosso do Sul', value: 'MS' },
+                  { title: 'Minas Gerais', value: 'MG' },
+                  { title: 'Pará', value: 'PA' },
+                  { title: 'Paraíba', value: 'PB' },
+                  { title: 'Paraná', value: 'PR' },
+                  { title: 'Pernambuco', value: 'PE' },
+                  { title: 'Piauí', value: 'PI' },
+                  { title: 'Rio de Janeiro', value: 'RJ' },
+                  { title: 'Rio Grande do Norte', value: 'RN' },
+                  { title: 'Rio Grande do Sul', value: 'RS' },
+                  { title: 'Rondônia', value: 'RO' },
+                  { title: 'Roraima', value: 'RR' },
+                  { title: 'Santa Catarina', value: 'SC' },
+                  { title: 'São Paulo', value: 'SP' },
+                  { title: 'Sergipe', value: 'SE' },
+                  { title: 'Tocantins', value: 'TO' },
+                ]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-map-marker-radius"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Cidade"
+                v-model="item.cidade"
+                :readonly="readOnlyComCEP"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-city"
+              />
+            </v-col>
+          </v-row>
+          
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Bairro"
+                v-model="item.bairro"
+                :readonly="readOnlyComCEP"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-map-legend"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Rua"
+                v-model="item.rua"
+                :readonly="readOnlyComCEP"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-road-variant"
+              />
+            </v-col>
+          </v-row>
+          
+          <v-row dense>
+            <v-col cols="12" md="4">
+              <v-text-field
+                label="Número"
+                v-model="item.numero"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-numeric"
+              />
+            </v-col>
+            <v-col cols="12" md="8">
+              <v-select
+                label="Tipo de Logradouro"
+                v-model="item.tipo_de_logradouro"
+                :items="[
+                  { title: 'Rua', value: 'rua' },
+                  { title: 'Avenida', value: 'avenida' },
+                  { title: 'Praça', value: 'praca' },
+                  { title: 'Travessa', value: 'travessa' },
+                  { title: 'Outros', value: 'outros' },
+                ]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-sign-direction"
+              />
+            </v-col>
+          </v-row>
 
-        
-                <v-divider class="mb-6"></v-divider>
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-select
+                label="Tipo de Endereço"
+                v-model="item.tipo_de_endereco"
+                :items="[
+                  { title: 'Residencial', value: 'residencial' },
+                  { title: 'Comercial', value: 'comercial' },
+                  { title: 'Outro', value: 'outro' },
+                ]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-office-building-marker-outline"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Complemento"
+                v-model="item.complemento"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-post"
+              />
+            </v-col>
+          </v-row>
 
-                <v-form @submit.prevent="salvarAlteracoesEndereco(item)">
-                  <v-text-field
-                    label="CEP"
-                    v-model="item.cep"
-                    prepend-inner-icon="mdi-map-marker-outline"
-                    append-inner-icon="mdi-close"
-                    @click:append-inner="
-                      (item.cep = ''),
-                        (item.bairro = ''),
-                        (item.cidade = ''),
-                        (item.estado = ''),
-                        (item.rua = '')
-                    "
-                    placeholder="00000-00"
-                    @input="onInputCep(item)"
-                    variant="outlined"
-                    maxlength="9"
-                  />
+          <v-row dense>
+            <v-col cols="12">
+              <v-select
+                label="Status do Endereço"
+                v-model="item.status"
+                :items="[
+                  { title: 'Ativo (Endereço Principal)', value: 'ativo' },
+                  {
+                    title: 'Inativo (Salvo, mas não em uso)',
+                    value: 'inativo',
+                  },
+                ]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-check-circle-outline"
+                class="mt-2"
+              />
+            </v-col>
+          </v-row>
 
-                  <v-select
-                    label="Estado"
-                    v-model="item.estado"
-                    :readonly="readOnlyComCEP"
-                    :items="[
-                      { title: 'Acre', value: 'AC' },
-                      { title: 'Alagoas', value: 'AL' },
-                      { title: 'Amapá', value: 'AP' },
-                      { title: 'Amazonas', value: 'AM' },
-                      { title: 'Bahia', value: 'BA' },
-                      { title: 'Ceará', value: 'CE' },
-                      { title: 'Distrito Federal', value: 'DF' },
-                      { title: 'Espírito Santo', value: 'ES' },
-                      { title: 'Goiás', value: 'GO' },
-                      { title: 'Maranhão', value: 'MA' },
-                      { title: 'Mato Grosso', value: 'MT' },
-                      { title: 'Mato Grosso do Sul', value: 'MS' },
-                      { title: 'Minas Gerais', value: 'MG' },
-                      { title: 'Pará', value: 'PA' },
-                      { title: 'Paraíba', value: 'PB' },
-                      { title: 'Paraná', value: 'PR' },
-                      { title: 'Pernambuco', value: 'PE' },
-                      { title: 'Piauí', value: 'PI' },
-                      { title: 'Rio de Janeiro', value: 'RJ' },
-                      { title: 'Rio Grande do Norte', value: 'RN' },
-                      { title: 'Rio Grande do Sul', value: 'RS' },
-                      { title: 'Rondônia', value: 'RO' },
-                      { title: 'Roraima', value: 'RR' },
-                      { title: 'Santa Catarina', value: 'SC' },
-                      { title: 'São Paulo', value: 'SP' },
-                      { title: 'Sergipe', value: 'SE' },
-                      { title: 'Tocantins', value: 'TO' },
-                    ]"
-                    item-title="title"
-                    item-value="value"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-map-marker-radius"
-                  />
-
-                  <v-text-field
-                    label="Cidade"
-                    v-model="item.cidade"
-                    :readonly="readOnlyComCEP"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-city"
-                  />
-
-                  <v-text-field
-                    label="Bairro"
-                    v-model="item.bairro"
-                    :readonly="readOnlyComCEP"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-map-legend"
-                  />
-
-                  <v-row dense>
-                    <v-col cols="8">
-                      <v-text-field
-                        label="Rua"
-                        v-model="item.rua"
-                        :readonly="readOnlyComCEP"
-                        variant="outlined"
-                        prepend-inner-icon="mdi-road-variant"
-                      />
-                    </v-col>
-                    <v-col cols="4">
-                      <v-text-field
-                        label="Número"
-                        v-model="item.numero"
-                        variant="outlined"
-                        prepend-inner-icon="mdi-numeric"
-                      />
-                    </v-col>
-                  </v-row>
-
-                  <v-select
-                    label="Tipo de endereço"
-                    v-model="item.tipo_de_endereco"
-                    :items="[
-                      { title: 'Residencial', value: 'residencial' },
-                      { title: 'Comercial', value: 'comercial' },
-                      { title: 'Outro', value: 'outro' },
-                    ]"
-                    item-title="title"
-                    item-value="value"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-sign-direction"
-                  />
-                  
-                  <v-select
-                    label="Tipo de logradouro"
-                    v-model="item.tipo_de_logradouro"
-                    :items="[
-                      { title: 'Rua', value: 'rua' },
-                      { title: 'Avenida', value: 'avenida' },
-                      { title: 'Praça', value: 'praca' },
-                      { title: 'Travessa', value: 'travessa' },
-                      { title: 'Outros', value: 'outros' },
-                    ]"
-                    item-title="title"
-                    item-value="value"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-sign-direction"
-                  />
-
-                  <v-text-field
-                    label="Complemento"
-                    v-model="item.complemento"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-post"
-                  />
-
-                  <v-select
-                    label="Status do Endereço"
-                    v-model="item.status"
-                    :items="[
-                      { title: 'Ativo (Endereço Principal)', value: 'ativo' },
-                      {
-                        title: 'Inativo (Salvo, mas não em uso)',
-                        value: 'inativo',
-                      },
-                    ]"
-                    item-title="title"
-                    item-value="value"
-                    variant="outlined"
-                    prepend-inner-icon="mdi-check-circle-outline"
-                  />
-
-                  <v-card-actions class="px-0 pt-4 justify-end">
-                    <v-row no-gutters class="justify-end">
-                        <v-col cols="auto">
-                            <v-btn
-                                color="primary"
-                                :loading="loadingEndereco"
-                                type="submit"
-                              
-                                variant="flat"
-                            >
-                                Salvar Alterações
-                            </v-btn>
-                        </v-col>
-                    </v-row>
-                </v-card-actions>
-                </v-form>
-                      </v-expansion-panel-text>
-              </v-card>
-             
-                
-            </v-expansion-panel>
-          </v-expansion-panels>
+          <v-card-actions class="pa-0 pt-4 justify-end">
+            <v-btn
+              color="primary"
+              :loading="loadingEndereco"
+              type="submit"
+              variant="flat"
+              size="large"
+            >
+              Salvar Alterações
+            </v-btn>
+          </v-card-actions>
+          
+        </v-container>
+      </v-form>
+    </v-expansion-panel-text>
+  </v-expansion-panel>
+</v-expansion-panels>
         </v-col>
           </v-row>
         </v-window-item>
