@@ -192,7 +192,7 @@
                 <v-icon color="orange" size="40">mdi-file-document-box</v-icon>
                 <p class="mt-2 text-body-1 font-weight-medium text-orange-darken-2">Pagamento via Boleto Bancário</p>
                 <v-btn v-if="boletoUrl" size="large" variant="flat" color="orange" :href="boletoUrl" target="_blank" class="mt-3">
-                  <v-icon left>mdi-open-in-new</v-icon> Abrir Boleto para Pagamento
+                  <v-icon left>mdi-open-in-new</v-icon> Abrir Boleto
                 </v-btn>
               </v-sheet>
 
