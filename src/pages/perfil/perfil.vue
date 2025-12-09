@@ -37,6 +37,7 @@
             class="mr-2" 
             @click="toCarrinho"
             :disabled="carregandoProdutos"
+            v-tooltip:bottom = "'Carrinho'"
           >
             <v-badge 
               color="error" 
@@ -50,38 +51,21 @@
             <v-icon v-else color="grey-darken-2">mdi-cart-outline</v-icon>
           </v-btn>
       <v-menu v-model="menu" offset-y location="bottom end">
-        <template #activator="{ props }">
-          <v-tooltip text="Mais opções" location="top">
-            <template #activator="{ props: tooltip }">
-              <v-btn
-                v-bind="{ ...props, ...tooltip }"
-                :disabled="carregando"
-                variant="text"
-                icon="mdi-dots-vertical"
-                class="ml-2"
-                @click.stop
-              />
-            </template>
-          </v-tooltip>
-        </template>
+       <template #activator="{ props }">
+            <v-btn icon v-bind="props" class="ml-1">
+              <v-avatar size="40" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
+                <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
+                <span v-else class="text-white font-weight-bold">{{ avatarUsuario.texto }}</span>
+              </v-avatar>
+            </v-btn>
+          </template>
 
         <v-card class="pa-4" width="300" rounded="lg">
           <div class="d-flex flex-column align-center">
-            <v-avatar
-              size="70"
-              :color="
-                avatarUsuario.tipo === 'imagem' ? 'grey-lighten-3' : 'indigo'
-              "
-            >
-              <template v-if="avatarUsuario.tipo === 'imagem'">
-                <v-img :src="avatarUsuario.src" cover />
-              </template>
-              <template v-else>
-                <span class="text-white text-h6 font-weight-bold">
-                  {{ avatarUsuario.texto }}
-                </span>
-              </template>
-            </v-avatar>
+           <v-avatar size="80" class="mb-3" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
+                <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
+                <span v-else class="text-h4 text-white">{{ avatarUsuario.texto }}</span>
+              </v-avatar>
             <div class="text-h6 mt-2 text-truncate" style="max-width: 90%">
               {{ usuario?.Nome }}
             </div>
@@ -104,7 +88,7 @@
             @click.stop="confirmacaoSair = true"
             :disabled="loadingInit"
           >
-            Excluir Conta
+            Desativar Conta
           </v-btn>
 
           <v-btn
@@ -1113,8 +1097,8 @@
       </v-card-title>
 
       <v-card-text class="text-h6 text-medium-emphasis">
-        **Atenção!** Deseja realmente excluir sua conta? Esta ação é
-        **irreversível**.
+        Atenção! Deseja realmente desativar sua conta? Esta ação é
+        irreversível por enquanto, você precisará acionar o suporte para ativar novamente.
       </v-card-text>
 
       <v-card-actions class="justify-center mt-2">
@@ -1136,7 +1120,7 @@
           :loading="loadingExclusao"
           @click="ExcluirConta"
         >
-          EXCLUIR
+          Desativar
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -1543,7 +1527,7 @@ const getEnderecos = async () => {
   try{
     if (retrieve.value && retrieve.value.id) {
       const resEnderecos = await connection.get(
-        `/desapega/enderecos/${retrieve.value.id}`,
+        `/desapega/enderecos/usuario/${retrieve.value.id}`,
         {
           headers: { Authorization: `Bearer ${token.value}` },
         }
@@ -1590,7 +1574,7 @@ const getIniciais = (nome) => {
 
 const avatarUsuario = computed(() => {
   const nome = usuario.value?.Nome || "Usuário";
-  const foto = usuario.value?.foto_Perfil;
+  const foto = retrieve?.value?.foto_Perfil;
 
   if (foto && foto !== "null" && foto !== "Sem imagem" && foto.trim() !== "") {
     if (foto.startsWith("data:image")) {

@@ -176,7 +176,7 @@
                             item.estoque > 0 ? item.estoque : 1,
                             100
                           ),
-                        } /* Limita a quantidade máxima razoável */,
+                        } ,
                         (_, i) => i + 1
                       )
                     "
@@ -541,162 +541,205 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="modalEndereco" max-width="600px" max-height="900px">
-      <v-card class="pa-6 rounded-xl">
-        <v-card-title class="text-h5 font-weight-bold pa-0 mb-4 text-center">
-          <v-icon color="primary" class="mr-2">mdi-map-marker</v-icon>
-          Atualizar Endereço
-        </v-card-title>
-        <v-divider class="mb-6"></v-divider>
-        <v-form @submit.prevent="salvarAlteracoesEndereco">
-          <v-text-field
-            label="CEP (Obrigatório)"
-            v-model="enderecoForm.Cep"
-            append-inner-icon="mdi-close-circle"
-            @click:append-inner="
-              (enderecoForm.Cep = ''),
-                (enderecoForm.Bairro = ''),
-                (enderecoForm.Cidade = ''),
-                (enderecoForm.Estado = ''),
-                (enderecoForm.Rua = '')
-            "
-            placeholder="00000-000"
-            @input="onInputCep"
-            variant="outlined"
-            density="comfortable"
-            required
-          ></v-text-field>
+    <template>
+  <v-dialog 
+    v-model="modalEndereco" 
+    max-width="800px" 
+    scrollable 
+    transition="dialog-bottom-transition"
+  >
+    <v-card class="pa-6 rounded-xl">
+      <v-card-title class="text-h5 font-weight-bold pa-0 mb-4 text-center">
+        <v-icon color="primary" class="mr-2">mdi-map-marker</v-icon>
+        Atualizar Endereço
+      </v-card-title>
+      
+      <v-divider class="mb-6"></v-divider>
+      
+      <v-card-text class="pa-0"> 
+        <v-form ref="formEndereco" @submit.prevent="salvarAlteracoesEndereco">
+          
+          <v-row dense>
+            <v-col cols="12">
+              <v-text-field
+                label="CEP (Obrigatório)"
+                v-model="enderecoForm.Cep"
+                append-inner-icon="mdi-close-circle"
+                @click:append-inner="
+                  (enderecoForm.Cep = ''),
+                  (enderecoForm.Bairro = ''),
+                  (enderecoForm.Cidade = ''),
+                  (enderecoForm.Estado = ''),
+                  (enderecoForm.Rua = '')
+                "
+                placeholder="00000-000"
+                @input="onInputCep"
+                variant="outlined"
+                density="comfortable"
+                :rules="[v => !!v || 'Campo obrigatório']"
+              ></v-text-field>
+            </v-col>
+          </v-row>
 
-          <v-select
-            label="Estado (Obrigatório)"
-            v-model="enderecoForm.Estado"
-            :readonly="readOnlyComCEP"
-            :items="[
-              { title: 'Acre', value: 'AC' },
-              { title: 'Alagoas', value: 'AL' },
-              { title: 'Amapá', value: 'AP' },
-              { title: 'Amazonas', value: 'AM' },
-              { title: 'Bahia', value: 'BA' },
-              { title: 'Ceará', value: 'CE' },
-              { title: 'Distrito Federal', value: 'DF' },
-              { title: 'Espírito Santo', value: 'ES' },
-              { title: 'Goiás', value: 'GO' },
-              { title: 'Maranhão', value: 'MA' },
-              { title: 'Mato Grosso', value: 'MT' },
-              { title: 'Mato Grosso do Sul', value: 'MS' },
-              { title: 'Minas Gerais', value: 'MG' },
-              { title: 'Pará', value: 'PA' },
-              { title: 'Paraíba', value: 'PB' },
-              { title: 'Paraná', value: 'PR' },
-              { title: 'Pernambuco', value: 'PE' },
-              { title: 'Piauí', value: 'PI' },
-              { title: 'Rio de Janeiro', value: 'RJ' },
-              { title: 'Rio Grande do Norte', value: 'RN' },
-              { title: 'Rio Grande do Sul', value: 'RS' },
-              { title: 'Rondônia', value: 'RO' },
-              { title: 'Roraima', value: 'RR' },
-              { title: 'Santa Catarina', value: 'SC' },
-              { title: 'São Paulo', value: 'SP' },
-              { title: 'Sergipe', value: 'SE' },
-              { title: 'Tocantins', value: 'TO' },
-            ]"
-            item-title="title"
-            item-value="value"
-            variant="outlined"
-            density="comfortable"
-            required
-          ></v-select>
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-select
+                label="Estado (Obrigatório)"
+                v-model="enderecoForm.Estado"
+                :readonly="readOnlyComCEP"
+                :items="[{ title: 'Acre', value: 'AC' },
+  { title: 'Alagoas', value: 'AL' },
+  { title: 'Amapá', value: 'AP' },
+  { title: 'Amazonas', value: 'AM' },
+  { title: 'Bahia', value: 'BA' },
+  { title: 'Ceará', value: 'CE' },
+  { title: 'Distrito Federal', value: 'DF' },
+  { title: 'Espírito Santo', value: 'ES' },
+  { title: 'Goiás', value: 'GO' },
+  { title: 'Maranhão', value: 'MA' },
+  { title: 'Mato Grosso', value: 'MT' },
+  { title: 'Mato Grosso do Sul', value: 'MS' },
+  { title: 'Minas Gerais', value: 'MG' },
+  { title: 'Pará', value: 'PA' },
+  { title: 'Paraíba', value: 'PB' },
+  { title: 'Paraná', value: 'PR' },
+  { title: 'Pernambuco', value: 'PE' },
+  { title: 'Piauí', value: 'PI' },
+  { title: 'Rio de Janeiro', value: 'RJ' },
+  { title: 'Rio Grande do Norte', value: 'RN' },
+  { title: 'Rio Grande do Sul', value: 'RS' },
+  { title: 'Rondônia', value: 'RO' },
+  { title: 'Roraima', value: 'RR' },
+  { title: 'Santa Catarina', value: 'SC' },
+  { title: 'São Paulo', value: 'SP' },
+  { title: 'Sergipe', value: 'SE' },
+  { title: 'Tocantins', value: 'TO' },
+]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+                :rules="[v => !!v || 'Campo obrigatório']"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Cidade (Obrigatório)"
+                v-model="enderecoForm.Cidade"
+                :readonly="readOnlyComCEP"
+                variant="outlined"
+                density="comfortable"
+                :rules="[v => !!v || 'Campo obrigatório']"
+              ></v-text-field>
+            </v-col>
+          </v-row>
 
-          <v-text-field
-            label="Cidade (Obrigatório)"
-            v-model="enderecoForm.Cidade"
-            :readonly="readOnlyComCEP"
-            variant="outlined"
-            density="comfortable"
-            required
-          ></v-text-field>
-
-          <v-text-field
-            label="Bairro (Obrigatório)"
-            v-model="enderecoForm.Bairro"
-            :readonly="readOnlyComCEP"
-            variant="outlined"
-            density="comfortable"
-            required
-          ></v-text-field>
-
-          <v-row>
-            <v-col cols="9" class="py-0">
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Bairro (Obrigatório)"
+                v-model="enderecoForm.Bairro"
+                :readonly="readOnlyComCEP"
+                variant="outlined"
+                density="comfortable"
+                :rules="[v => !!v || 'Campo obrigatório']"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
               <v-text-field
                 label="Rua (Obrigatório)"
                 v-model="enderecoForm.Rua"
                 :readonly="readOnlyComCEP"
                 variant="outlined"
                 density="comfortable"
-                required
+                :rules="[v => !!v || 'Campo obrigatório']"
               ></v-text-field>
             </v-col>
-            <v-col cols="3" class="py-0">
+          </v-row>
+
+          <v-row dense>
+            <v-col cols="12" md="4">
               <v-text-field
                 label="Número (Obrigatório)"
                 v-model="enderecoForm.Numero"
                 variant="outlined"
                 density="comfortable"
-                required
+                :rules="[v => !!v || 'Campo obrigatório']"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="8">
+              <v-select
+                label="Tipo de logradouro"
+                v-model="enderecoForm.Logradouro"
+                :items="[
+                  { title: 'Rua', value: 'rua' },
+                  { title: 'Avenida', value: 'avenida' },
+                  { title: 'Praça', value: 'praca' },
+                  { title: 'Travessa', value: 'travessa' },
+                  { title: 'Outros', value: 'outros' },
+                ]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+              ></v-select>
+            </v-col>
+          </v-row>
+          
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-select
+                label="Tipo de endereço"
+                v-model="enderecoForm.tipo_de_endereco"
+                :items="[
+                  { title: 'Residencial', value: 'residencial' },
+                  { title: 'Comercial', value: 'comercial' },
+                  { title: 'Outro', value: 'outro' },
+                ]"
+                item-title="title"
+                item-value="value"
+                variant="outlined"
+                density="comfortable"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                label="Complemento"
+                v-model="enderecoForm.Complemento"
+                variant="outlined"
+                density="comfortable"
               ></v-text-field>
             </v-col>
           </v-row>
 
-          <v-select
-            label="Tipo de logradouro"
-            v-model="enderecoForm.Logradouro"
-            :items="[
-              { title: 'Rua', value: 'rua' },
-              { title: 'Avenida', value: 'avenida' },
-              { title: 'Praça', value: 'praca' },
-              { title: 'Travessa', value: 'travessa' },
-              { title: 'Outros', value: 'outros' },
-            ]"
-            item-title="title"
-            item-value="value"
-            variant="outlined"
-            required
-            density="comfortable"
-          ></v-select>
-
-          <v-text-field
-            label="Complemento"
-            v-model="enderecoForm.Complemento"
-            variant="outlined"
-            density="comfortable"
-          ></v-text-field>
-          <v-expand-transition>
-            <v-alert
-            type="info">
+          <v-alert type="info" class="mt-4">
             Preencha os campos obrigatórios antes de continuar! 
-            </v-alert>
-          </v-expand-transition>
-          <v-card-actions class="justify-end pt-4">
-            <v-btn
-              color="grey"
-              variant="outlined"
-              @click="modalEndereco = false"
-              class="text-capitalize"
-            >
-              Fechar
-            </v-btn>
-            <v-btn
-              color="primary"
-              :loading="loadingEndereco"
-              type="submit"
-              variant="flat"
-            >
-              Salvar
-            </v-btn>
-          </v-card-actions>
+          </v-alert>
+
         </v-form>
-      </v-card>
-    </v-dialog>
+      </v-card-text>
+      
+      <v-card-actions class="justify-end pt-4">
+        <v-btn
+          color="grey"
+          variant="outlined"
+          @click="modalEndereco = false"
+          class="text-capitalize"
+        >
+          Fechar
+        </v-btn>
+        <v-btn
+          color="primary"
+          :loading="loadingEndereco"
+          @click="salvarAlteracoesEndereco" 
+          variant="flat"
+        >
+          Salvar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</template>
   </v-layout>
 </template>
 
@@ -743,6 +786,7 @@ const enderecoForm = ref({
   Bairro: "",
   Rua: "",
   Numero: "",
+  tipo_de_endereco: "",
   Logradouro: "",
   Complemento: "",
   Status: "",
@@ -765,6 +809,7 @@ const readOnlyComCEP = computed(() => {
   const numeros = (enderecoForm.value.Cep || "").replace(/\D/g, "");
   return numeros.length === 8;
 });
+const formEndereco = ref();
 
 async function getRetrieve() {
   try {
@@ -877,17 +922,21 @@ async function carregarFormasPagamento() {
     );
   }
 }
+const enderecoAtivoUsuarioId = ref()
 
 async function getEndereco() {
   try {
     const res = await connection.get(
-      `/desapega/enderecos/${retrieve.value.id}`,
+      `/desapega/enderecos/usuario/ativo/${retrieve.value.id}`,
       {
         headers: { Authorization: `Bearer ${token.value}` },
       }
     );
     if (res?.status === 200 || res?.status === 201) {
+      console.log(res.data, "endereços 2")
       enderecoUsuario.value = res.data;
+      enderecoAtivoUsuarioId.value = res.data.id
+      
       Object.assign(enderecoForm.value, {
         bairro: res.data.bairro || "",
         cep: res.data.cep || "",
@@ -948,6 +997,15 @@ async function verificarStatusPagamentoPendende() {
 }
 const salvarAlteracoesEndereco = async () => {
   loadingEndereco.value = true;
+
+  const validado = await formEndereco.value.validate();
+
+  if(!validado.valid){
+    toast.error("Corrija os campos destacados antes de continuar");
+    loadingEndereco.value = false;
+    return;
+  }
+
   try {
     const body = {
       cep: enderecoForm.value.Cep,
@@ -956,12 +1014,13 @@ const salvarAlteracoesEndereco = async () => {
       bairro: enderecoForm.value.Bairro,
       rua: enderecoForm.value.Rua,
       numero: enderecoForm.value.Numero,
-      logradouro: enderecoForm.value.Logradouro,
+      tipo_de_endereco: enderecoForm.value.tipo_de_endereco,
+      tipo_de_logradouro: enderecoForm.value.Logradouro,
       complemento: enderecoForm.value.Complemento,
-      status: enderecoForm.value.Status,
+      status: "ativo",
     };
     const res = await connection.patch(
-      `/desapega/enderecos/${retrieve.value.id}`,
+      `/desapega/enderecos/id/${enderecoAtivoUsuarioId.value}`,
       body,
       {
         headers: {
@@ -971,8 +1030,12 @@ const salvarAlteracoesEndereco = async () => {
     );
     if (res.status === 200 || res.status === 204) {
       toast.success("Alterações salvas com sucesso!", { autoClose: 2000 });
-      setTimeout(() => {
-        router.go(0);
+      setTimeout(async() => {
+        await getRetrieve();
+        await getEndereco();
+        await getCarrinho();
+        await getProdutos();
+        modalEndereco.value = false
       }, 2000);
     } else {
       toast.error(res.data?.message || "Erro ao salvar alterações");

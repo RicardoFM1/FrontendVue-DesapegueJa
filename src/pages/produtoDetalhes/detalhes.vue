@@ -41,18 +41,18 @@
             Home
           </v-btn>
 
-          <v-btn
-            icon
-            class="mr-2 pa-2"
+          <v-btn 
+            icon 
+            class="mr-2" 
             @click="toCarrinho"
             :disabled="carregandoProdutos"
-            v-if="tokenExiste"
+            v-tooltip:bottom = "'Carrinho'"
           >
-            <v-badge
-              color="error"
-              :content="carrinho.length"
+            <v-badge 
+              color="error" 
+              :content="carrinho.length" 
               v-if="carrinho.length > 0"
-              offset-x="-1"
+              offset-x="-1" 
               offset-y="-1"
             >
               <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
@@ -62,10 +62,13 @@
 
           <v-menu v-model="menu" offset-y location="bottom end">
             <template #activator="{ props }">
-              <v-btn v-if="tokenExiste" icon v-bind="props" class="ml-1">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
+            <v-btn icon v-bind="props" class="ml-1">
+              <v-avatar size="40" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
+                <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
+                <span v-else class="text-white font-weight-bold">{{ avatarUsuario.texto }}</span>
+              </v-avatar>
+            </v-btn>
+          </template>
             <v-card class="pa-4 rounded-xl" width="300" elevation="4">
               <div class="d-flex flex-column align-center mb-3">
                 <v-avatar
