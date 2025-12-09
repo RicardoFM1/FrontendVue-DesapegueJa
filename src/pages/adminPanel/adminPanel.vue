@@ -368,6 +368,60 @@
                     </v-chip>
                   </template>
 
+                  <template v-slot:item.tipoEndereco="{ item }">
+                    
+                      {{ item.tipo_de_endereco ? item.tipo_de_endereco : "-" }}
+                 
+                  </template>
+
+                  <template v-slot:item.rua="{ item }">
+                    
+                      {{ item.rua ? item.rua : "-" }}
+                 
+                  </template>
+
+                   <template v-slot:item.cep="{ item }">
+                    
+                      {{ item.cep ? item.cep : "-" }}
+                 
+                  </template>
+
+                  <template v-slot:item.numero="{ item }">
+                    
+                      {{ item.numero ? item.numero : "-" }}
+                 
+                  </template>
+
+                  <template v-slot:item.estado="{ item }">
+                    
+                      {{ item.estado ? item.estado : "-" }}
+                 
+                  </template>
+
+                  <template v-slot:item.cidade="{ item }">
+                    
+                      {{ item.cidade ? item.cidade : "-" }}
+                 
+                  </template>
+
+                  <template v-slot:item.bairro="{ item }">
+                    
+                      {{ item.bairro ? item.bairro : "-" }}
+                 
+                  </template>
+
+                   <template v-slot:item.logradouro="{ item }">
+                    
+                      {{ item.tipo_de_logradouro ? item.tipo_de_logradouro : "-" }}
+                 
+                  </template>
+
+                   <template v-slot:item.complemento="{ item }">
+                    
+                      {{ item.complemento ? item.complemento : "-" }}
+                 
+                  </template>
+
                   <template v-slot:item.actions="{ item }">
                     <div class="d-flex gap-2">
                       <v-btn
@@ -801,7 +855,7 @@
                 <v-form v-if="modalType === 'endereco'" ref="formEndereco">
                   <v-text-field
                     label="CEP"
-                    v-model="endereco.Cep"
+                    v-model="modalData.Cep"
                     prepend-inner-icon="mdi-map-marker-outline"
                     append-inner-icon="mdi-close"
                     @click:append-inner="
@@ -815,6 +869,7 @@
                     @input="onInputCep"
                     variant="outlined"
                     maxlength="9"
+                    :rules="modalData.id ? [] : [rules.required]"
                   />
 
                   <v-select
@@ -854,6 +909,7 @@
                     item-value="value"
                     variant="outlined"
                     prepend-inner-icon="mdi-map-marker-radius"
+                   :rules="modalData.id ? [] : [rules.required]"
                   />
 
                   <v-text-field
@@ -862,6 +918,7 @@
                     :readonly="readOnlyComCEP"
                     variant="outlined"
                     prepend-inner-icon="mdi-city"
+                    :rules="modalData.id ? [] : [rules.required]"
                   />
 
                   <v-text-field
@@ -870,6 +927,7 @@
                     :readonly="readOnlyComCEP"
                     variant="outlined"
                     prepend-inner-icon="mdi-map-legend"
+                   :rules="modalData.id ? [] : [rules.required]"
                   />
 
                   <v-row dense>
@@ -880,6 +938,7 @@
                         :readonly="readOnlyComCEP"
                         variant="outlined"
                         prepend-inner-icon="mdi-road-variant"
+                        :rules="modalData.id ? [] : [rules.required]"
                       />
                     </v-col>
                     <v-col cols="4">
@@ -888,9 +947,24 @@
                         v-model="modalData.numero"
                         variant="outlined"
                         prepend-inner-icon="mdi-numeric"
+                        :rules="modalData.id ? [] : [rules.required]"
                       />
                     </v-col>
                   </v-row>
+
+                   <v-select
+                    label="Tipo de endereço"
+                    v-model="modalData.tipo_de_endereco"
+                    :items="[
+                      { title: 'Residencial', value: 'residencial' },
+                      { title: 'Comercial', value: 'comercial' },
+                      { title: 'Outro', value: 'outro' },
+                    ]"
+                    item-title="title"
+                    item-value="value"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-sign-direction"
+                  />
 
                   <v-select
                     label="Tipo de logradouro"
@@ -909,7 +983,7 @@
                   />
 
                   <v-text-field
-                    label="Complemento (Opcional)"
+                    label="Complemento"
                     v-model="modalData.complemento"
                     variant="outlined"
                     prepend-inner-icon="mdi-post"
@@ -929,6 +1003,7 @@
                     item-value="value"
                     variant="outlined"
                     prepend-inner-icon="mdi-check-circle-outline"
+                    :rules="modalData.id ? [] : [rules.required]"
                   />
                 </v-form>
               </v-container>
@@ -1133,6 +1208,7 @@ const enderecoHeaders = [
   { title: "Estado", key: "estado" },
   { title: "Cidade", key: "cidade" },
   { title: "Bairro", key: "bairro" },
+  { title: "Tipo de endereço", key: "tipoEndereco"},
   { title: "Logradouro", key: "logradouro" },
   { title: "Complemento", key: "complemento" },
   { title: "Status", key: "status" },
@@ -1803,13 +1879,14 @@ async function saveData() {
 
             case "endereco":
                 const body = {
-                    usuario_id: modalData.value.usuario_id,
+                    usuario_id: retrieve?.value.id,
                     cep: modalData.value.cep,
                     estado: modalData.value.estado,
                     cidade: modalData.value.cidade,
                     bairro: modalData.value.bairro,
                     rua: modalData.value.rua,
                     numero: modalData.value.numero,
+                    tipo_de_endereco: modalData.value.tipo_de_endereco,
                     logradouro: modalData.value.logradouro,
                     complemento: modalData.value.complemento,
                     status: modalData.value.status,
@@ -1825,11 +1902,11 @@ async function saveData() {
                         }
                     );
                 } else {
-                    response = await connection.post("/desapega/enderecos", body, {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                        },
-                    });
+                     response = await connection.post("/desapega/enderecos", body, {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    })
                 }
                 break;
             default:
