@@ -1,36 +1,41 @@
 <template>
   <v-container v-if="tokenExiste" class="pagamento-container" fluid>
-    <v-sheet class="pa-6 mx-auto" max-width="900" elevation="3" rounded="lg">
-      <h2 class="text-h4 font-weight-bold mb-6 text-center">Confirmação de Pagamento</h2>
+    <v-sheet class="pa-4 pa-sm-6 mx-auto" max-width="900" elevation="6" rounded="xl">
+      <h2 class="text-h5 text-sm-h4 font-weight-bold mb-6 text-center text-primary">
+        💰 Confirmação de Pagamento
+      </h2>
 
-    
       <div v-if="loadingPagamento" class="text-center pa-6">
         <v-skeleton-loader type="image, heading, paragraph" class="mb-4" />
-        <v-progress-circular indeterminate size="56"></v-progress-circular>
-        <p class="mt-3 text-subtitle-1">Carregando detalhes do pagamento...</p>
+        <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
+        <p class="mt-4 text-subtitle-1 text-medium-emphasis">Carregando detalhes do pedido e pagamento...</p>
       </div>
 
-    
       <div v-else>
-      
-        <div class="mb-4">
+        <div class="mb-6">
           <v-alert
             v-if="statusPagamento === STATUS.pendente"
             variant="tonal"
             border="start"
+            border-color="info"
             color="info"
-            class="d-flex align-center"
+            class="d-flex align-center pa-3"
           >
             <div class="mr-3">
               <v-icon size="28">mdi-timer-sand</v-icon>
             </div>
-            <div>
-              Aguardando confirmação do pagamento. Atualizando automaticamente...
-              <div class="mt-1 text-caption">Você também pode recarregar manualmente.</div>
+            <div class="flex-grow-1">
+              <span class="font-weight-medium">Aguardando confirmação do pagamento.</span>
+              <div class="text-caption text-medium-emphasis">Atualização automática em curso...</div>
             </div>
-
-            <v-spacer></v-spacer>
-            <v-btn icon small @click="checarStatusPagamento" :disabled="loadingPolling" title="Atualizar agora">
+            <v-btn 
+              icon 
+              size="small" 
+              variant="text" 
+              @click="checarStatusPagamento" 
+              :disabled="loadingPolling" 
+              title="Atualizar agora"
+            >
               <v-icon>mdi-refresh</v-icon>
             </v-btn>
           </v-alert>
@@ -39,258 +44,303 @@
             v-else-if="statusPagamento === STATUS.pago"
             variant="tonal"
             border="start"
+            border-color="success"
             color="success"
-            class="d-flex align-center"
+            class="d-flex align-center pa-3"
           >
             <v-icon class="mr-3" size="28">mdi-check-circle</v-icon>
-            Pagamento confirmado! Redirecionando...
+            <span class="font-weight-medium">Pagamento confirmado!</span> Redirecionando...
           </v-alert>
 
           <v-alert
             v-else-if="statusPagamento === STATUS.rejeitado || statusPagamento === STATUS.erro"
             variant="tonal"
             border="start"
+            border-color="error"
             color="error"
-            class="d-flex align-center"
+            class="d-flex align-center pa-3"
           >
             <v-icon class="mr-3" size="28">mdi-alert-circle</v-icon>
-            Pagamento não autorizado. Verifique com seu banco ou tente outra forma de pagamento.
+            <span class="font-weight-medium">Pagamento não autorizado.</span> Verifique com seu banco ou tente novamente.
           </v-alert>
 
           <v-alert
             v-else-if="timerExpirado"
-            variant="outlined"
+            variant="tonal"
             border="start"
+            border-color="warning"
             color="warning"
-            class="d-flex align-center"
+            class="d-flex align-center pa-3"
           >
             <v-icon class="mr-3" size="28">mdi-clock-alert</v-icon>
-            O tempo para pagamento expirou. Você pode voltar ao carrinho ou gerar um novo pedido.
+            <span class="font-weight-medium">O tempo para pagamento expirou.</span> Gere um novo pedido ou volte ao carrinho.
           </v-alert>
         </div>
 
-       
-        <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
-          <div class="items-list-enhanced">
-            <v-sheet
-              v-for="(item, index) in carrinhoUser"
-              :key="index"
-              class="pa-3 mb-3 d-flex align-center border rounded-lg"
-            >
-              <v-avatar size="80" rounded="lg" class="mr-4">
-                <v-img :src="getProdutoImage(item.imagem)" alt="Imagem do Produto" cover width="80" height="80">
-                  <template #error>
-                    <img src="/png-triste-erro.png" alt="Imagem não disponível" style="width:100%; height:100%; object-fit:cover;" />
-                  </template>
-                </v-img>
-              </v-avatar>
-
-              <div class="flex-grow-1 mr-4">
-                <p class="text-h6 font-weight-bold mb-1 text-truncate">{{ item.nome }}</p>
-                <p class="text-body-3 text-medium-emphasis">
-                  Qtd: {{ item.quantidade }}
-                  <span class="mx-1">|</span>
-                  Preço Unitário: R$ {{ (item.preco / 100).toFixed(2) }}
-                </p>
-              </div>
-
-              <div class="text-right">
-                <p class="text-h5 font-weight-bold text-success">
-                  R$ {{ ((item.preco * item.quantidade) / 100).toFixed(2) }}
-                </p>
-                <p class="text-body-2 text-medium-emphasis">Total do Item</p>
-              </div>
-            </v-sheet>
-          </div>
-
-          <v-divider class="my-3"></v-divider>
-
-          <div class="d-flex justify-space-between" v-if="metodoEntrega === 'entrega'">
-            <span>Frete:</span>
-            <span>R$ 15,00</span>
-          </div>
-
-          <div class="d-flex justify-space-between font-weight-bold mt-2">
-            <span>Total:</span>
-            <span>R$ {{ ((ordemCompra?.valor_total || subtotal + frete) / 100).toFixed(2) }}</span>
-          </div>
-        </v-sheet>
-
-       
-        <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
-          <h3 class="text-h6 font-weight-bold mb-3">Endereço de entrega</h3>
-          <v-sheet
-            v-if="metodoEntrega === 'entrega' && enderecoUsuario"
-            class="pa-3 text-center bg-blue-lighten-5 rounded-lg"
-          >
-            <v-icon color="blue" size="30">mdi-map-marker</v-icon>
-            <p class="mt-2 text-body-1 font-weight-bold">
-              Entrega em: {{ `${enderecoUsuario.rua}, ${enderecoUsuario.numero} - ${enderecoUsuario.cidade}, ${enderecoUsuario.estado}` }}
-            </p>
-          </v-sheet>
-          <v-sheet v-else class="pa-3 text-center bg-red-lighten-5 rounded-lg">
-            <v-icon color="red" size="30">mdi-alert-circle</v-icon>
-            <p class="mt-2 text-body-1 font-weight-bold">
-              Combine com o vendedor depois de efetuar o pagamento
-            </p>
-          </v-sheet>
-        </v-sheet>
-
-       
-        <v-sheet class="mb-6 pa-4" rounded="lg" elevation="2">
-          <h3
-            class="text-h6 font-weight-bold mb-3"
-            :class="{
-              'text-green-darken-2': isPix,
-              'text-blue-darken-2': isCartao,
-              'text-orange-darken-2': isBoleto
-            }"
-          >
-            Forma de Pagamento
-          </h3>
-          <p>{{ metodoPagamento?.toUpperCase() || "Não selecionado" }}</p>
-
-         
-          <v-sheet v-if="isPix" class="pa-3 mt-3 text-center bg-green-lighten-5 rounded-lg">
-            <v-icon color="green" size="30">mdi-qrcode</v-icon>
-            <p class="mt-2 text-body-1">Pagamento instantâneo pelo Pix</p>
-
-            
-            <v-progress-linear
-              v-if="!timerExpirado"
-              :model-value="percentualRestante"
-              height="6"
-              rounded
-              class="my-3"
-            />
-
-            <div class="my-3">
-              <p class="text-caption text-grey-darken-1 mb-0">Tempo restante para pagar:</p>
-              <h2 :class="{ 'text-red': timerExpirado, 'text-green-darken-2': !timerExpirado }">{{ tempoRestante }}</h2>
-            </div>
-
-          
-          <transition name="fade" mode="out-in">
-
-  <div v-if="pixQrCode" key="qr-loaded" class="text-center mb-2">
-    <img :src="pixQrCode" alt="QR Code PIX" width="250" />
-    <p class="mt-2 text-caption">Aguardando confirmação do pagamento...</p>
-  </div>
-
-  
-  <div v-else-if="!timerExpirado" key="qr-loading" class="text-center mb-2">
-    <v-skeleton-loader type="image" width="250" />
-    <p class="mt-2 text-caption">Carregando QR Code...</p>
-  </div>
-
-
-  <div v-else key="qr-expired" class="text-center mb-2 text-error">
-    <v-icon size="48">mdi-alert-circle</v-icon>
-    <p class="mt-2 text-caption">Tempo expirado. Gere outro QR Code.</p>
-  </div>
-</transition>
-
-
-        
-            <div class="d-flex justify-center mt-2">
-              <v-btn
-                v-if="pixCopiaCodigo && !timerExpirado"
-                small
-                variant="outlined"
-                color="green"
-                @click="copiarPix"
-              >
-                <template v-if="!copiado">
-                  <v-icon left small>mdi-content-copy</v-icon> Copiar código Pix
-                </template>
-                <template v-else>
-                  <v-icon left small>mdi-check</v-icon> Copiado!
-                </template>
-              </v-btn>
-
-              <v-btn
-                v-if="!timerExpirado"
-                small
-                class="ml-2"
-                variant="tonal"
-                color="blue"
-                @click="checarStatusPagamento"
-                :loading="loadingPolling"
-              >
-                <v-icon left small>mdi-refresh</v-icon> Atualizar status
-              </v-btn>
-            </div>
-
-         
-            <div v-if="timerExpirado" class="mt-4 d-flex justify-center gap-3">
-              <v-btn color="primary" @click="router.push('/carrinho')">Voltar ao carrinho</v-btn>
-              <v-btn color="secondary" variant="outlined" @click="router.push('/')">Continuar navegando</v-btn>
-            </div>
-          </v-sheet>
-
-     
-          <v-sheet v-else-if="isCartao" class="pa-3 mt-3 text-center bg-blue-lighten-5 rounded-lg">
-            <v-icon color="blue" size="30">mdi-credit-card</v-icon>
-            <p class="mt-2 text-body-1">Pagamento com cartão no próximo passo</p>
-          </v-sheet>
-
-        
-          <v-sheet v-else-if="isBoleto" class="pa-3 mt-3 text-center bg-yellow-lighten-5 rounded-lg">
-            <v-icon color="orange" size="30">mdi-file-document-box</v-icon>
-           
-            <v-btn v-if="boletoUrl" small outlined color="orange" :href="boletoUrl" target="_blank">Abrir Boleto</v-btn>
-          </v-sheet>
-
-
-          <v-sheet v-else class="pa-3 mt-3 text-center bg-red-lighten-5 rounded-lg">
-            <v-icon color="red" size="30">mdi-alert-circle</v-icon>
-            <p class="mt-2 text-body-1">Método de pagamento inválido. Contate o suporte.</p>
-          </v-sheet>
-        </v-sheet>
-
-       
-        <v-row class="mt-4" justify="center" align="center" dense>
+        <v-row dense>
           <v-col cols="12" md="6">
-            <v-btn color="grey" block large @click="sairDoPagamento" :disabled="loadingCancelamento">
-              Sair do pagamento
-            </v-btn>
+            <v-sheet class="pa-4" rounded="lg" elevation="2">
+              <h3
+                class="text-h6 font-weight-bold mb-3 d-flex align-center"
+                :class="{
+                  'text-green-darken-2': isPix,
+                  'text-blue-darken-2': isCartao,
+                  'text-orange-darken-2': isBoleto
+                }"
+              >
+                <v-icon :color="isPix ? 'green' : (isCartao ? 'blue' : 'orange')" class="mr-2">
+                  {{ isPix ? 'mdi-qrcode-scan' : (isCartao ? 'mdi-credit-card' : 'mdi-barcode') }}
+                </v-icon>
+                Método de Pagamento
+              </h3>
+              
+              <v-divider class="mb-4"></v-divider>
+
+              <p class="text-subtitle-1 font-weight-medium mb-4">
+                 Método: <span class="text-uppercase">{{ metodoPagamento || "Não Selecionado" }}</span>
+              </p>
+
+              <v-sheet v-if="isPix" class="pa-3 mt-3 text-center bg-green-lighten-5 rounded-lg">
+                <v-icon color="green" size="40">mdi-qrcode-scan</v-icon>
+                <p class="mt-2 text-body-1 font-weight-medium text-green-darken-2">Pagamento Instantâneo</p>
+
+                <v-progress-linear
+                  v-if="!timerExpirado"
+                  :model-value="percentualRestante"
+                  height="8"
+                  color="green"
+                  rounded
+                  class="my-3"
+                />
+
+                <div class="my-3">
+                  <p class="text-caption text-grey-darken-1 mb-0">Tempo restante para pagar:</p>
+                  <h3 :class="{ 'text-red': timerExpirado, 'text-green-darken-2': !timerExpirado }" class="text-h4 font-weight-bold">
+                    {{ tempoRestante }}
+                  </h3>
+                </div>
+
+                <transition name="fade" mode="out-in">
+                  <div v-if="pixQrCode" key="qr-loaded" class="text-center mb-2">
+                    <img :src="pixQrCode" alt="QR Code PIX" width="200" class="elevation-4 rounded-lg" />
+                    <p class="mt-3 text-caption text-medium-emphasis">Aguardando confirmação do pagamento...</p>
+                  </div>
+                  <div v-else-if="!timerExpirado" key="qr-loading" class="text-center mb-2">
+                    <v-skeleton-loader type="image" width="200" class="mx-auto" />
+                    <p class="mt-3 text-caption">Carregando QR Code...</p>
+                  </div>
+                  <div v-else key="qr-expired" class="text-center mb-2 text-error">
+                    <v-icon size="48">mdi-alert-circle</v-icon>
+                    <p class="mt-3 text-subtitle-1 font-weight-medium">Tempo expirado. Gere outro QR Code.</p>
+                  </div>
+                </transition>
+
+                <v-row>
+                  <v-col>
+
+                    <v-btn
+                    v-if="pixCopiaCodigo && !timerExpirado"
+                  size="large"
+                  variant="flat"
+                    color="green"
+                    block
+                    @click="copiarPix"
+                  >
+                    <template v-if="!copiado">
+                      <v-icon left>mdi-content-copy</v-icon> Copiar código Pix
+                    </template>
+                    <template v-else>
+                      <v-icon left>mdi-check</v-icon> Código Copiado!
+                    </template>
+                  </v-btn>
+                    </v-col>
+
+                    <v-col>
+
+                      <v-btn
+                      v-if="!timerExpirado"
+                      size="large"
+                      block
+                    variant="tonal"
+                    color="blue"
+                    @click="checarStatusPagamento"
+                    :loading="loadingPolling"
+                  >
+                  <v-icon left>mdi-refresh</v-icon> Atualizar status
+                </v-btn>
+              </v-col>
+            
+            </v-row>
+
+                <div v-if="timerExpirado" class="mt-4 d-flex flex-column flex-sm-row justify-center gap-3">
+                  <v-btn color="primary" @click="router.push('/carrinho')" size="large" class="mb-2 mb-sm-0">
+                    Voltar ao carrinho
+                  </v-btn>
+                  <v-btn color="secondary" variant="outlined" @click="router.push('/')" size="large" class="ml-sm-2">
+                    Continuar navegando
+                  </v-btn>
+                </div>
+              </v-sheet>
+
+              <v-sheet v-else-if="isCartao" class="pa-3 mt-3 text-center bg-blue-lighten-5 rounded-lg">
+                <v-icon color="blue" size="40">mdi-credit-card</v-icon>
+                <p class="mt-2 text-body-1 font-weight-medium text-blue-darken-2">Pagamento com Cartão de Crédito/Débito</p>
+                <p class="text-caption mt-1">Detalhes do pagamento serão exibidos ou solicitados no próximo passo seguro.</p>
+              </v-sheet>
+
+              <v-sheet v-else-if="isBoleto" class="pa-3 mt-3 text-center bg-orange-lighten-5 rounded-lg">
+                <v-icon color="orange" size="40">mdi-file-document-box</v-icon>
+                <p class="mt-2 text-body-1 font-weight-medium text-orange-darken-2">Pagamento via Boleto Bancário</p>
+                <v-btn v-if="boletoUrl" size="large" variant="flat" color="orange" :href="boletoUrl" target="_blank" class="mt-3">
+                  <v-icon left>mdi-open-in-new</v-icon> Abrir Boleto para Pagamento
+                </v-btn>
+              </v-sheet>
+
+              <v-sheet v-else class="pa-3 mt-3 text-center bg-red-lighten-5 rounded-lg">
+                <v-icon color="red" size="40">mdi-alert-circle</v-icon>
+                <p class="mt-2 text-body-1 font-weight-medium">Método de pagamento inválido.</p>
+              </v-sheet>
+            </v-sheet>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-btn color="red" block large @click="abrirModalCancelamento" :loading="loadingCancelamento">
-              Cancelar Pagamento
+            <v-sheet class="mb-4 pa-4" rounded="lg" elevation="2">
+              <h3 class="text-h6 font-weight-bold mb-4 d-flex align-center text-secondary">
+                <v-icon class="mr-2">mdi-cart</v-icon>
+                Itens do Pedido
+              </h3>
+              
+             <div class="items-list-enhanced">
+  <v-sheet
+    v-for="(item, index) in carrinhoUser"
+    :key="index"
+    class="pa-3 mb-3 border rounded-lg"
+    :class="{
+      'border-opacity-100': index % 2 === 0, 
+      'border-opacity-75': index % 2 !== 0,
+      'd-flex flex-column flex-sm-row align-sm-center': true 
+    }"
+  >
+    <v-avatar size="64" rounded="lg" class="mr-sm-4 mb-3 mb-sm-0 flex-shrink-0">
+      <v-img :src="getProdutoImage(item.imagem)" alt="Imagem do Produto" cover>
+        <template #error>
+          <v-icon size="40" color="grey-lighten-1">mdi-image-off</v-icon>
+        </template>
+      </v-img>
+    </v-avatar>
+
+    <div class="flex-grow-1 mr-sm-4 mb-3 mb-sm-0">
+      <p class="text-subtitle-1 font-weight-bold mb-1 text-truncate">{{ item.nome }}</p>
+      <p class="text-body-2 text-medium-emphasis">
+        Qtd: {{ item.quantidade }} <span class="mx-1">|</span> R$ {{ (item.preco / 100).toFixed(2) }} (un.)
+      </p>
+    </div>
+
+    <div class="text-left text-sm-right flex-shrink-0 pt-2 pt-sm-0 border-t border-t-sm-0 w-100 w-sm-auto">
+      <p class="text-h6 font-weight-bold text-success">
+        R$ {{ ((item.preco * item.quantidade) / 100).toFixed(2) }}
+      </p>
+      <p class="text-caption text-medium-emphasis">Total do Item</p>
+    </div>
+  </v-sheet>
+</div>
+              <v-divider class="my-3"></v-divider>
+
+              <div class="d-flex justify-space-between text-body-1" v-if="metodoEntrega === 'entrega'">
+                <span>Frete:</span>
+                <span class="font-weight-medium">R$ 15,00</span>
+              </div>
+
+              <div class="d-flex justify-space-between text-h6 font-weight-bold mt-2 pt-2 border-t">
+                <span>TOTAL A PAGAR:</span>
+                <span class="text-primary">R$ {{ ((ordemCompra?.valor_total || subtotal + frete) / 100).toFixed(2) }}</span>
+              </div>
+            </v-sheet>
+
+            <v-sheet class="pa-4" rounded="lg" elevation="2">
+              <h3 class="text-h6 font-weight-bold mb-3 d-flex align-center">
+                <v-icon class="mr-2">mdi-map-marker-distance</v-icon>
+                Local da Entrega
+              </h3>
+              
+              <v-sheet
+                v-if="metodoEntrega === 'entrega' && enderecoUsuario"
+                class="pa-3 bg-blue-lighten-5 rounded-lg border-s-lg border-blue"
+              >
+                <p class="text-body-1 font-weight-medium text-blue-darken-2">
+                  <v-icon left size="20">mdi-truck-delivery</v-icon>
+                  Entrega em domicílio:
+                </p>
+                <p class="mt-1 text-body-2 ml-6 text-wrap">
+                  {{ `${enderecoUsuario.rua}, ${enderecoUsuario.numero} - ${enderecoUsuario.cidade}, ${enderecoUsuario.estado} (CEP: ${enderecoUsuario.cep})` }}
+                </p>
+              </v-sheet>
+              
+              <v-sheet v-else class="pa-3 bg-red-lighten-5 rounded-lg border-s-lg border-red">
+                <p class="text-body-1 font-weight-bold text-red-darken-2">
+                  <v-icon left size="20">mdi-handshake-outline</v-icon>
+                  Retirada ou Envio:
+                </p>
+                <p class="mt-1 text-body-2 ml-6">
+                  Combinação de entrega com o vendedor após a confirmação do pagamento.
+                </p>
+              </v-sheet>
+            </v-sheet>
+          </v-col>
+        </v-row>
+
+        <v-row class="mt-6" justify="center" dense>
+          <v-col cols="12" sm="6">
+            <v-btn 
+              color="grey-darken-1" 
+              block 
+              size="large" 
+              @click="sairDoPagamento" 
+              :disabled="loadingCancelamento"
+              variant="tonal"
+            >
+              Sair do Pagamento
+            </v-btn>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-btn 
+              color="error" 
+              block 
+              size="large" 
+              @click="abrirModalCancelamento" 
+              :loading="loadingCancelamento"
+              variant="flat"
+            >
+              <v-icon left>mdi-close-circle</v-icon> Cancelar Pedido
             </v-btn>
           </v-col>
         </v-row>
       </div>
     </v-sheet>
 
-
     <v-dialog v-model="dialogCancelar" max-width="480">
-      <v-card>
-        <v-card-title class="text-h6">Cancelar pagamento</v-card-title>
-        <v-card-text class="py-4">
-          Tem certeza que deseja cancelar este pagamento e pedido? O carrinho será esvaziado.
+      <v-card rounded="lg">
+        <v-card-title class="text-h6 d-flex align-center text-error">
+          <v-icon class="mr-2">mdi-alert</v-icon>
+          Confirmação de Cancelamento
+        </v-card-title>
+        <v-card-text class="py-4 text-subtitle-1">
+          Tem certeza que deseja cancelar este pagamento e pedido? Todos os itens serão devolvidos ao estoque.
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey" text @click="dialogCancelar = false" :disabled="loadingCancelamento">Não, Voltar</v-btn>
-          <v-btn color="red" text @click="cancelarPagamento" :loading="loadingCancelamento">Sim, Cancelar</v-btn>
+          <v-btn color="grey-darken-1" variant="text" @click="dialogCancelar = false" :disabled="loadingCancelamento">
+            Não, Voltar
+          </v-btn>
+          <v-btn color="error" variant="flat" @click="cancelarPagamento" :loading="loadingCancelamento">
+            Sim, Cancelar Pedido
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-   
-    <v-overlay :model-value="loadingCancelamento" absolute>
-      <v-card class="pa-6" elevation="8">
-        <v-progress-circular indeterminate size="64"></v-progress-circular>
-        <div class="mt-3">Cancelando pagamento...</div>
-      </v-card>
-    </v-overlay>
   </v-container>
 </template>
-
-
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
@@ -603,7 +653,7 @@ onMounted(async () => {
     subtotal.value = carrinhoUser.value.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
 
  
-    const resEndereco = await connection.get(`/desapega/enderecos/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
+    const resEndereco = await connection.get(`/desapega/enderecos/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
     enderecoUsuario.value = resEndereco.data;
 
     const resOrdem = await connection.get(`/desapega/ordemCompra/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });

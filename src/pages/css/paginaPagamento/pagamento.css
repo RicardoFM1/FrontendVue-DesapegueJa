@@ -84,3 +84,22 @@
 .v-progress-linear .v-progress-linear__bar {
   border-radius: 6px;
 }
+
+
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+
+.gap-3 {
+    gap: 1rem; 
+}
+
+
+.border-t {
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
