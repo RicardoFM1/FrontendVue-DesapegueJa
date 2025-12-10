@@ -139,22 +139,7 @@
             </v-card>
           </v-dialog>
           
-          <div class="d-flex" style="gap: 10px; width: 100%;">
-            <v-select
-              :items="ddiOptions"
-              v-model="usuario.ddi"
-              item-title="text"
-              item-value="value"
-              color="primary"
-              variant="solo-filled"
-              density="compact"
-              style="max-width: 140px;"
-              label="DDI"
-              :rules="rulesDDI"
-              required
-              
-              class="mb-4"
-            />
+          
             <v-text-field
               label="Telefone"
               v-model="usuario.Telefone"
@@ -166,7 +151,7 @@
               class="mb-4"
              
             />
-          </div>
+          
 
           <v-btn
             :disabled="disabled"
@@ -222,15 +207,6 @@ import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
 import { useMask } from "../../utility/masks/mask";
 
-const ddiOptions = [
-  { text: "+1 EUA", value: "1" },
-  { text: "+34 Espanha", value: "34" },
-  { text: "+44 Reino Unido", value: "44" },
-  { text: "+49 Alemanha", value: "49" },
-  { text: "+52 México", value: "52" },
-  { text: "+55 Brasil", value: "55" },
-  { text: "+351 Portugal", value: "351" },
-];
 
 const router = useRouter();
 onMounted(() => {
@@ -248,7 +224,6 @@ const usuario = ref({
   confirmSenha: "",
   dataNascimento: "",
   CPF: "",
-  ddi: "55",
   Telefone: "",
 });
 
@@ -293,7 +268,7 @@ const onSubmit = async () => {
   loading.value = false;
   return;
 }
-const telefoneFormatado = usuario.value.ddi + usuario.value.Telefone.replace(/\D/g, "");
+const telefoneFormatado = usuario.value.Telefone.replace(/\D/g, "");
 
 
   console.log(cpfFormatado, "FormatCPF");
@@ -385,9 +360,6 @@ const rulesDataNascimento = [
     }
 ];
 
-const rulesDDI = [
-  (value) => !!value || "Obrigatório selecionar um DDI",
-];
 const rulesTelefone = [
   (value) => !!value || "Obrigatório preencher",
   (value) => value.length >= 8 || "Telefone muito curto",
@@ -404,7 +376,6 @@ const disabled = computed(
     !usuario.value.senha ||
     usuario.value.confirmSenha !== usuario.value.senha ||
     !usuario.value.CPF ||
-     !usuario.value.ddi ||
     !usuario.value.Telefone ||
     !usuario.value.dataNascimento ||
     !nomeCompletoValido.value

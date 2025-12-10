@@ -610,22 +610,12 @@
                       </v-menu>
                     </v-col>
 
-                    <v-col cols="12" md="4">
-                      <v-select
-                        :items="ddiOptions"
-                        v-model="modalData.ddi"
-                        item-title="text"
-                        item-value="value"
-                        label="DDI"
-                        variant="outlined"
-                        density="comfortable"
-                      ></v-select>
-                    </v-col>
+                    
 
                     <v-col cols="12" md="8">
                       <v-text-field
                         v-model="modalData.telefone"
-                        label="Telefone (Sem DDI)"
+                        label="Telefone"
                         variant="outlined"
                         density="comfortable"
                         :rules="modalData.id ? [rulesTelefone] : [rules.required, rulesTelefone]"
@@ -1252,12 +1242,7 @@ const enderecoHeaders = [
   { title: "Ações", key: "actions", sortable: false, align: "end" },
 ];
 
-const ddiOptions = ref([
-  { text: "+55 (Brasil)", value: "55" },
-  { text: "+1 (EUA/Canadá)", value: "1" },
-  { text: "+44 (Reino Unido)", value: "44" },
-  { text: "+351 (Portugal)", value: "351" },
-]);
+
 const readOnlyComCEP = computed(() => {
   const numeros = modalData.value.Cep?.replace(/\D/g, "") || "";
   return numeros.length === 8;
@@ -1625,7 +1610,6 @@ const rules = {
     (value) => !!value || "Data de Nascimento é obrigatória.",
     (value) => isValidDateOfBirth(value) === true || isValidDateOfBirth(value),
   ],
-  rulesDDI: [(value) => !!value || "DDI é obrigatório."],
   rulesTelefone: [(value) => !!value || "Telefone é obrigatório."],
 };
 
@@ -1687,7 +1671,6 @@ function getEmptyModel(type) {
         senha: "",
         admin: false,
         data_de_nascimento: "",
-        ddi: "55",
         imagem: null,
         status: "ativo",
       };
@@ -1735,23 +1718,7 @@ function openModal(type, item = null) {
             let fullPhone = (item.telefone || "").replace(/\D/g, "");
 
             
-            const todosDDIs = (ddiOptions.value || []) 
-                .map(d => d.value.toString())
-                .sort((a, b) => b.length - a.length); 
-            
-            let ddiEncontrado = "55";
-            let numeroTelefone = fullPhone;
-
-            for (const ddi of todosDDIs) {
-                if (fullPhone.startsWith(ddi)) {
-                    ddiEncontrado = ddi;
-                    numeroTelefone = fullPhone.substring(ddi.length);
-                    break;
-                }
-            }
-            
-            modalData.value.ddi = ddiEncontrado;
-            modalData.value.telefone = numeroTelefone;
+            modalData.value.telefone = fullPhone;
 
             modalData.value.cpf = formatCPF(item.cpf);
             modalData.value.data_de_nascimento = convertToDisplayDate(
@@ -1838,7 +1805,7 @@ async function saveData() {
         switch (modalType.value) {
             case "usuario":
                 const numeroLimpo = dataToSend.telefone.toString().replace(/\D/g, "");
-                dataToSend.telefone = `+${dataToSend.ddi}${numeroLimpo}`;
+                dataToSend.telefone = `+${numeroLimpo}`;
 
                 dataToSend.cpf = dataToSend.cpf.toString().replace(/\D/g, "");
 
@@ -1850,7 +1817,7 @@ async function saveData() {
                 }
 
               
-                delete dataToSend.ddi;
+               
                 delete dataToSend.foto_De_Perfil;
 
 
@@ -2137,9 +2104,6 @@ watch(activeTab, (newTab) => {
 watch(
   modalData,
   (newVal) => {
-    if (modalType.value === "usuario" && !newVal.ddi) {
-      modalData.value.ddi = ddiOptions.value[0].value;
-    }
     console.log(modalData, "datamodal")
   },
   { deep: true }

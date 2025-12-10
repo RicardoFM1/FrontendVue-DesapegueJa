@@ -234,7 +234,7 @@ const onSubmit = async (e) => {
     }
   } catch (err) {
     const msg =
-      err?.message ?? err?.response?.data?.message ?? "Credenciais erradas!";
+      err?.response?.data?.message ?? "Credenciais erradas!";
     toast.error(msg, { autoClose: 2000 });
     console.error("Erro no login:", err);
     localStorage.removeItem("token");

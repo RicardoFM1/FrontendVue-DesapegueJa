@@ -249,18 +249,8 @@
                   />
 
                   <v-row dense>
-                    <v-col cols="4">
-                      <v-select
-                        :items="ddiOptions"
-                        v-model="usuario.ddi"
-                        item-title="text"
-                        item-value="value"
-                        label="DDI"
-                        variant="outlined"
-                        :rules="rulesDDI"
-                      />
-                    </v-col>
-                    <v-col cols="8">
+                
+                    <v-col cols="12">
                       <v-text-field
                         label="Telefone"
                         v-model="usuario.Telefone"
@@ -1296,15 +1286,7 @@ function formatarDataISO(iso) {
 }
 
 const formRef = ref(null);
-const ddiOptions = [
-  { text: "+1 EUA", value: "1" },
-  { text: "+34 Espanha", value: "34" },
-  { text: "+44 Reino Unido", value: "44" },
-  { text: "+49 Alemanha", value: "49" },
-  { text: "+52 México", value: "52" },
-  { text: "+55 Brasil", value: "55" },
-  { text: "+351 Portugal", value: "351" },
-];
+
 
 const usuario = ref({
   Nome: "",
@@ -1312,8 +1294,7 @@ const usuario = ref({
   senha: "",
   dataNascimento: "",
   CPF: "",
-  Telefone: "",
-  ddi: "55",
+  Telefone: ""
 });
 
 const endereco = ref([]);
@@ -1530,15 +1511,11 @@ const getRetrieve = async () => {
 
     const telRaw = String(res.data.telefone || "").replace(/\D/g, "");
 
-    let ddi = "55";
     let numero = "";
 
-    if (telRaw.length > 11) {
-      ddi = telRaw.slice(0, telRaw.length - 11);
-      numero = telRaw.slice(-11);
-    } else {
+    
       numero = telRaw;
-    }
+  
 
     if (res.status === 200 && res.data) {
       retrieve.value = res.data;
@@ -1548,7 +1525,6 @@ const getRetrieve = async () => {
         email: res.data.email,
         senha: "",
         CPF: res.data.cpf,
-        ddi: ddi,
         Telefone: numero ? numero : "",
         dataNascimento: res.data.data_Nascimento || "",
       };
@@ -1793,7 +1769,7 @@ const salvarAlteracoes = async () => {
       nome: usuario.value.Nome,
       email: usuario.value.email,
       cpf: cpfFormatado,
-      telefone: usuario.value.ddi + telefoneLimpo,
+      telefone: telefoneLimpo,
       data_de_nascimento: usuario.value.dataNascimento,
       foto_de_perfil: imagemPerfil.value || null,
     };
