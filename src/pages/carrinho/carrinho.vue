@@ -767,13 +767,79 @@ const pagamentoUUID = ref("");
 const existePagamento = ref(false);
 const pagamentoUsuarioStatus = ref();
 
-const frete = computed(() => (metodoEntrega.value === "entrega" ? 1500 : 0));
+const freteDinamico = ref(0);
+const carregandoFrete = ref(false);
+const erroFrete = ref(false);
+const cepOrigemFixo = "SEU_CEP_DE_ORIGEM_AQUI";
+
+
+
+const frete = computed(() => freteDinamico.value);
 const subtotal = computed(() =>
   carrinhoUser.value.reduce(
     (acc, item) => acc + item.preco * item.quantidade,
     0
   )
 );
+
+async function calcularFrete() {
+    // Só calcula se o método de entrega for "entrega" e o endereço for válido
+    if (metodoEntrega.value !== "entrega" || !enderecoUsuario.value?.cep) {
+        freteDinamico.value = 0;
+        return;
+    }
+
+    carregandoFrete.value = true;
+    erroFrete.value = false;
+
+    try {
+        const body = {
+            cep_destino: enderecoUsuario.value.cep,
+            // Envie os itens para o backend calcular o peso/dimensões
+            itens: carrinhoUser.value.map(i => ({
+                produto_id: i.id,
+                quantidade: i.quantidade,
+                peso: i.peso, // Assumindo que você tem peso e dimensões nos produtos
+                altura: i.altura,
+                largura: i.largura
+            }))
+        };
+        
+        // Chame seu novo endpoint de backend
+        const res = await connection.post("/desapega/calcularFrete", body, {
+            headers: { Authorization: `Bearer ${token.value}` },
+        });
+
+        if (res.status === 200 && res.data?.valor) {
+            // O valor deve vir em centavos ou você o converte
+            freteDinamico.value = res.data.valor; 
+        } else {
+            throw new Error("Resposta de frete inválida.");
+        }
+
+    } catch (err) {
+        console.error("calcularFrete:", err);
+        erroFrete.value = true;
+        freteDinamico.value = 0; // Se falhar, zera ou define um valor padrão
+        toast.error("Erro ao calcular frete. Verifique o endereço.");
+    } finally {
+        carregandoFrete.value = false;
+    }
+}
+
+watch(enderecoUsuario, () => {
+    calcularFrete();
+}, { deep: true, immediate: false });
+
+// Monitora a mudança no método de entrega
+watch(metodoEntrega, () => {
+    calcularFrete();
+});
+
+// Monitora a mudança na lista de itens (ex: quantidade atualizada)
+watch(carrinhoUser, () => {
+    calcularFrete();
+}, { deep: true, immediate: false });
 const isCartao = computed(() =>
   metodoPagamento.value?.toLowerCase() === "cartão" ||  metodoPagamento.value?.toLowerCase() === "cartao"
 );
@@ -1465,7 +1531,7 @@ onMounted(async () => {
       "";
   }
   
-  
+  calcularFrete();
   
   if (window.MercadoPago) {
     
@@ -1483,6 +1549,7 @@ onMounted(async () => {
     console.error("SDK do Mercado Pago não carregado!");
     toast.error("Erro: SDK de Pagamento não carregado.");
   }
+  
 });
 
 async function carregarCarrinhoCompleto() {
