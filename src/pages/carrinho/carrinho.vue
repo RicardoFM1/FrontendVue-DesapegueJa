@@ -1052,7 +1052,7 @@ const salvarAlteracoesEndereco = async () => {
     loadingEndereco.value = false;
   }
 };
-const MP_PUBLIC_KEY = "TEST-177e78dc-700a-4ae6-966f-20e8a6389fd5";
+const MP_PUBLIC_KEY = "APP_USR-842098d7-130d-481a-a80a-0925855f6f12";
 
 const cardTokenGerado = ref("");
 const paymentMethodIdCartao = ref("");
