@@ -1039,9 +1039,9 @@ const salvarAlteracoesEndereco = async () => {
       setTimeout(async() => {
         await getRetrieve();
         await getEndereco();
+        modalEndereco.value = false
         await getCarrinho();
         await getProdutos();
-        modalEndereco.value = false
       }, 2000);
     } else {
       toast.error(res.data?.message || "Erro ao salvar alterações");

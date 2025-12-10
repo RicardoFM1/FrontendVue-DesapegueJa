@@ -1844,6 +1844,8 @@ const criarEndereco = async () => {
     if(res.status === 201 | res.status === 200){
       toast.success("Endereço adicionado")
       enderecosAMais.value += 1
+      getRetrieve();
+      getEnderecos();
     }
   }catch(err){
     console.log(err, "erro ao adicionar endereço")
