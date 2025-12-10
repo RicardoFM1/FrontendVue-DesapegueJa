@@ -1143,32 +1143,39 @@ async function renderizarCardPaymentBrick() {
     await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
   } catch {}
 
-  // ⚠️ Delay necessário por bug do Mercado Pago
+ 
   await new Promise((r) => setTimeout(r, 150));
 
-  const valor = 1000;
-
-  // Criar brick
+  const valor = totalComFrete.value / 100;  // Novo: valor dinâmico
   cardPaymentBrick.value = await mpInstance.value.bricks().create(
-  "cardPayment",
-  "cardPaymentBrickContainer",
-  {
-    initialization: {
-      amount: valor
-    },
-    callbacks: {
-      onReady: () => console.log("Brick pronto!"),
-
-      onChange: (data) => {
-        const bin = data?.cardNumber?.bin;
-        if (bin && bin.length >= 6) {
-          validarBinManual(bin);
-        }
+    "cardPayment",
+    "cardPaymentBrickContainer",
+    {
+      initialization: {
+        amount: valor  // Usa o valor correto
       },
+      callbacks: {
+        onReady: () => console.log("Brick pronto!"),
+        onChange: async (data) => {
+          const bin = data?.cardNumber?.bin;
+          console.log("Dados completos do onChange:", data);
+          if (bin && bin.length >= 6) {
+            try {
+              const paymentMethods = await mpInstance.value.getPaymentMethods({ bin });
+              console.log("Métodos de pagamento:", paymentMethods);
+              // Use os métodos conforme necessário
+            } catch (error) {
+              console.error("Erro ao buscar métodos:", error);
+            }
+          }
+        },
+        onError: (err) => {
+          console.error("Brick erro:", err);
+          if (err.cause === 'missing_payment_information') {
+            toast.error("Erro ao identificar o cartão. Tente novamente.");
+          }
+        },
 
-      onError: (err) => {
-        console.error("Brick erro:", err);
-      },
 
       onSubmit: (data) => {
         console.log("TOKEN:", data.token);
