@@ -1185,7 +1185,7 @@ async function renderizarCardPaymentBrick() {
         paymentMethodIdCartao.value = data.payment_method_id;
 
         modalCartaoOpen.value = false;
-        comprar();
+        // comprar();
       }
     }
   }
