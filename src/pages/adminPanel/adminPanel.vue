@@ -1534,11 +1534,11 @@ const endereco = ref({
   Bairro: "",
   Rua: "",
   Numero: "",
-  tipo_de_endereco: "",
   Logradouro: "",
   Complemento: "",
   Status: "",
 });
+
 
 const arquivoSelecionado = ref(null);
 const imagemProdutoBase64 = ref(null);
@@ -2585,7 +2585,7 @@ watch(
 );
 
 onMounted(async () => {
-  if (!localStorage.getItem("token")) {
+  if (!localStorage.getItem("token") || retrieve?.value.admin === false) {
     router.push("/:pathMatch(.*)*");
     return;
   }
