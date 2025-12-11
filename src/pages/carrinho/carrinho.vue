@@ -418,7 +418,10 @@
                 </p>
               </v-alert>
             </v-expand-transition>
-
+<div>
+  <h2>Pagar com cartão</h2>
+  <div id="cardPaymentBrick" style="min-height: 300px;"></div>
+</div>
             <v-btn
               v-if="existePagamento"
               color="blue-darken-1"
@@ -721,8 +724,11 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import "@mdi/font/css/materialdesignicons.css";
 
+const mpInstance = ref(null);       
+const mpLoaded = ref(false);        
+const cardPaymentBrick = ref(null); 
 const router = useRouter();
-
+const modalCartaoOpen = ref(false)
 const token = ref(localStorage.getItem("token") || "");
 console.log(token.value);
 const tokenExiste = ref(!!token.value);
@@ -1051,9 +1057,7 @@ const paymentMethodIdCartao = ref("");
 
 const cardToken = ref(null);
 const paymentMethodId = ref(null);
-const mpInstance = ref(null);
-const mpLoaded = ref(false);
-const cardPaymentBrick = ref(null);
+
 
 
 async function onModalOpened() {
@@ -1074,8 +1078,9 @@ async function onModalOpened() {
 
 async function fecharBrick() {
   try {
-    await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
-  } catch (e) {
+  await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
+}
+ catch (e) {
     console.warn("Destroy falhou (provavelmente já destruído)", e);
   }
 }
@@ -1100,78 +1105,83 @@ function validarBinManual(bin) {
 }
 
 async function renderizarCardPaymentBrick() {
-  console.log("🔎 Renderizando Brick…");
-  console.log("BIN listener pronto?", mpInstance.value.getIdentificationTypes);
+  if (!mpLoaded.value) return;
+  await nextTick(); // garante que o DOM já renderizou
 
-  if (!mpInstance.value) {
-    console.error("❌ mpInstance não carregou ainda!");
-    return;
-  }
-
-  
-  await nextTick();
-
-  let container = document.getElementById("cardPaymentBrickContainer");
-
+  const container = document.getElementById("cardPaymentBrick");
   if (!container) {
-    console.warn("Container não existe ainda… tentando novamente.");
+    console.warn("Container do Brick não existe ainda.");
     setTimeout(renderizarCardPaymentBrick, 120);
     return;
   }
 
-  try {
-    await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
-  } catch {}
-
- 
-  await new Promise((r) => setTimeout(r, 150));
-
-  const valor = totalComFrete.value / 100;  
-  console.log(valor, "valor")
-  cardPaymentBrick.value = await mpInstance.value.bricks().create(
-    "cardPayment",
-    "cardPaymentBrickContainer",
-    {
-      initialization: {
-        amount: valor
-      },
-      callbacks: {
-        onReady: () => console.log("Brick pronto!"),
-        onChange: async (data) => {
-          const bin = data?.cardNumber?.bin;
-          console.log("Dados completos do onChange:", data);
-          if (bin && bin.length >= 6) {
-            try {
-              const paymentMethods = await mpInstance.value.getPaymentMethods({ bin });
-              console.log("Métodos de pagamento:", paymentMethods);
-             
-            } catch (error) {
-              console.error("Erro ao buscar métodos:", error);
-            }
-          }
-        },
-        onError: (err) => {
-          console.error("Brick erro:", err);
-          if (err.cause === 'missing_payment_information') {
-            toast.error("Erro ao identificar o cartão. Tente novamente.");
-          }
-        },
-
-
-      onSubmit: (data) => {
-        console.log("TOKEN:", data.token);
-        console.log("METHOD:", data.payment_method_id);
-
-        cardTokenGerado.value = data.token;
-        paymentMethodIdCartao.value = data.payment_method_id;
-
-        modalCartaoOpen.value = false;
-        comprar();
-      }
-    }
+  // Destrói Brick anterior se existir
+  if (cardPaymentBrick.value?.destroy) {
+    cardPaymentBrick.value.destroy();
+    cardPaymentBrick.value = null;
+    await new Promise(r => setTimeout(r, 150)); // delay para garantir destruição
   }
-);
+
+  const valor = totalGeral.value; // seu total com frete
+
+  try {
+    cardPaymentBrick.value = await mpInstance.value.bricks().create(
+      "cardPayment",
+      "cardPaymentBrick",
+      {
+        initialization: { amount: valor },
+        customization: {
+          visual: { style: { theme: "dark" } },
+        },
+        callbacks: {
+          onReady: () => console.log("Brick pronto!"),
+          onChange: async (data) => {
+            const bin = data?.cardNumber?.bin;
+            if (bin?.length >= 6) {
+              try {
+                const paymentMethods = await mpInstance.value.getPaymentMethods({ bin });
+                console.log("Métodos de pagamento:", paymentMethods);
+              } catch (err) {
+                console.error(err);
+              }
+            }
+          },
+          onSubmit: async (cardData) => {
+            console.log("TOKEN:", cardData.token);
+            console.log("METHOD:", cardData.payment_method_id);
+
+            // Aqui você envia para o backend
+            await api.post("/pagamento", {
+              metodo: "credit_card",
+              usuarioId: user.value.id,
+              tokenCartao: cardData.token,
+              Bandeira: cardData.payment_method_id,
+              produtos: produtosParaPagamento.value,
+              frete: freteInfo.value
+            }, { headers: { Authorization: `Bearer ${token.value}` } });
+
+            toast.success("Pagamento enviado!");
+          },
+          onError: (err) => console.error("Brick erro:", err),
+        },
+      }
+    );
+  } catch (err) {
+    console.error("Falha ao criar Brick:", err);
+  }
 }
+
+
+watch(modalCartaoOpen, async (aberto) => {
+  if (aberto) {
+    await nextTick();
+    if (mpLoaded.value) renderizarCardPaymentBrick();
+  } else {
+    if (cardPaymentBrick.value) fecharBrick();
+  }
+});
+
+
 
 async function comprar() {
   if (!carrinhoUser.value.length) {
@@ -1479,23 +1489,22 @@ onMounted(async () => {
   
  
   
-  if (window.MercadoPago) {
-    
-    await new Promise((resolve) => setTimeout(resolve, 50)); 
-    
-    mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
-    mpLoaded.value = true;
-
-   
-    if (isCartao.value) {
-      await nextTick();
+  if (!window.MercadoPago) {
+    const script = document.createElement("script");
+    script.src = "https://sdk.mercadopago.com/js/v2";
+    script.onload = () => {
+      mpInstance.value = new window.MercadoPago("APP_USR-842098d7-130d-481a-a80a-0925855f6f12", { locale: "pt-BR" });
+      mpLoaded.value = true;
       renderizarCardPaymentBrick();
-    }
+    };
+    document.body.appendChild(script);
   } else {
-    console.error("SDK do Mercado Pago não carregado!");
-    toast.error("Erro: SDK de Pagamento não carregado.");
+    mpInstance.value = new window.MercadoPago("APP_USR-842098d7-130d-481a-a80a-0925855f6f12", { locale: "pt-BR" });
+    mpLoaded.value = true;
+    renderizarCardPaymentBrick();
   }
-  
+
+  carregando.value = false;
 });
 
 async function carregarCarrinhoCompleto() {
