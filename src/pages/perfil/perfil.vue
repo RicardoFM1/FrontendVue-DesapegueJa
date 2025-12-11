@@ -249,18 +249,8 @@
                   />
 
                   <v-row dense>
-                    <v-col cols="4">
-                      <v-select
-                        :items="ddiOptions"
-                        v-model="usuario.ddi"
-                        item-title="text"
-                        item-value="value"
-                        label="DDI"
-                        variant="outlined"
-                        :rules="rulesDDI"
-                      />
-                    </v-col>
-                    <v-col cols="8">
+                
+                    <v-col cols="12">
                       <v-text-field
                         label="Telefone"
                         v-model="usuario.Telefone"
@@ -307,16 +297,22 @@
             </v-col>
             
             <v-col cols="12" md="6">
-               <v-col>
-                        <v-btn
-                        color="green"
-                        type="button"
-                        variant="flat"
-                        :loading="loadingCriarEndereco"
-                        @click="criarEndereco"
-                        >
-                        Adicionar
-                        </v-btn>
+              <v-card>
+                <v-card-title class="text-h5 text-center font-weight-bold">Endereços</v-card-title>
+              </v-card>
+               <v-col cols="12" sm="auto">
+                <div class="text-center d-flex justify-center align-center">
+
+                  <v-btn
+                  color="green"
+                  type="button"
+                  variant="flat"
+                  :loading="loadingCriarEndereco"
+                  @click="criarEndereco"
+                  >
+                  Adicionar
+                </v-btn>
+              </div>
                       </v-col>
             <v-expansion-panels v-if="endereco.length > 0" variant="accordion">
   <v-expansion-panel 
@@ -363,7 +359,7 @@
                     (item.rua = '')
                 "
                 placeholder="00000-00"
-                @input="onInputCep(item)"
+                @update:model-value="onInputCep(item, $event)"
                 variant="outlined"
                 density="comfortable"
                 maxlength="9"
@@ -1169,7 +1165,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, isReactive } from "vue";
 import { toast } from "vue3-toastify";
 import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
@@ -1296,15 +1292,7 @@ function formatarDataISO(iso) {
 }
 
 const formRef = ref(null);
-const ddiOptions = [
-  { text: "+1 EUA", value: "1" },
-  { text: "+34 Espanha", value: "34" },
-  { text: "+44 Reino Unido", value: "44" },
-  { text: "+49 Alemanha", value: "49" },
-  { text: "+52 México", value: "52" },
-  { text: "+55 Brasil", value: "55" },
-  { text: "+351 Portugal", value: "351" },
-];
+
 
 const usuario = ref({
   Nome: "",
@@ -1312,8 +1300,7 @@ const usuario = ref({
   senha: "",
   dataNascimento: "",
   CPF: "",
-  Telefone: "",
-  ddi: "55",
+  Telefone: ""
 });
 
 const endereco = ref([]);
@@ -1409,40 +1396,21 @@ const filtrarNumeros = () => {
   usuario.value.Telefone = valorFiltrado;
 };
 
-const formatCep = (value) => {
-  let numeros = value.replace(/\D/g, "").slice(0, 8);
+function formatCep(value) {
+  value = String(value ?? "");
 
-  let parte1 = numeros.slice(0, 5);
-  let parte2 = numeros.slice(5, 8);
-
-  if (parte2) return `${parte1}-${parte2}`;
-  return parte1;
-};
-
-function debounce(func, delay) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => func(...args), delay);
-  };
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .slice(0, 9);
 }
 
-const buscarEnderecoViaCep = async () => {
-  let cepNumeros = "";
 
-  if (endereco?.value?.cep) {
-    cepNumeros = endereco?.value?.cep?.replace(/\D/g, "");
-  } else {
-    return;
-  }
 
-  if (cepNumeros.length === 0) return;
-
-  if (cepNumeros.length !== 8) return;
-
+const buscarEnderecoViaCep = async (item, digits) => {
   try {
     const res = await connection.get(
-      `https://viacep.com.br/ws/${cepNumeros}/json/`
+      `https://viacep.com.br/ws/${digits}/json/`
     );
 
     if (res.data.erro) {
@@ -1450,22 +1418,37 @@ const buscarEnderecoViaCep = async () => {
       return;
     }
 
-    endereco.value.rua = res.data.logradouro || "";
-    endereco.value.bairro = res.data.bairro || "";
-    endereco.value.cidade = res.data.localidade || "";
-    endereco.value.estado = res.data.uf || "";
-  } catch (err) {
+    item.rua = res.data.logradouro || "";
+    item.bairro = res.data.bairro || "";
+    item.cidade = res.data.localidade || "";
+    item.estado = res.data.uf || "";
+
+    
+
+  } catch {
     toast.error("Erro ao buscar endereço via CEP");
   }
+  
 };
 
-const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
 
-watch(() => endereco.value.cep, buscarEnderecoViaCepDebounced);
+async function onInputCep(item, value) {
+  const raw = String(value ?? "");
+  const formatted = formatCep(raw);
 
-const onInputCep = (event) => {
-  endereco.value.cep = formatCep(event.target.value);
-};
+  item.cep = formatted;
+
+  const cepNumeros = formatted.replace(/\D/g, "");
+
+  if (cepNumeros.length !== 8) return;
+
+  await buscarEnderecoViaCep(item, cepNumeros);
+}
+
+
+
+
+
 
 const formatCPF = (value) => {
   let numeros = value.replace(/\D/g, "").slice(0, 11);
@@ -1530,15 +1513,11 @@ const getRetrieve = async () => {
 
     const telRaw = String(res.data.telefone || "").replace(/\D/g, "");
 
-    let ddi = "55";
     let numero = "";
 
-    if (telRaw.length > 11) {
-      ddi = telRaw.slice(0, telRaw.length - 11);
-      numero = telRaw.slice(-11);
-    } else {
+    
       numero = telRaw;
-    }
+  
 
     if (res.status === 200 && res.data) {
       retrieve.value = res.data;
@@ -1548,7 +1527,6 @@ const getRetrieve = async () => {
         email: res.data.email,
         senha: "",
         CPF: res.data.cpf,
-        ddi: ddi,
         Telefone: numero ? numero : "",
         dataNascimento: res.data.data_Nascimento || "",
       };
@@ -1793,7 +1771,7 @@ const salvarAlteracoes = async () => {
       nome: usuario.value.Nome,
       email: usuario.value.email,
       cpf: cpfFormatado,
-      telefone: usuario.value.ddi + telefoneLimpo,
+      telefone: telefoneLimpo,
       data_de_nascimento: usuario.value.dataNascimento,
       foto_de_perfil: imagemPerfil.value || null,
     };
@@ -1844,8 +1822,7 @@ const criarEndereco = async () => {
     if(res.status === 201 | res.status === 200){
       toast.success("Endereço adicionado")
       enderecosAMais.value += 1
-      getRetrieve();
-      getEnderecos();
+      await getEnderecos();
     }
   }catch(err){
     console.log(err, "erro ao adicionar endereço")

@@ -473,42 +473,6 @@
       </v-row>
     </v-container>
 
-    <v-dialog
-      v-model="modalCartaoOpen"
-      max-width="600px"
-      persistent
-      @after-enter="onModalOpened"
-      @after-leave="fecharBrick"
-    >
-      <v-card class="pa-6 rounded-xl">
-        <v-card-title class="text-h5 font-weight-bold mb-4">
-          Dados do Cartão
-        </v-card-title>
-
-        <div
-          id="cardPaymentBrickContainer"
-          style="min-height: 380px; display: block"
-        ></div>
-
-        <p class="mt-4 text-caption text-grey-darken-1">
-          Pagamento seguro processado diretamente pelo Mercado Pago.
-        </p>
-
-        <v-card-actions class="justify-end pt-4">
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="
-              modalCartaoOpen = false;
-              metodoPagamento = 'Pix';
-            "
-          >
-            Cancelar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <v-dialog max-width="450" v-model="modalConfirmacaoOpen" persistent>
       <v-card class="pa-6 rounded-xl elevation-10 text-center">
         <v-avatar color="red-lighten-5" size="70" class="mb-4">
@@ -781,7 +745,7 @@ const metodoEntrega = ref("combinar");
 const formasPagamento = ref([]);
 const metodoPagamento = ref("");
 
-const loadingComprar = ref(false);
+const loadingComprar = ref(false)
 const loadingEndereco = ref(false);
 const modalEndereco = ref(false);
 
@@ -803,12 +767,27 @@ const pagamentoUUID = ref("");
 const existePagamento = ref(false);
 const pagamentoUsuarioStatus = ref();
 
-const frete = computed(() => (metodoEntrega.value === "entrega" ? 1500 : 0));
+const freteDinamico = ref(0);
+const carregandoFrete = ref(false);
+const erroFrete = ref(false);
+const cepOrigemFixo = "SEU_CEP_DE_ORIGEM_AQUI";
+
+
+
+const frete = computed(() => freteDinamico.value);
 const subtotal = computed(() =>
   carrinhoUser.value.reduce(
     (acc, item) => acc + item.preco * item.quantidade,
     0
   )
+);
+
+
+watch(carrinhoUser, () => {
+  
+}, { deep: true, immediate: false });
+const isCartao = computed(() =>
+  metodoPagamento.value?.toLowerCase() === "cartão" ||  metodoPagamento.value?.toLowerCase() === "cartao"
 );
 const totalComFrete = computed(() => subtotal.value + frete.value);
 const readOnlyComCEP = computed(() => {
@@ -1052,17 +1031,23 @@ const salvarAlteracoesEndereco = async () => {
     loadingEndereco.value = false;
   }
 };
-const MP_PUBLIC_KEY = "APP_USR-842098d7-130d-481a-a80a-0925855f6f12";
+watch(metodoPagamento, async (novoMetodo) => {
+  if (novoMetodo?.toLowerCase() === "cartão" && mpLoaded.value) {
+   
+    await nextTick();
+
+    renderizarCardPaymentBrick();
+  } else {
+   
+    fecharBrick();
+  }
+});
+
+const MP_PUBLIC_KEY = "TEST-177e78dc-700a-4ae6-966f-20e8a6389fd5";
 
 const cardTokenGerado = ref("");
 const paymentMethodIdCartao = ref("");
-const modalCartaoOpen = ref(false);
 
-watch(metodoPagamento, () => {
-  if (metodoPagamento.value?.toLowerCase() === "cartão") {
-    modalCartaoOpen.value = true;
-  }
-});
 
 const cardToken = ref(null);
 const paymentMethodId = ref(null);
@@ -1070,13 +1055,11 @@ const mpInstance = ref(null);
 const mpLoaded = ref(false);
 const cardPaymentBrick = ref(null);
 
-/* ================================
-   ABERTURA DO MODAL
-=================================*/
+
 async function onModalOpened() {
   console.log("🎉 Modal aberto!");
 
-  // Aguarda o Vue renderizar os elementos do modal
+  
   await nextTick();
 
   if (!mpLoaded.value) {
@@ -1084,13 +1067,11 @@ async function onModalOpened() {
     return;
   }
 
-  // Renderiza o brick com segurança
+
   renderizarCardPaymentBrick();
 }
 
-/* ================================
-   FECHAR / DESTRUIR BRICK
-=================================*/
+
 async function fecharBrick() {
   try {
     await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
@@ -1127,7 +1108,7 @@ async function renderizarCardPaymentBrick() {
     return;
   }
 
-  // Aguarda DOM: container precisa existir
+  
   await nextTick();
 
   let container = document.getElementById("cardPaymentBrickContainer");
@@ -1138,7 +1119,6 @@ async function renderizarCardPaymentBrick() {
     return;
   }
 
-  // DESTROY seguro (com await)
   try {
     await mpInstance.value.bricks().destroy("cardPaymentBrickContainer");
   } catch {}
@@ -1146,13 +1126,14 @@ async function renderizarCardPaymentBrick() {
  
   await new Promise((r) => setTimeout(r, 150));
 
-  const valor = totalComFrete.value / 100;  // Novo: valor dinâmico
+  const valor = totalComFrete.value / 100;  
+  console.log(valor, "valor")
   cardPaymentBrick.value = await mpInstance.value.bricks().create(
     "cardPayment",
     "cardPaymentBrickContainer",
     {
       initialization: {
-        amount: valor  // Usa o valor correto
+        amount: valor
       },
       callbacks: {
         onReady: () => console.log("Brick pronto!"),
@@ -1163,7 +1144,7 @@ async function renderizarCardPaymentBrick() {
             try {
               const paymentMethods = await mpInstance.value.getPaymentMethods({ bin });
               console.log("Métodos de pagamento:", paymentMethods);
-              // Use os métodos conforme necessário
+             
             } catch (error) {
               console.error("Erro ao buscar métodos:", error);
             }
@@ -1495,14 +1476,26 @@ onMounted(async () => {
       pagamento.pagamentoUuid ||
       "";
   }
-  await nextTick(); 
+  
+ 
+  
+  if (window.MercadoPago) {
+    
+    await new Promise((resolve) => setTimeout(resolve, 50)); 
+    
+    mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
+    mpLoaded.value = true;
 
-  mpInstance.value = new window.MercadoPago(MP_PUBLIC_KEY, {
-    locale: "pt-BR",
-  });
-
-  console.log("✅ Mercado Pago inicializado com DOM pronta!");
-  mpLoaded.value = true;
+   
+    if (isCartao.value) {
+      await nextTick();
+      renderizarCardPaymentBrick();
+    }
+  } else {
+    console.error("SDK do Mercado Pago não carregado!");
+    toast.error("Erro: SDK de Pagamento não carregado.");
+  }
+  
 });
 
 async function carregarCarrinhoCompleto() {
