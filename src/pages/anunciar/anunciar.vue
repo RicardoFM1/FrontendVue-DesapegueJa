@@ -13,56 +13,95 @@
           Home
         </v-btn>
         <div class="d-flex align-center gap-2 mr-2">
-          
-          
-
-          <v-btn 
-            icon 
-            class="mr-2" 
+          <v-btn
+            icon
+            class="mr-2"
             @click="toCarrinho"
             :disabled="carregandoProdutos"
           >
-            <v-badge 
-              color="error" 
-              :content="carrinho.length" 
+            <v-badge
+              color="error"
+              :content="carrinho.length"
               v-if="carrinho.length > 0"
-              offset-x="-1" 
+              offset-x="-1"
               offset-y="-1"
             >
               <v-icon color="grey-darken-2">mdi-cart-outline</v-icon>
             </v-badge>
             <v-icon v-else color="grey-darken-2">mdi-cart-outline</v-icon>
           </v-btn>
-
-          
         </div>
 
-        <v-menu v-model="menu" offset-y location="bottom end" transition="scale-transition">
+        <v-menu
+          v-model="menu"
+          offset-y
+          location="bottom end"
+          transition="scale-transition"
+        >
           <template #activator="{ props }">
             <v-btn icon v-bind="props" class="ml-1">
-              <v-avatar size="40" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
-                <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
-                <span v-else class="text-white font-weight-bold">{{ avatarUsuario.texto }}</span>
+              <v-avatar
+                size="40"
+                :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+              >
+                <v-img
+                  v-if="avatarUsuario.tipo === 'imagem'"
+                  :src="avatarUsuario.src"
+                  cover
+                />
+                <span v-else class="text-white font-weight-bold">{{
+                  avatarUsuario.texto
+                }}</span>
               </v-avatar>
             </v-btn>
           </template>
 
           <v-card class="pa-4 rounded-xl" width="300" elevation="4">
             <div class="d-flex flex-column align-center mb-3">
-              <v-avatar size="80" class="mb-3" :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'">
-                <v-img v-if="avatarUsuario.tipo === 'imagem'" :src="avatarUsuario.src" cover />
-                <span v-else class="text-h4 text-white">{{ avatarUsuario.texto }}</span>
+              <v-avatar
+                size="80"
+                class="mb-3"
+                :color="avatarUsuario.tipo === 'imagem' ? '' : 'indigo'"
+              >
+                <v-img
+                  v-if="avatarUsuario.tipo === 'imagem'"
+                  :src="avatarUsuario.src"
+                  cover
+                />
+                <span v-else class="text-h4 text-white">{{
+                  avatarUsuario.texto
+                }}</span>
               </v-avatar>
-              <div class="text-h6 font-weight-bold text-truncate w-100 text-center">{{ usuario?.nome }}</div>
-              <div class="text-h6 text-grey text-truncate w-100 text-center">{{ usuario?.email }}</div>
+              <div
+                class="text-h6 font-weight-bold text-truncate w-100 text-center"
+              >
+                {{ usuario?.nome }}
+              </div>
+              <div class="text-h6 text-grey text-truncate w-100 text-center">
+                {{ usuario?.email }}
+              </div>
             </div>
 
             <v-divider class="mb-3"></v-divider>
 
-            <v-btn block variant="tonal" color="primary" class="mb-2 rounded-lg" prepend-icon="mdi-account" @click="toPerfil">
+            <v-btn
+              block
+              variant="tonal"
+              color="primary"
+              class="mb-2 rounded-lg"
+              prepend-icon="mdi-account"
+              @click="toPerfil"
+            >
               Meu Perfil
             </v-btn>
-            <v-btn block variant="outlined" color="error" class="rounded-lg" prepend-icon="mdi-logout" @click="buttonSairClicado = !buttonSairClicado">
+            <v-btn
+              block
+              variant="outlined"
+              color="error"
+              class="rounded-lg"
+              prepend-icon="mdi-logout"
+              @click="buttonSairClicado = !buttonSairClicado"
+            >
               Sair
             </v-btn>
           </v-card>
@@ -104,8 +143,6 @@
                   <v-btn class="btn" small @click="removerImagem">
                     ✖ Remover
                   </v-btn>
-
-                
                 </v-row>
               </v-row>
 
@@ -127,7 +164,7 @@
           <v-col cols="12" md="7">
             <v-row justify="space-between" align="center">
               <v-col cols="12">
-                <v-card  class="card pa-4" outlined>
+                <v-card class="card pa-4" outlined>
                   <v-card-title class="text-h6 font-weight-bold mb-4">
                     <v-icon start color="primary">mdi-format-list-text</v-icon>
                     Detalhes do Anúncio
@@ -228,6 +265,7 @@
                       variant="flat"
                       @click="validarAntesDeCriar"
                       :loading="carregando"
+                      
                     >
                       <v-icon start>mdi-tag-plus</v-icon> Anunciar Produto
                     </v-btn>
@@ -280,56 +318,81 @@
           </v-dialog>
 
           <v-dialog v-model="modal" max-width="700">
- <v-card class="card pa-4">
- <v-card-title class="headline text-h5 font-weight-bold">
- <v-icon start color="primary">mdi-check-circle-outline</v-icon>
-  Revisar e Confirmar Anúncio
- </v-card-title>
- <v-card-subtitle class="mt-2">Confirme os detalhes do seu produto antes de publicar.</v-card-subtitle>
- 
- <v-card-text class="mt-4">
- <v-row>
- <v-col cols="12" sm="4">
-  <v-img 
-  :src="previewImage || placeholderImage" 
-  height="180" 
- class="rounded-lg border"
- ></v-img>
- </v-col>
- <v-col cols="12" sm="8">
-  <div class="text-h6 font-weight-bold mb-2">{{ titulo }}</div>
- 
-  <div class="text-h5 font-weight-bold text-success">R$ {{ preco }}</div>
-  
-  <v-row class="mt-3" dense>
-   <v-chip class="ma-1" variant="tonal" color="primary" size="large">
-    <v-icon start>mdi-shape</v-icon> Categoria: {{ categoriasNome }}
-   </v-chip>
-   <v-chip class="ma-1" variant="tonal" color="info" size="large">
-  <v-icon start>mdi-package-variant-closed</v-icon> Estoque: {{ estoque }}
-   </v-chip>
-  </v-row>
-  
-  <div class="mt-4 text-subtitle-2 font-weight-medium">Descrição:</div>
-  <p class="text-body-2 text-medium-emphasis">{{ descricao || 'Nenhuma descrição fornecida.' }}</p>
- </v-col>
-</v-row>
-</v-card-text>
+            <v-card class="card pa-4">
+              <v-card-title class="headline text-h5 font-weight-bold">
+                <v-icon start color="primary">mdi-check-circle-outline</v-icon>
+                Revisar e Confirmar Anúncio
+              </v-card-title>
+              <v-card-subtitle class="mt-2"
+                >Confirme os detalhes do seu produto antes de
+                publicar.</v-card-subtitle
+              >
 
- <v-card-actions class="pt-0 pr-4 pb-4">
-  <v-spacer></v-spacer>
-  <v-btn variant="outlined" color="grey" @click="modal = false">Voltar e Editar</v-btn>
-  <v-btn 
-  color="primary" 
- variant="flat" 
-   :loading="loadingConfirmar" 
-  @click="confirmarAnuncio"
-  >
-   Publicar Anúncio
-  </v-btn>
- </v-card-actions>
- </v-card>
- </v-dialog>
+              <v-card-text class="mt-4">
+                <v-row>
+                  <v-col cols="12" sm="4">
+                    <v-img
+                      :src="previewImage || placeholderImage"
+                      height="180"
+                      class="rounded-lg border"
+                    ></v-img>
+                  </v-col>
+                  <v-col cols="12" sm="8">
+                    <div class="text-h6 font-weight-bold mb-2">
+                      {{ titulo }}
+                    </div>
+
+                    <div class="text-h5 font-weight-bold text-success">
+                      R$ {{ preco }}
+                    </div>
+
+                    <v-row class="mt-3" dense>
+                      <v-chip
+                        class="ma-1"
+                        variant="tonal"
+                        color="primary"
+                        size="large"
+                      >
+                        <v-icon start>mdi-shape</v-icon> Categoria:
+                        {{ categoriasNome }}
+                      </v-chip>
+                      <v-chip
+                        class="ma-1"
+                        variant="tonal"
+                        color="info"
+                        size="large"
+                      >
+                        <v-icon start>mdi-package-variant-closed</v-icon>
+                        Estoque: {{ estoque }}
+                      </v-chip>
+                    </v-row>
+
+                    <div class="mt-4 text-subtitle-2 font-weight-medium">
+                      Descrição:
+                    </div>
+                    <p class="text-body-2 text-medium-emphasis">
+                      {{ descricao || "Nenhuma descrição fornecida." }}
+                    </p>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+
+              <v-card-actions class="pt-0 pr-4 pb-4">
+                <v-spacer></v-spacer>
+                <v-btn variant="outlined" color="grey" @click="modal = false"
+                  >Voltar e Editar</v-btn
+                >
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  :loading="loadingConfirmar"
+                  @click="confirmarAnuncio"
+                >
+                  Publicar Anúncio
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-row>
       </v-form>
     </v-container>
@@ -350,6 +413,21 @@ const token = ref(localStorage.getItem("token") || "");
 const tokenExiste = ref(!!token.value);
 const retrieve = ref();
 const menu = ref(false);
+
+const carregandoTudo = computed(() => {
+  return carregando.value || carregandoEndereco.value;
+});
+
+const enderecoProntoParaAnuncio = computed(() => {
+  
+  const cepLimpo = String(enderecoUsuario.value?.cep || "").replace(/\D/g, "");
+  
+  return (
+    !carregandoEndereco.value &&
+    !!enderecoUsuario.value && 
+    cepLimpo.length >= 8
+  );
+});
 
 async function getRetrieve() {
   try {
@@ -433,15 +511,15 @@ async function getCarrinho() {
   }
 }
 onMounted(async () => {
-  if(!localStorage.getItem("token")){
-    router.push("/:pathMatch(.*)*")
-    return
+  if (!localStorage.getItem("token")) {
+    router.push("/:pathMatch(.*)*");
+    return;
   }
   await getCategorias();
   if (token.value) {
     await getRetrieve();
     await getCarrinho();
-    await getEndereco()
+    await getEndereco();
   }
 });
 
@@ -515,11 +593,12 @@ const avatarUsuario = computed(() => {
   return { tipo: "iniciais", texto: getIniciais(nome) };
 });
 
-const enderecoUsuario = ref()
-const enderecoAtivoUsuarioId = ref()
+const enderecoUsuario = ref({});
+const carregandoEndereco = ref(true);
 
 async function getEndereco() {
   try {
+    carregandoEndereco.value = true;
     const res = await connection.get(
       `/desapega/enderecos/usuario/ativo/${retrieve.value.id}`,
       {
@@ -527,29 +606,19 @@ async function getEndereco() {
       }
     );
     if (res?.status === 200 || res?.status === 201) {
-      console.log(res.data, "endereços 2")
+      console.log(res.data, "endereços 2");
       enderecoUsuario.value = res.data;
-      enderecoAtivoUsuarioId.value = res.data.id
       
-      Object.assign(enderecoForm.value, {
-        bairro: res.data.bairro || "",
-        cep: res.data.cep || "",
-        cidade: res.data.cidade || "",
-        estado: res.data.estado || "",
-        rua: res.data.rua || "",
-        complemento: res.data.complemento || "",
-        numero: res.data.numero || "",
-      });
     }
   } catch (err) {
     enderecoUsuario.value = null;
+  } finally {
+    carregandoEndereco.value = false;
   }
 }
 
 const buttonSairClicado = ref(false);
 const loadingLogout = ref(false);
-
-
 
 function toPerfil() {
   if (tokenExiste.value == false) {
@@ -606,6 +675,10 @@ async function validarAntesDeCriar() {
 
 const loadingConfirmar = ref(false);
 
+watch(enderecoUsuario, () => {
+  console.log(enderecoUsuario.value, "end user")
+})
+
 async function confirmarAnuncio() {
   loadingConfirmar.value = true;
 
@@ -626,58 +699,55 @@ async function confirmarAnuncio() {
       return toast.error("Selecione uma categoria");
     }
 
-   if (!imagem.value) {
-            return toast.error("Envie uma imagem PNG ou JPEG válida");
-        }
+    if (!imagem.value) {
+      return toast.error("Envie uma imagem PNG ou JPEG válida");
+    }
 
-       
-        if (!enderecoUsuario.value) {
-            toast.error("Você precisa ter um endereço ativo cadastrado antes de anunciar um produto!");
-            return;
-        }
+    console.log("Validando Endereço:", enderecoUsuario.value); 
+    const cepLimpo = String(enderecoUsuario.value?.cep || "").replace(/\D/g, "");
 
-        const cep = enderecoUsuario.value.cep;
-        
-      
-        if (!cep || cep.length < 8) {
-             toast.error("Registre um CEP válido no seu endereço principal antes de anunciar um produto!");
-             return;
-        }
+    if (
+      !enderecoUsuario.value ||
+      !cepLimpo ||
+      cepLimpo.length < 8
+    ) {
+      toast.error(
+        "O endereço principal está inválido. Verifique seu perfil e tente novamente."
+      );
+      return; 
+    }
 
+    const body = {
+      usuario_id: retrieve.value?.id,
+      nome: titulo.value,
+      data_post: new Date().toISOString().slice(0, 19).replace("T", " "),
+      preco: preco.value * 100,
+      descricao: descricao.value,
+      categoria_id: categoria.value,
+      estoque: estoque.value,
+      imagem: imagem.value,
+    };
 
-       
-        const body = {
-            usuario_id: retrieve.value?.id,
-            nome: titulo.value,
-            data_post: new Date().toISOString().slice(0, 19).replace("T", " "),
-            preco: preco.value * 100,
-            descricao: descricao.value,
-            categoria_id: categoria.value,
-            estoque: estoque.value,
-            imagem: imagem.value,
-        };
+    const res = await connection.post("/desapega/produtos", body, {
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+      },
+    });
 
-        const res = await connection.post("/desapega/produtos", body, {
-            headers: {
-                Authorization: `Bearer ${token.value}`,
-            },
-        });
+    if (res?.status === 200 || res?.status === 201) {
+      toast.success("Produto anunciado com sucesso!");
+      modal.value = false;
+    } else {
+      toast.error("Erro inesperado ao anunciar o produto");
+    }
+  } catch (err) {
+    console.error("Erro ao anunciar:", err);
+    const msg =
+      err.response?.data?.message ||
+      err.message ||
+      "Erro inesperado ao anunciar o produto";
 
-        if (res?.status === 200 || res?.status === 201) {
-            toast.success("Produto anunciado com sucesso!");
-            modal.value = false;
-        
-        } else {
-            toast.error("Erro inesperado ao anunciar o produto");
-        }
-    } catch (err) {
-        console.error("Erro ao anunciar:", err);
-        const msg =
-            err.response?.data?.message ||
-            err.message ||
-            "Erro inesperado ao anunciar o produto";
-
-        toast.error(msg);
+    toast.error(msg);
   } finally {
     loadingConfirmar.value = false;
     titulo.value = "";
@@ -700,11 +770,11 @@ function carregarImagem(event) {
   const arquivo = event.target.files[0];
   if (!arquivo) return;
 
- if (!arquivo.type.includes("png") && !arquivo.type.includes("jpeg")) {
+  if (!arquivo.type.includes("png") && !arquivo.type.includes("jpeg")) {
     toast.error("Apenas imagens PNG e JPEG são permitidas.");
     event.target.value = "";
     return;
-}
+  }
 
   if (arquivo.size > 5 * 1024 * 1024) {
     toast.error("A imagem deve ter no máximo 5MB.");
