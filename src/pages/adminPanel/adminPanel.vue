@@ -1534,6 +1534,7 @@ const endereco = ref({
   Bairro: "",
   Rua: "",
   Numero: "",
+  tipo_de_endereco: "",
   Logradouro: "",
   Complemento: "",
   Status: "",

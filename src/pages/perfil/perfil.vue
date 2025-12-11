@@ -1407,15 +1407,6 @@ function formatCep(value) {
 
 
 
-function debounce(func, delay = 500) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => func(...args), delay);
-  };
-}
-
-
 const buscarEnderecoViaCep = async (item, digits) => {
   try {
     const res = await connection.get(
