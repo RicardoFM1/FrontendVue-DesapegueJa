@@ -1,5 +1,5 @@
 <template>
-  <v-app v-if="tokenExiste">
+  <v-app v-if="tokenExiste && retrieve?.admin === true">
     <v-main class="bg-grey-lighten-4">
       <v-container fluid class="pa-6">
         <v-row>
@@ -2585,11 +2585,11 @@ watch(
 );
 
 onMounted(async () => {
-  if (!localStorage.getItem("token") || retrieve?.value.admin === false) {
+  await getRetrieve();
+  if (!localStorage.getItem("token") || retrieve?.value.admin == false) {
     router.push("/:pathMatch(.*)*");
     return;
   }
-  await getRetrieve();
   loadDataForTab(activeTab.value);
   await getCategorias();
 });
