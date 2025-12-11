@@ -297,16 +297,22 @@
             </v-col>
             
             <v-col cols="12" md="6">
-               <v-col>
-                        <v-btn
-                        color="green"
-                        type="button"
-                        variant="flat"
-                        :loading="loadingCriarEndereco"
-                        @click="criarEndereco"
-                        >
-                        Adicionar
-                        </v-btn>
+              <v-card>
+                <v-card-title class="text-h5 text-center font-weight-bold">Endereços</v-card-title>
+              </v-card>
+               <v-col cols="12" sm="auto">
+                <div class="text-center d-flex justify-center align-center">
+
+                  <v-btn
+                  color="green"
+                  type="button"
+                  variant="flat"
+                  :loading="loadingCriarEndereco"
+                  @click="criarEndereco"
+                  >
+                  Adicionar
+                </v-btn>
+              </div>
                       </v-col>
             <v-expansion-panels v-if="endereco.length > 0" variant="accordion">
   <v-expansion-panel 
@@ -353,7 +359,7 @@
                     (item.rua = '')
                 "
                 placeholder="00000-00"
-                @input="onInputCep(item)"
+                @update:model-value="onInputCep(item, $event)"
                 variant="outlined"
                 density="comfortable"
                 maxlength="9"
@@ -1159,7 +1165,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, isReactive } from "vue";
 import { toast } from "vue3-toastify";
 import { connection } from "@/connection/axiosConnection";
 import { useRouter } from "vue-router";
@@ -1390,17 +1396,18 @@ const filtrarNumeros = () => {
   usuario.value.Telefone = valorFiltrado;
 };
 
-const formatCep = (value) => {
-  let numeros = value.replace(/\D/g, "").slice(0, 8);
+function formatCep(value) {
+  value = String(value ?? "");
 
-  let parte1 = numeros.slice(0, 5);
-  let parte2 = numeros.slice(5, 8);
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .slice(0, 9);
+}
 
-  if (parte2) return `${parte1}-${parte2}`;
-  return parte1;
-};
 
-function debounce(func, delay) {
+
+function debounce(func, delay = 500) {
   let timer;
   return (...args) => {
     clearTimeout(timer);
@@ -1408,22 +1415,11 @@ function debounce(func, delay) {
   };
 }
 
-const buscarEnderecoViaCep = async () => {
-  let cepNumeros = "";
 
-  if (endereco?.value?.cep) {
-    cepNumeros = endereco?.value?.cep?.replace(/\D/g, "");
-  } else {
-    return;
-  }
-
-  if (cepNumeros.length === 0) return;
-
-  if (cepNumeros.length !== 8) return;
-
+const buscarEnderecoViaCep = async (item, digits) => {
   try {
     const res = await connection.get(
-      `https://viacep.com.br/ws/${cepNumeros}/json/`
+      `https://viacep.com.br/ws/${digits}/json/`
     );
 
     if (res.data.erro) {
@@ -1431,22 +1427,37 @@ const buscarEnderecoViaCep = async () => {
       return;
     }
 
-    endereco.value.rua = res.data.logradouro || "";
-    endereco.value.bairro = res.data.bairro || "";
-    endereco.value.cidade = res.data.localidade || "";
-    endereco.value.estado = res.data.uf || "";
-  } catch (err) {
+    item.rua = res.data.logradouro || "";
+    item.bairro = res.data.bairro || "";
+    item.cidade = res.data.localidade || "";
+    item.estado = res.data.uf || "";
+
+    
+
+  } catch {
     toast.error("Erro ao buscar endereço via CEP");
   }
+  
 };
 
-const buscarEnderecoViaCepDebounced = debounce(buscarEnderecoViaCep, 500);
 
-watch(() => endereco.value.cep, buscarEnderecoViaCepDebounced);
+async function onInputCep(item, value) {
+  const raw = String(value ?? "");
+  const formatted = formatCep(raw);
 
-const onInputCep = (event) => {
-  endereco.value.cep = formatCep(event.target.value);
-};
+  item.cep = formatted;
+
+  const cepNumeros = formatted.replace(/\D/g, "");
+
+  if (cepNumeros.length !== 8) return;
+
+  await buscarEnderecoViaCep(item, cepNumeros);
+}
+
+
+
+
+
 
 const formatCPF = (value) => {
   let numeros = value.replace(/\D/g, "").slice(0, 11);
