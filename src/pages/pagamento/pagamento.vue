@@ -653,7 +653,7 @@ onMounted(async () => {
     subtotal.value = carrinhoUser.value.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
 
  
-    const resEndereco = await connection.get(`/desapega/enderecos/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
+    const resEndereco = await connection.get(`/desapega/enderecos/usuario/ativo/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
     enderecoUsuario.value = resEndereco.data;
 
     const resOrdem = await connection.get(`/desapega/ordemCompra/usuario/${retrieve.value.id}`, { headers: { Authorization: `Bearer ${token.value}` } });
