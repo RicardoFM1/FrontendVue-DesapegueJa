@@ -441,6 +441,7 @@ onMounted(async () => {
   if (token.value) {
     await getRetrieve();
     await getCarrinho();
+    await getEndereco()
   }
 });
 
@@ -514,8 +515,41 @@ const avatarUsuario = computed(() => {
   return { tipo: "iniciais", texto: getIniciais(nome) };
 });
 
+const enderecoUsuario = ref()
+const enderecoAtivoUsuarioId = ref()
+
+async function getEndereco() {
+  try {
+    const res = await connection.get(
+      `/desapega/enderecos/usuario/ativo/${retrieve.value.id}`,
+      {
+        headers: { Authorization: `Bearer ${token.value}` },
+      }
+    );
+    if (res?.status === 200 || res?.status === 201) {
+      console.log(res.data, "endereços 2")
+      enderecoUsuario.value = res.data;
+      enderecoAtivoUsuarioId.value = res.data.id
+      
+      Object.assign(enderecoForm.value, {
+        bairro: res.data.bairro || "",
+        cep: res.data.cep || "",
+        cidade: res.data.cidade || "",
+        estado: res.data.estado || "",
+        rua: res.data.rua || "",
+        complemento: res.data.complemento || "",
+        numero: res.data.numero || "",
+      });
+    }
+  } catch (err) {
+    enderecoUsuario.value = null;
+  }
+}
+
 const buttonSairClicado = ref(false);
 const loadingLogout = ref(false);
+
+
 
 function toPerfil() {
   if (tokenExiste.value == false) {
@@ -592,42 +626,58 @@ async function confirmarAnuncio() {
       return toast.error("Selecione uma categoria");
     }
 
-    if (!imagem.value) {
-      return toast.error("Envie uma imagem PNG ou JPEG válida");
-    }
+   if (!imagem.value) {
+            return toast.error("Envie uma imagem PNG ou JPEG válida");
+        }
 
-    const body = {
-      usuario_id: retrieve.value?.id,
-      nome: titulo.value,
-      data_post: new Date().toISOString().slice(0, 19).replace("T", " "),
-      preco: preco.value * 100,
-      descricao: descricao.value,
-      categoria_id: categoria.value,
-      estoque: estoque.value,
-      imagem: imagem.value,
-    };
+       
+        if (!enderecoUsuario.value) {
+            toast.error("Você precisa ter um endereço ativo cadastrado antes de anunciar um produto!");
+            return;
+        }
 
-    const res = await connection.post("/desapega/produtos", body, {
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+        const cep = enderecoUsuario.value.cep;
+        
+      
+        if (!cep || cep.length < 8) {
+             toast.error("Registre um CEP válido no seu endereço principal antes de anunciar um produto!");
+             return;
+        }
 
-    if (res?.status === 200 || res?.status === 201) {
-      toast.success("Produto anunciado com sucesso!");
-      modal.value = false;
-    } else {
-      toast.error("Erro inesperado ao anunciar o produto");
-    }
-  } catch (err) {
-    console.error("Erro ao anunciar:", err);
 
-    const msg =
-      err.response?.data?.message ||
-      err.message ||
-      "Erro inesperado ao anunciar o produto";
+       
+        const body = {
+            usuario_id: retrieve.value?.id,
+            nome: titulo.value,
+            data_post: new Date().toISOString().slice(0, 19).replace("T", " "),
+            preco: preco.value * 100,
+            descricao: descricao.value,
+            categoria_id: categoria.value,
+            estoque: estoque.value,
+            imagem: imagem.value,
+        };
 
-    toast.error(msg);
+        const res = await connection.post("/desapega/produtos", body, {
+            headers: {
+                Authorization: `Bearer ${token.value}`,
+            },
+        });
+
+        if (res?.status === 200 || res?.status === 201) {
+            toast.success("Produto anunciado com sucesso!");
+            modal.value = false;
+        
+        } else {
+            toast.error("Erro inesperado ao anunciar o produto");
+        }
+    } catch (err) {
+        console.error("Erro ao anunciar:", err);
+        const msg =
+            err.response?.data?.message ||
+            err.message ||
+            "Erro inesperado ao anunciar o produto";
+
+        toast.error(msg);
   } finally {
     loadingConfirmar.value = false;
     titulo.value = "";
