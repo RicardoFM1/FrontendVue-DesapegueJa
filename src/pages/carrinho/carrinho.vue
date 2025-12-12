@@ -418,10 +418,7 @@
                 </p>
               </v-alert>
             </v-expand-transition>
-<div>
-  <h2>Pagar com cartão</h2>
-  <div id="cardPaymentBrick" style="min-height: 300px;"></div>
-</div>
+
             <v-btn
               v-if="existePagamento"
               color="blue-darken-1"
