@@ -245,7 +245,7 @@ const onSubmit = async (e) => {
 
 const loginGoogle = () => {
   window.location.href =
-    "https://localhost:7000/desapega/usuarios/login-google";
+    "https://desapegueja-backend-1.onrender.com/desapega/usuarios/login-google";
 };
 
 
