@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import axios from "axios";
 
 function isTokenExpired(token) {
@@ -11,7 +12,7 @@ function isTokenExpired(token) {
 }
 
 export const connection = axios.create({
-  baseURL: "https://localhost:7000/",
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
