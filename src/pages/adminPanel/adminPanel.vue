@@ -1,5 +1,5 @@
 <template>
-  <v-app v-if="tokenExiste && retrieve?.admin === true">
+  <v-app v-if="tokenExiste">
     <v-main class="bg-grey-lighten-4">
       <v-container fluid class="pa-6">
         <v-row>
